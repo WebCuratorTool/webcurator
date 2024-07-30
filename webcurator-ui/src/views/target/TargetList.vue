@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { watch } from 'vue'
 import { useRouter } from 'vue-router';
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
@@ -8,7 +8,7 @@ import { formatDatetime } from '@/utils/helper'
 import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
 import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
-import { useTargetListSearchStore, useTargetListFiltertore } from '@/stores/targetList';
+import { useTargetListDataStore } from '@/stores/targetList';
 
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -25,91 +25,7 @@ const userProfile = useUserProfileStore()
 const users = useUsersStore()
 const agencies = useAgenciesStore()
 
-const searchTerms = useTargetListSearchStore()
-const filters = useTargetListFiltertore()
-
-const targetList = ref([])
-const loadingTargetList = ref(false)
-const filteredTargetList = ref()
-const filter = () => {
-  loadingTargetList.value = true;
-
-  const ret = [];
-  for (let idx = 0; idx < targetList.value.length; idx++) {
-    const target: any = targetList.value[idx];
-    if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.name) {
-      continue;
-    }
-
-    if (filters.selectedUser.code !== "" && target.owner !== filters.selectedUser.code) {
-      continue;
-    }
-
-    let isInSelectedStates = false;
-    for (const idx in filters.selectedState) {
-      const stateOption: any = filters.selectedState[idx];
-      if (target.state === stateOption.code) {
-        isInSelectedStates = true;
-        break;
-      }
-    }
-    if (filters.selectedState.length > 0 && !isInSelectedStates) {
-      continue;
-    }
-    ret.push(target);
-  }
-  filteredTargetList.value = ret;
-  loadingTargetList.value = false;
-}
-
-const resetFilter = () => {
-  filters.selectedUser = {
-    name: userProfile.currUserName,
-    code: userProfile.name
-  }
-
-  filters.selectedAgency = {
-    name: userProfile.agency,
-    code: userProfile.agency
-  }
-
-  filters.selectedState = [];
-
-  filter();
-}
-
-const search = () => {
-  const searchConditions = {
-    targetId: searchTerms.targetId,
-    name: searchTerms.targetName,
-    seed: searchTerms.targetSeed,
-    description: searchTerms.targetDescription,
-    groupName: searchTerms.targetMemberOf,
-    nonDisplayOnly: searchTerms.noneDisplayOnly,
-  }
-
-  const searchParams = {
-    filter: searchConditions,
-    offset: 0,
-    limit: 0,
-    sortBy: 'creationDate,asc'
-  }
-
-  loadingTargetList.value = true
-  rest
-    .post('targets', searchParams)
-    .then((data: any) => {
-      console.log(data)
-      targetList.value = data['targets']
-      console.log(targetList.value)
-      filter();
-      loadingTargetList.value = false
-    })
-    .catch((err: any) => {
-      console.log(err.message)
-      loadingTargetList.value = false
-    })
-}
+const targetListData = useTargetListDataStore()
 
 const createNew = () => {
   if (router) {
@@ -131,24 +47,20 @@ const deleteTarget = (id: number) => {
         .delete('targets/' + id, {})
         .then((rsp: any) => {
           toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
-          search();
+          targetListData.search();
         })
         .catch((err: any) => {
           toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
         })
     }
   })
-
 }
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
-  resetFilter();
+  targetListData.resetFilter();
 });
 
-onMounted(() => {
-  search();
-});
 </script>
 
 <template>
@@ -166,30 +78,30 @@ onMounted(() => {
           <div class="p-fluid formgrid grid" id="grid-search">
             <div class="field col-12 md:col-2">
               <label>Target ID</label>
-              <InputNumber v-model="searchTerms.targetId" :useGrouping="false" />
+              <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Target Name</label>
-              <InputText v-model="searchTerms.targetName" type="text" />
+              <InputText v-model="targetListData.searchTerms.targetName" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Seed</label>
-              <InputText v-model="searchTerms.targetSeed" type="text" />
+              <InputText v-model="targetListData.searchTerms.targetSeed" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Description</label>
-              <InputText v-model="searchTerms.targetDescription" type="text" />
+              <InputText v-model="targetListData.searchTerms.targetDescription" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Member of</label>
-              <InputText v-model="searchTerms.targetMemberOf" type="text" />
+              <InputText v-model="targetListData.searchTerms.targetMemberOf" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Non-Display Only</label>
               <InputGroup>
                 <InputGroupAddon>Option</InputGroupAddon>
                 <InputGroupAddon>
-                  <Checkbox v-model="searchTerms.noneDisplayOnly" :binary="true" />
+                  <Checkbox v-model="targetListData.searchTerms.noneDisplayOnly" :binary="true" />
                 </InputGroupAddon>
               </InputGroup>
             </div>
@@ -198,7 +110,7 @@ onMounted(() => {
 
         <div class="col-2">
           <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button"
-            @click="search()"></Button>
+            @click="targetListData.search()"></Button>
         </div>
       </div>
 
@@ -206,11 +118,11 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>Agency</InputGroupAddon>
-            <Dropdown id="agency" v-model="filters.selectedAgency" :options="agencies.agencyListWithEmptyItem"
+            <Dropdown id="agency" v-model="targetListData.filters.selectedAgency" :options="agencies.agencyListWithEmptyItem"
               optionLabel="name" placeholder="Select an Agency" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
-                  <div>{{ filters.selectedAgency.name }}</div>
+                  <div>{{ targetListData.filters.selectedAgency.name }}</div>
                 </div>
               </template>
               <template #option="slotProps">
@@ -224,11 +136,11 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>User</InputGroupAddon>
-            <Dropdown id="user" v-model="filters.selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
+            <Dropdown id="user" v-model="targetListData.filters.selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
               placeholder="Select an User" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
-                  <div>{{ filters.selectedUser.name }}</div>
+                  <div>{{ targetListData.filters.selectedUser.name }}</div>
                 </div>
               </template>
               <template #option="slotProps">
@@ -243,17 +155,17 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>State</InputGroupAddon>
-            <MultiSelect v-model="filters.selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
+            <MultiSelect v-model="targetListData.filters.selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
               :maxSelectedLabels="3" class="w-full md:w-20rem" />
           </InputGroup>
         </div>
 
         <div class="field">
-          <Button @click="resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times"
+          <Button @click="targetListData.resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times"
             class="wct-secondary-button" />
         </div>
         <div class="field">
-          <Button @click="filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" class="wct-secondary-button" />
+          <Button @click="targetListData.filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" class="wct-secondary-button" />
         </div>
       </div>
     </div>
@@ -261,8 +173,8 @@ onMounted(() => {
     <Divider type="dotted" />
 
     <!-- <div class="col-12 surface-section"> -->
-    <DataTable class="w-full" :value="filteredTargetList" size="small" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 50, 100]" dataKey="oid"
-      :rowHover="true" filterDisplay="menu" :loading="loadingTargetList"
+    <DataTable class="w-full" :value="targetListData.filteredTargetList" size="small" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 50, 100]" dataKey="oid"
+      :rowHover="true" filterDisplay="menu" :loading="targetListData.loadingTargetList"
       :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']" resizableColumns
       columnResizeMode="fit" showGridlines>
       <template #header>
