@@ -96,8 +96,8 @@ export const useUsersStore = defineStore('users', () => {
     rest.get("users").then((rsp: any) => {
       data.value = rsp["users"];
 
-      for (var i = 0; i < data.value.length; i++) {
-        var user: any = data.value[i];
+      for (let i = 0; i < data.value.length; i++) {
+        const user: any = data.value[i];
         if (user.name === userProfile.name) {
           userProfile.setBasicData(user);
         }
@@ -109,8 +109,8 @@ export const useUsersStore = defineStore('users', () => {
 
   const userList = computed(() => {
     const formatedData = [];
-    for (var i = 0; i < data.value.length; i++) {
-      var user: any = data.value[i];
+    for (let i = 0; i < data.value.length; i++) {
+      const user: any = data.value[i];
       formatedData.push({
         "name": user.firstName + " " + user.lastName + " (" + user.name + ")",
         "code": user.name,
@@ -125,8 +125,11 @@ export const useUsersStore = defineStore('users', () => {
       "code": "",
     }];
 
-    for (var i = 0; i < data.value.length; i++) {
-      var user: any = data.value[i];
+    for (let i = 0; i < data.value.length; i++) {
+      const user: any = data.value[i];
+      if(user.name === "bootstrap"){
+        continue;
+      }
       formatedData.push({
         "name": user.firstName + " " + user.lastName + " (" + user.name + ")",
         "code": user.name,
@@ -134,6 +137,9 @@ export const useUsersStore = defineStore('users', () => {
     }
     return formatedData;
   });
+
+  initialFetch();
+
   return { data, userList, userListWithEmptyItem, initialFetch }
 });
 
@@ -153,8 +159,8 @@ export const getPresentationUserName = (selectedUser: string | any) => {
 
   const users = useUsersStore();
   const data = users.data;
-  for (var i = 0; i < data.length; i++) {
-    var user: any = data[i];
+  for (let i = 0; i < data.length; i++) {
+    const user: any = data[i];
     if (user.name === userName) {
       return user.firstName + " " + user.lastName + " (" + user.name + ")";
     }
