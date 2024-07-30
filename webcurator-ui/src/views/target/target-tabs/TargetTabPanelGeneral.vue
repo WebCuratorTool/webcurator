@@ -26,6 +26,7 @@ const addSeedsModal = useDialog();
 
 const newSeed = ref({ seed: '', authorisations: [], primary: false });
 
+const addingSeeds = ref(false);
 const editingSeed = ref(0);
 const previousSeed = ref({});
 
@@ -149,21 +150,23 @@ const cancelEditSeed = () => {
   </WctTabViewPanel>
 
   <!-- Seeds -->
-  <h4>Seeds</h4>
+  <div class="flex justify-content-between">
+    <h4>Seeds</h4>
+    <Button v-if="editing && !addingSeeds" icon="pi pi-plus" label="Add" text @click="addingSeeds = true" />
+    <Button v-if="editing && addingSeeds" icon="pi pi-times" text @click="addingSeeds = false" />
+  </div>
   <WctTabViewPanel>
-    <div v-if="editing" class="mb-2">
-      <div class="flex justify-content-between">
+    <div v-if="editing && addingSeeds" class="mb-2 grid">
+      <div class="col-7">
         <p>Add Seed</p>
+        <InputText v-model="newSeed.seed" />
       </div>
-      <InputText v-model="newSeed.seed" />
-      <div class="mt-4">
-        <span class="line-height-0">Authorisation</span>
-        <div class="flex align-items-center">
-          <Dropdown :options="['Auto', 'Add Later']"/>
-          <div class="flex-shrink-0">
-            <Button icon="pi pi-plus" label="Add"  text @click="addSeed" />
-          </div>
-        </div>
+      <div class="col-3">
+        <p>Authorisation</p>
+        <Dropdown :options="['Auto', 'Add Later']"/>
+      </div>
+      <div class="col flex align-items-end">
+        <Button class="w-auto" icon="pi pi-plus" label="Add"  text @click="addSeed" />
       </div>
     </div>
 
@@ -193,7 +196,7 @@ const cancelEditSeed = () => {
           <Checkbox
               v-model="data.primary" 
               :binary="true"
-              :disabled="!editing" 
+              :disabled="!editing || editingSeed != data.id" 
           />
         </template>
       </Column>
