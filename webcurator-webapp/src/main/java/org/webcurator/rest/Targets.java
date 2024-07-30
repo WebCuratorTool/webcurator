@@ -1,10 +1,11 @@
 package org.webcurator.rest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,6 @@ import javax.validation.*;
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -40,7 +40,7 @@ import java.util.*;
 @RequestMapping(path = "/api/{version}/targets")
 public class Targets {
 
-    private static final int DEFAULT_PAGE_LIMIT = 10;
+    private static final int DEFAULT_PAGE_LIMIT = Integer.MAX_VALUE;
     private static final String DEFAULT_SORT_BY = "name,asc";
 
     // Response field names that are used more than once
@@ -48,7 +48,7 @@ public class Targets {
     private static final String OFFSET_FIELD = "offset";
     private static final String LIMIT_FIELD = "limit";
 
-    private static final Log logger = LogFactory.getLog(Targets.class);
+    private static final Logger log = LoggerFactory.getLogger(Targets.class);
 
     private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private Validator validator = factory.getValidator();
@@ -96,7 +96,7 @@ public class Targets {
         Integer limit = searchParams.getLimit();
         String sortBy = searchParams.getSortBy();
         try {
-            SearchResult searchResult = search(filter, offset, limit, sortBy);
+            SearchResult searchResult = this.search(filter, offset, limit, sortBy);
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("filter", filter);
             responseMap.put("targets", searchResult.targetSummaries);
@@ -666,7 +666,6 @@ public class Targets {
      * Handle the actual search using the old Target DAO search API
      */
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
-
         // defaults
         if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
@@ -694,42 +693,53 @@ public class Targets {
             }
         }
 
-        if (limit < 1) {
-            throw new BadRequestError("Limit must be positive");
+        if (limit <= 0) {
+//            throw new BadRequestError("Limit must be positive");
+            log.info("Rotate the limit to max int: {} -> {}", limit, Integer.MAX_VALUE);
+            limit = Integer.MAX_VALUE;
         }
         if (offset < 0) {
-            throw new BadRequestError("Offset may not be negative");
+//            throw new BadRequestError("Offset may not be negative");
+            log.info("Rotate the offset to zero: {} -> {}", offset, 0);
+            offset = 0;
         }
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
+        Pagination pagination = targetDAO.searchSummary(pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (Target t : (List<Target>) pagination.getList()) {
+        for (AbstractTargetSummaryView t : (List<AbstractTargetSummaryView>) pagination.getList()) {
             targetSummaries.add(getTargetSummary(t));
         }
+        pagination.close();
         return new SearchResult(pagination.getTotal(), targetSummaries);
     }
 
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(Target t) {
+    private HashMap<String, Object> getTargetSummary(AbstractTargetSummaryView t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
         targetSummary.put("creationDate", t.getCreationDate());
         targetSummary.put("name", t.getName());
-        targetSummary.put("agency", t.getOwner().getAgency().getName());
-        targetSummary.put("owner", t.getOwner().getUsername());
-        targetSummary.put("state", t.getState());
+        targetSummary.put("agency", t.getAgcName());
+        targetSummary.put("owner", t.getUserName());
+//        targetSummary.put("state", t.getState());
+        targetSummary.put("state", Integer.parseInt(t.getState()));
+
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        for (Seed s : t.getSeeds()) {
-            HashMap<String, Object> seed = new HashMap<>();
-            seed.put("seed", s.getSeed());
-            seed.put("primary", s.isPrimary());
-            seeds.add(seed);
+        if (!StringUtils.isEmpty(t.getSeedNames()) && !StringUtils.isEmpty(t.getSeedPrimaries())) {
+            String[] seedNames = t.getSeedNames().split(",");
+            String[] primaryFlags = t.getSeedPrimaries().split(",");
+            for (int idx = 0; idx < seedNames.length && idx < primaryFlags.length; idx++) {
+                HashMap<String, Object> seed = new HashMap<>();
+                seed.put("seed", seedNames[idx]);
+                seed.put("primary", primaryFlags[idx].trim().equals("1"));
+                seeds.add(seed);
+            }
         }
         targetSummary.put("seeds", seeds);
         return targetSummary;
