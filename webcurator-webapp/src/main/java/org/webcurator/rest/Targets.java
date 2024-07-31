@@ -40,7 +40,7 @@ import java.util.*;
 @RequestMapping(path = "/api/{version}/targets")
 public class Targets {
 
-    private static final int DEFAULT_PAGE_LIMIT = 10;
+    private static final int DEFAULT_PAGE_LIMIT = Integer.MAX_VALUE;
     private static final String DEFAULT_SORT_BY = "name,asc";
 
     // Response field names that are used more than once
@@ -668,7 +668,7 @@ public class Targets {
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
 
         // defaults
-        if (limit == null) {
+        if (limit == null || limit <= 0) {
             limit = DEFAULT_PAGE_LIMIT;
         }
         if (offset == null) {
