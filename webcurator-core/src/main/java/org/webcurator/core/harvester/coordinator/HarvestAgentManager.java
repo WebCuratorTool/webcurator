@@ -184,10 +184,14 @@ public class HarvestAgentManager {
 
     private void doHeartbeatRunning(HarvestAgentStatusDTO aStatus, TargetInstance ti, HarvesterStatus harvesterStatus, int harvestResultNumber) {
         String state = ti.getState();
-        if (state.equals(TargetInstance.STATE_PAUSED) || state.equals(TargetInstance.STATE_QUEUED)) {
+        if (state.equals(TargetInstance.STATE_PAUSED) || state.equals(TargetInstance.STATE_QUEUED) || state.equals(TargetInstance.STATE_STOPPING)) {
             if (state.equals(TargetInstance.STATE_QUEUED)) {
                 log.info("HarvestCoordinator: Target Instance state changed from Queued to Running for target instance {}", ti
                         .getOid().toString());
+            }
+            if (state.equals(TargetInstance.STATE_STOPPING)) {
+                log.info("HarvestCoordinator: Target Instance {} state changed from Stopping to Running (most likely resuming from a checkpoint)",
+                        ti.getOid().toString());
             }
             if (ti.getActualStartTime() == null) {
                 // This was not set up correctly when harvest was initiated

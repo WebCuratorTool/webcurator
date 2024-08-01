@@ -82,17 +82,24 @@ public interface DigitalAssetStore {
     List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
-     * Save an array of files to the digital asset store. The files are
+     * Save a list of files to the digital asset store. The files are
      * saved to the first harvest result, so this method should be used
      * only for files coming directly from the Harvest Agent.
      *
-     * @param targetInstanceName The OID of the target instance to save the files to.
-     * @param directory          The subdirectory under the target instance
-     *                           directory to which to save the files.
-     * @param path              The files to send to the asset store.
+     * @param digitalAssetStoreHarvestSaveDTOs encapsulates all relevant file info
      * @throws DigitalAssetStoreException if there are any errors.
      */
-    void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException;
+    void save(List<HarvestDTO> digitalAssetStoreHarvestSaveDTOs) throws DigitalAssetStoreException;
+
+    /**
+     * Save a file to the digital asset store. The files are
+     * saved to the first harvest result, so this method should be used
+     * only for files coming directly from the Harvest Agent.
+     *
+     * @param digitalAssetStoreHarvestSaveDTO encapsulates all relevant file info
+     * @throws DigitalAssetStoreException if there are any errors.
+     */
+//    void save(HarvestDTO digitalAssetStoreHarvestSaveDTO) throws DigitalAssetStoreException;
 
     /**
      * Initiate the indexing of a Harvest Result.

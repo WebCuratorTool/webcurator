@@ -12,6 +12,8 @@ import org.webcurator.test.BaseWCTTest;
 import org.webcurator.test.WCTTestUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreClient> {
     private final static String archivePath = "/org/webcurator/domain/model/core/archiveFiles";
@@ -63,7 +65,10 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
 
         for (File arcFile : arcFiles) {
             try {
-                dasClient.save("5050", "1", arcFile.toPath());
+                HarvestDTO dto = new HarvestDTO("5050", "1", arcFile.getAbsolutePath());
+                List<HarvestDTO> harvestDTOs = new ArrayList<>();
+                harvestDTOs.add(dto);
+                dasClient.save(harvestDTOs);
             } catch (DigitalAssetStoreException e) {
                 e.printStackTrace();
                 assert false;

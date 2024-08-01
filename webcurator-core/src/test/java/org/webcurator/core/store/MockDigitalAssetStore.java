@@ -74,29 +74,11 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
         return;
     }
 
-    public void save(String targetInstanceName, List<Path> paths)
-			throws DigitalAssetStoreException {
-		// TODO Auto-generated method stub
 
-	}
+    @Override
+    public void save(List<HarvestDTO> digitalAssetStoreHarvestSaveDTOs) throws DigitalAssetStoreException {
+    }
 
-	public void save(String targetInstanceName, Path path)
-			throws DigitalAssetStoreException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void save(String targetInstanceName, String directory, List<Path> paths)
-			throws DigitalAssetStoreException {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void save(String targetInstanceName, String directory, Path path)
-			throws DigitalAssetStoreException {
-		// TODO Auto-generated method stub
-
-	}
 
 	public void submitToArchive(String targetInstanceOid, String sip,
 			Map attributes, int harvestNumber)

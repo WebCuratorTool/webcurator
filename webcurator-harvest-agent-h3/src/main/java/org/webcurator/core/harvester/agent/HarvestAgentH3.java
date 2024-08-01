@@ -26,6 +26,7 @@ import org.webcurator.core.harvester.agent.filter.*;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.HarvestDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This is an Implementation of the HarvestAgent interface that uses Heritrix as the
@@ -383,14 +385,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
             try {
                 File[] fileList = getFileArray(digitalAssetsDirs, new NegateFilter(new ExtensionFileFilter(Constants.EXTN_OPEN_ARC)));
-                int numberOfFiles = fileList.length;
-
-                for (int i = 0; i < numberOfFiles; i++) {
-                    log.debug("Sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
-                    digitalAssetStore.save(aJob, Constants.DIR_ORIGINAL_HARVEST, fileList[i].toPath());
-                    log.debug("Finished sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
-                }
-
+                digitalAssetStore.save(createHarvestDTOs(aJob, Constants.DIR_ORIGINAL_HARVEST, fileList));
             } catch (Exception e) {
                 if (dirsExist(digitalAssetsDirs)) {
                     log.error("Failed to send harvest result to digital asset store for job " + aJob + ": " + e.getMessage(), e);
@@ -407,9 +402,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             try {
                 File[] fileList = getFileArray(((HarvesterH3)harvester).getHarvestLogDirs(), NotEmptyFileFilter.notEmpty(new RegexNameFilter(Constants.REGEX_LOGS)));
                 log.info("Sending harvest logs to digital asset store for job " + aJob);
-                for (int i = 0; i < fileList.length; i++) {
-                    digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i].toPath());
-                }
+                digitalAssetStore.save(createHarvestDTOs(aJob, Constants.DIR_LOGS, fileList));
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
                     log.error("Failed to send harvest logs to digital asset store for job " + aJob + ": " + e.getMessage(), e);
@@ -423,9 +416,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             try {
                 File[] fileList = getFileArray(((HarvesterH3)harvester).getHarvestReportDirs(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_REPORTS)), NotEmptyFileFilter.notEmpty(new ExactNameFilter(PROFILE_NAME)));
                 log.info("Sending harvest reports to digital asset store for job " + aJob);
-                for (int i = 0; i < fileList.length; i++) {
-                    digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i].toPath());
-                }
+                digitalAssetStore.save(createHarvestDTOs(aJob, Constants.DIR_REPORTS, fileList));
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
                     log.error("Failed to send harvest reports to digital asset store for job " + aJob + ": " + e.getMessage(), e);
@@ -733,6 +724,16 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     public void setProvenanceNote(String provenanceNote) {
         this.provenanceNote = provenanceNote;
+    }
+
+
+    private List<HarvestDTO> createHarvestDTOs(String targetInstanceName, String dir, File[] files) {
+        return Arrays.stream(files).map
+                                    (
+                                        f ->
+                                        new HarvestDTO( targetInstanceName, dir, f.getAbsolutePath())
+                                    )
+                                    .collect(Collectors.toList());
     }
 
     /**

@@ -15,22 +15,6 @@
  */
 package org.webcurator.core.store.arc;
 
-import static org.webcurator.core.archive.Constants.ARC_FILE;
-import static org.webcurator.core.archive.Constants.LOG_FILE;
-import static org.webcurator.core.archive.Constants.REPORT_FILE;
-import static org.webcurator.core.archive.Constants.ROOT_FILE;
-
-import it.unipi.di.util.ExternalSort;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.List;
-
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
@@ -47,6 +31,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.archive.Archive;
@@ -59,6 +44,7 @@ import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.HarvestDTO;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
@@ -74,9 +60,13 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
-import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
+import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
+import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -173,6 +163,68 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return targetDir.exists();
     }
 
+//    @Override
+//    public void save(@RequestBody HarvestDTO dto) throws DigitalAssetStoreException {
+//        List<HarvestDTO> dtos = new ArrayList<>();
+//        dtos.add(dto);
+//        save(dtos);
+//    }
+
+    @Override
+    public void save(@RequestBody List<HarvestDTO> dtos) throws DigitalAssetStoreException {
+
+        // Sort the DTOs by path, so we have a sensible way to assign numerals in case of duplicate filenames
+        Collections.sort(dtos, new Comparator<HarvestDTO>() {
+            @Override
+            public int compare(HarvestDTO dto1, HarvestDTO dto2) {
+                return dto1.getFilePath().compareTo(dto2.getFilePath());
+            }
+        });
+
+        // Keep track of duplicates
+        Map<String, Integer> filenameCount = new HashMap<>();
+
+        for (HarvestDTO dto : dtos) {
+            log.debug("Save harvest, {}", dto.toString());
+            File f = new File(dto.getFilePath());
+            String filename = f.getName();
+
+            String targetFilename = filename;
+            if (filenameCount.containsKey(filename)) { // This is a duplicate: change "A.something.something" to "A-<current count>.something.something"
+                int firstDotPos = targetFilename.indexOf('.');
+                if (firstDotPos == -1) {
+                    firstDotPos = targetFilename.length();
+                }
+                targetFilename = targetFilename.substring(0, firstDotPos) + "-" + filenameCount.get(filename) + targetFilename.substring(firstDotPos);
+            }
+            filenameCount.merge(filename, 1, Integer::sum);
+
+            if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
+                String link = String.format("%s%s?filePath=%s", dto.getHarvestBaseUrl(), WctCoordinatorPaths.DOWNLOAD, dto.getFilePath());
+                URLConnection conn = null;
+                try {
+                    URL url = URI.create(link).toURL();
+                    conn = url.openConnection();
+                    conn.setRequestProperty("Content-Type", "application/octet-stream");
+                    conn.setDoInput(true);
+                    conn.setDoOutput(true);
+
+                    save(dto.getTargetInstanceName(), dto.getDirectory(), targetFilename, conn.getInputStream());
+                } catch (IOException e) {
+                    throw new DigitalAssetStoreException(e);
+                } finally {
+                    if (conn != null) ((HttpURLConnection) conn).disconnect();
+                }
+            } else {
+                try (FileInputStream fis = new FileInputStream(dto.getFilePath())) {
+                    save(dto.getTargetInstanceName(), dto.getDirectory(), targetFilename, fis);
+                } catch (IOException e) {
+                    throw new DigitalAssetStoreException(e);
+                }
+            }
+        }
+    }
+
     /**
      * Read data from HTTP API and save to storage of store component
      *
@@ -218,52 +270,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
-    /**
-     * @see DigitalAssetStore#save(String, String, List<java.nio.file.Path>).
-     */
-    private void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
-        // Target destination is always baseDir plus targetInstanceName.
-        File targetDir = new File(baseDir, targetInstanceName);
-        String dir = directory + "/";
-
-        // Create the target dir if is doesn't exist. This will also
-        // create the parent if necessary.
-        if (!targetDir.exists()) {
-            targetDir.mkdirs();
-        }
-
-        // Move the ARC files into the /1 directory.
-        new File(targetDir, dir).mkdirs();
-        boolean success = true;
-        Exception failureException = null;
-
-        // Loop through all the files, but stop if any of them fail.
-        for (Path path : paths) {
-            File destination = new File(targetDir, "/" + dir + path.getFileName());
-            log.debug("Moving File to Store: " + path.toString() + " -> " + destination.getAbsolutePath());
-
-            try {
-                // FileUtils.copyFile(files[i], destination);
-                // DasFileMover fileMover = new InputStreamDasFileMover();
-                dasFileMover.moveFile(path.toFile(), destination);
-            } catch (IOException ex) {
-                log.error("Failed to move file " + path.toString() + " to " + destination.getAbsolutePath(), ex);
-                failureException = ex;
-                success = false;
-            }
-        }
-
-        // If the copy failed, throw an exception.
-        if (!success) {
-            throw new DigitalAssetStoreException("Failed to move Archive files to " + targetDir + "/" + dir, failureException);
-        }
-    }
-
-    @Override
-    public void save(String targetInstanceName, String directory, Path path)
-            throws DigitalAssetStoreException {
-        save(targetInstanceName, directory, Collections.singletonList(path));
-    }
 
     /**
      * @see DigitalAssetStore#getResource(String, int, HarvestResourceDTO).

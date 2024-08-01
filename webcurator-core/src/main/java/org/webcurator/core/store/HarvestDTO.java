@@ -2,12 +2,23 @@ package org.webcurator.core.store;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class DigitalAssetStoreHarvestSaveDTO {
+/**
+ * Wraps crawl artifacts for transfer between harvest agents and the store
+ */
+public class HarvestDTO {
     private String fileUploadMode;
     private String targetInstanceName;
     private String directory;
     private String filePath;
     private String harvestBaseUrl;
+
+    public HarvestDTO() {}
+
+    public HarvestDTO(String targetInstanceName, String directory, String filePath) {
+        this.targetInstanceName = targetInstanceName;
+        this.directory = directory;
+        this.filePath = filePath;
+    }
 
     public String getFileUploadMode() {
         return fileUploadMode;

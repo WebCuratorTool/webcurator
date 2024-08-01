@@ -19,6 +19,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,30 +36,30 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
     }
 
     @Override
-    public void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
-        try {
-            File file = path.toFile();
+    public void save(List<HarvestDTO> dtos) throws DigitalAssetStoreException {
+        for (HarvestDTO dto : dtos) {
+            File file = new File(dto.getFilePath());
             if (!file.exists() || !file.isFile()) {
-                throw new DigitalAssetStoreException("File does not exist: " + path);
+                throw new DigitalAssetStoreException("File does not exist: " + dto.getFilePath());
             }
-
-            DigitalAssetStoreHarvestSaveDTO dto = new DigitalAssetStoreHarvestSaveDTO();
             dto.setFileUploadMode(fileUploadMode);
-            dto.setTargetInstanceName(targetInstanceName);
-            dto.setDirectory(directory);
-            dto.setFilePath(file.getAbsolutePath());
             dto.setHarvestBaseUrl(harvestBaseUrl);
-
-            HttpEntity<String> requestBody = this.createHttpRequestEntity(dto);
-
+        }
+        try {
+            HttpEntity<String> requestBody = this.createHttpRequestEntity(dtos);
             RestTemplate restTemplate = restTemplateBuilder.build();
             restTemplate.postForEntity(getUrl(DigitalAssetStorePaths.SAVE), requestBody, Void.class);
         } catch (Exception e) {
-            log.error("Save file failed", e);
             throw new DigitalAssetStoreException(e);
         }
-
     }
+
+//    @Override
+//    public void save(HarvestDTO digitalAssetStoreHarvestSaveDTO) throws DigitalAssetStoreException {
+//        List<HarvestDTO> digitalAssetStoreHarvestSaveDTOs = new ArrayList<>();
+//        digitalAssetStoreHarvestSaveDTOs.add(digitalAssetStoreHarvestSaveDTO);
+//        save(digitalAssetStoreHarvestSaveDTOs);
+//    }
 
     @Override
     public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {

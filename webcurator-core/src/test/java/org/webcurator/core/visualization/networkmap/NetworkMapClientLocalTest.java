@@ -49,7 +49,7 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         if (allIDs.size() == 0) {
             return;
         }
-        int randomIndex = this.random(allIDs.size());
+        int randomIndex = this.random(allIDs.size() - 1);
         log.debug("size={}, randomIndex={}", allIDs.size(), randomIndex);
 
         List<ModifyRowFullData> nodes = new ArrayList<>();
