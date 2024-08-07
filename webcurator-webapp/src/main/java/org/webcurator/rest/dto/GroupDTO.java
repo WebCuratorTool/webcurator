@@ -139,7 +139,7 @@ public class GroupDTO {
         Date dateFrom;
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date dateTo;
-        int sipType;
+        int sipType = 1;
 
         public General() {}
 
