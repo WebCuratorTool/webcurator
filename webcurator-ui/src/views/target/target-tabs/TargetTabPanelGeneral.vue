@@ -182,11 +182,13 @@ const cancelEditSeed = () => {
       <Column field="authorisations" header="Harvset Auth">
         <template #body="{ data }">
           <div class="flex align-items-center">
-            <div v-for="authorisation in data.authorisations">
-              <span>{{ authorisation }}</span>
+            <div>
+              <div v-for="authorisation in data.authorisations">
+                {{ authorisation }}
+              </div>
             </div>
             <div class="flex-shrink-0">
-              <Button v-if="editing && editingSeed == data.id" label="Add" text @click="showAddHarvestAuth(data)" />
+              <Button v-if="editing && editingSeed == data.id" label="+/-" text @click="showAddHarvestAuth(data)" />
             </div>
           </div>
         </template>

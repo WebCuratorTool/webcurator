@@ -46,10 +46,6 @@ const isAuthAdded = (id: number) => {
     return seed.value.authorisations.some((authId: any) => authId == id);
 }
 
-const removeAuthorisation = (id: number) => {
-
-}
-
 onMounted(() => {
     seed.value = dialogRef.value.data.seed;
 })
