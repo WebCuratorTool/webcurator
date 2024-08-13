@@ -61,7 +61,7 @@ const navigateBack = () => {
   </div>
   <div class="main-content">
     <Loading v-if="loading" />
-    <TabView v-else class="tabview-custom">
+    <TabView v-else class="tabview-custom" :lazy=true>
       <TabPanel header="Genaral">
         <TargetTabPanelGeneral :editing="editing" />
       </TabPanel>

@@ -1,33 +1,28 @@
+import type { Annotation } from '@/types/annotation';
+
 interface Target {
-    general: TargetGeneral,
+    access: TargetAccess,
+    annotations: TargetAnnotations,
     description: TargetDescription,
+    general: TargetGeneral,
+    groups: TargetGroups
     profile: TargetProfile,
     seeds: TargetSeeds,
-    access: TargetAccess,
-    groups: TargetGroups
 }
 
-interface TargetGeneral {
-    id: number,
-    name: string,
-    creationDate: number,
-    description: string,
-    referenceNumber: string,
-    runOnApproval: boolean,
-    automatedQA: boolean,
-    selectedUser: string,
-    selectedState: {},
-    autoPrune: boolean,
-    referenceCrawl: boolean,
-    requestToArchivists: string,
-    nextStates: []
+interface TargetAccess {
+    displayTarget: boolean,
+    accessZone: number,
+    accessZoneText: string,
+    displayChangeReason: string,
+    displayNote: string
 }
 
-interface TargetSeeds {
-    id: number,
-    seed: string,
-    primary: boolean,
-    authorisations: []
+interface TargetAnnotations {
+    evaluationNote: string,
+    harvestType: string,
+    annotations: Array<Annotation>,
+    selection: []
 }
 
 interface TargetDescription {
@@ -47,19 +42,20 @@ interface TargetDescription {
     isbn: string,
 }
 
-interface TargetProfileOverride {
-    id: string;
-    value: string | number | boolean | any[];
-    enabled: boolean;
-    unit?: string; 
-}
-
-interface TargetProfile {
-    id: number | null,
-    harvesterType: string,
-    imported: boolean,
+interface TargetGeneral {
+    id: number,
     name: string,
-    overrides: Array<TargetProfileOverride>
+    creationDate: number,
+    description: string,
+    referenceNumber: string,
+    runOnApproval: boolean,
+    automatedQA: boolean,
+    selectedUser: string,
+    selectedState: {},
+    autoPrune: boolean,
+    referenceCrawl: boolean,
+    requestToArchivists: string,
+    nextStates: []
 }
 
 interface TargetGroup {
@@ -69,17 +65,32 @@ interface TargetGroup {
 
 interface TargetGroups extends Array<TargetGroup>{}
 
-interface TargetAccess {
-    displayTarget: boolean,
-    accessZone: number,
-    accessZoneText: string,
-    displayChangeReason: string,
-    displayNote: string
+interface TargetProfile {
+    id: number | null,
+    harvesterType: string,
+    imported: boolean,
+    name: string,
+    overrides: Array<TargetProfileOverride>
+}
+
+interface TargetProfileOverride {
+    id: string;
+    value: string | number | boolean | any[];
+    enabled: boolean;
+    unit?: string; 
+}
+
+interface TargetSeeds {
+    id: number,
+    seed: string,
+    primary: boolean,
+    authorisations: []
 }
 
 export type {
     Target,
     TargetAccess,
+    TargetAnnotations,
     TargetDescription,
     TargetGeneral,
     TargetGroup,

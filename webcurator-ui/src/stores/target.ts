@@ -1,7 +1,7 @@
 import { ref, computed} from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
+import { type Target, type TargetAccess, type TargetAnnotations, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -22,24 +22,24 @@ export const stateList = [
 ]
 
 export const initNewTarget = () => {
+    useTargetAccessDTO().initData();
+    useTargetAnnotationsDTO().initData();
     useTargetDescriptionDTO().initData();
     useTargetGeneralDTO().initData();
     useTargetGropusDTO().initData();
     useTargetProfileDTO().initData();
     useTargetSeedsDTO().initData();
     useNextStateStore().initData();
-    useTargetAccessDTO().initData();
 }
 
 export const setTarget = (target: Target) => {
-    console.log(target);
-    
+    useTargetAccessDTO().setData(target.access);
+    useTargetAnnotationsDTO().setData(target.annotations)
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);
     useTargetProfileDTO().setData(target.profile);
     useTargetSeedsDTO().setData(target.seeds);
-    useTargetAccessDTO().setData(target.access);
 }
 
 export const formatTargetState = (state: number | any) => {
@@ -372,4 +372,19 @@ export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
     const getData = () => targetAccess.value;
 
     return { targetAccess, initData, setData, getData }
+});
+
+export const useTargetAnnotationsDTO = defineStore('TargetAnnotationsDTO', () => {
+    const targetAnnotations = ref({} as TargetAnnotations);
+    
+    const initData = () => {
+        targetAnnotations.value = {} as TargetAnnotations;
+    }
+
+    const setData = (data: TargetAnnotations) => {
+        targetAnnotations.value = data;
+    }
+    const getData = () => targetAnnotations.value;
+
+    return { targetAnnotations, initData, setData, getData }
 });

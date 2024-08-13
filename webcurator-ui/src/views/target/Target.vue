@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import {
     setTarget,
+    useTargetAnnotationsDTO,
     useTargetDescriptionDTO,
     useTargetGeneralDTO,
     useTargetGropusDTO,
@@ -19,6 +20,7 @@ const targetId = route.params.id as string
 
 const rest: UseFetchApis = useFetch();
 
+const targetAnnotations = useTargetAnnotationsDTO();
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
 const targetDescription = useTargetDescriptionDTO();
@@ -54,6 +56,7 @@ const fetchTargetDetails = () => {
 
 const save = () => {
     const dataReq = {
+        annotations: targetAnnotations.getData(),
         general: targetGeneral.getData(),
         profile: targetProfile.getData(),
         description: targetDescription.getData(),
