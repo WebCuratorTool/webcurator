@@ -68,7 +68,6 @@ fetchTargetInstances();
   /* color: #fff; */
   /* font-size: 18px; */
   max-width: 50ch;
-  text-align: center;
 }
 .tooltip {
   /* triangle dimension */
