@@ -311,8 +311,8 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${abortHarvestOnScreenshotFailure}")
     private boolean abortHarvestOnScreenshotFailure;
 
-    @Value("${pywbIndexer.enable}")
-    private boolean pywbIndexerEnable;
+    @Value("${pywbIndexer.enabled}")
+    private boolean pywbIndexerEnabled;
 
     @Value("${pywbIndexer.individualCollectionMode}")
     private boolean individualCollectionMode;
@@ -543,7 +543,7 @@ public class DasConfig implements WebMvcConfigurer {
     @Bean
     public PywbIndexer pywbIndexer() {
         PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(pywbIndexerEnable);
+        bean.setEnabled(pywbIndexerEnabled);
         bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
         bean.setIndividualCollectionMode(individualCollectionMode);
