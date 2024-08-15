@@ -217,7 +217,7 @@ The harvest screenshot generation can work with OpenWayback or Pywb
         waybackIndexer.enabled=<true or false>
         
         #PYWB integration
-        pywbIndexer.enable=<true or false>
+        pywbIndexer.enabled=<true or false>
 
 Pywb implementation
 -------------------
