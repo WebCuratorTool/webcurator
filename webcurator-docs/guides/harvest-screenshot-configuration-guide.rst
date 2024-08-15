@@ -182,6 +182,10 @@ Enabling the screenshot generation feature
         enableScreenshots=true
         
     *Both these settings must be in sync to enable/disable the feature.*
+
+-   In WCT Store `application.properties` make sure cdxIndexer.enabled is set to true (this is the default).
+
+        cdxIndexer.enabled=true
        
 -   To stop harvests from crawling if a screenshot of the live website fails, set `abortHarvestOnScreenshotFailure` to 
     true.
