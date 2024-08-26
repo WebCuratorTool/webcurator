@@ -40,7 +40,7 @@ import java.util.*;
 @RequestMapping(path = "/api/{version}/targets")
 public class Targets {
 
-    private static final int DEFAULT_PAGE_LIMIT = Integer.MAX_VALUE;
+    private static final int DEFAULT_PAGE_LIMIT = 10;
     private static final String DEFAULT_SORT_BY = "name,asc";
 
     // Response field names that are used more than once
@@ -669,6 +669,8 @@ public class Targets {
         // defaults
         if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
+        } else if (limit == -1) {
+            limit = Integer.MAX_VALUE;
         }
         if (offset == null) {
             offset = 0;
@@ -694,14 +696,10 @@ public class Targets {
         }
 
         if (limit <= 0) {
-//            throw new BadRequestError("Limit must be positive");
-            log.info("Rotate the limit to max int: {} -> {}", limit, Integer.MAX_VALUE);
-            limit = Integer.MAX_VALUE;
+            throw new BadRequestError("Limit must be positive");
         }
         if (offset < 0) {
-//            throw new BadRequestError("Offset may not be negative");
-            log.info("Rotate the offset to zero: {} -> {}", offset, 0);
-            offset = 0;
+            throw new BadRequestError("Offset may not be negative");
         }
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
