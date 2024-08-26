@@ -52,23 +52,23 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
         for (let idx = 0; idx < targetList.value.length; idx++) {
             const target: any = targetList.value[idx];
             if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.name) {
-                continue;
+              continue;
             }
 
             if (filters.selectedUser.code !== "" && target.owner !== filters.selectedUser.code) {
-                continue;
+              continue;
             }
 
             let isInSelectedStates = false;
             for (const idx in filters.selectedState) {
-            const stateOption: any = filters.selectedState[idx];
-            if (target.state === stateOption.code) {
+              const stateOption: any = filters.selectedState[idx];
+              if (target.state === stateOption.code) {
                 isInSelectedStates = true;
                 break;
-            }
+              }
             }
             if (filters.selectedState.length > 0 && !isInSelectedStates) {
-            continue;
+              continue;
             }
             ret.push(target);
         }
