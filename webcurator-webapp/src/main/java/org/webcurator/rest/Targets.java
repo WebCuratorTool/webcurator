@@ -40,7 +40,7 @@ import java.util.*;
 @RequestMapping(path = "/api/{version}/targets")
 public class Targets {
 
-    private static final int DEFAULT_PAGE_LIMIT = Integer.MAX_VALUE;
+    private static final int DEFAULT_PAGE_LIMIT = 10;
     private static final String DEFAULT_SORT_BY = "name,asc";
 
     // Response field names that are used more than once
@@ -666,11 +666,13 @@ public class Targets {
      * Handle the actual search using the old Target DAO search API
      */
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
-
         // defaults
-        if (limit == null || limit <= 0) {
+        if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
+        }else if(limit == -1){
+            limit = Integer.MAX_VALUE;
         }
+
         if (offset == null) {
             offset = 0;
         }

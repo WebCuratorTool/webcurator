@@ -104,7 +104,7 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
         const searchParams = {
           filter: searchConditions,
           offset: 0,
-          limit: 0,
+          limit: -1,
           sortBy: 'creationDate,asc'
         }
       
