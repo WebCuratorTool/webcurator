@@ -311,8 +311,14 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${abortHarvestOnScreenshotFailure}")
     private boolean abortHarvestOnScreenshotFailure;
 
-    @Value("${pywbIndexer.enable}")
-    private boolean pywbIndexerEnable;
+    @Value("${pywbIndexer.enabled}")
+    private boolean pywbIndexerEnabled;
+
+    @Value("${pywbIndexer.individualCollectionMode}")
+    private boolean individualCollectionMode;
+
+    @Value("${pywbIndexer.useSymLinkForArchive}")
+    private boolean useSymLinkForArchive;
 
     @Value("${pywbIndexer.wb-manager.store}")
     private String pywbIndexerWaybackManagerStore;
@@ -537,9 +543,11 @@ public class DasConfig implements WebMvcConfigurer {
     @Bean
     public PywbIndexer pywbIndexer() {
         PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(pywbIndexerEnable);
+        bean.setEnabled(pywbIndexerEnabled);
         bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
+        bean.setIndividualCollectionMode(individualCollectionMode);
+        bean.setUseSymLinkForArchive(useSymLinkForArchive);
         return bean;
     }
 
@@ -553,6 +561,7 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
         bean.setWaybackName(waybackName);
         bean.setWaybackVersion(waybackVersion);
+        bean.setIndividualCollectionMode(individualCollectionMode);
         return bean;
     }
 

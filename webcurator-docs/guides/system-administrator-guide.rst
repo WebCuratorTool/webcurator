@@ -950,10 +950,10 @@ The following are common configuration options for the DAS adjusted via the **ap
    or the **waybackFailedFolder** (if unsuccessful). If **useSymLinks** is **true** the indexer will
    create symbolic ("soft") links to the warc files instead of copies inside the **waybackInputFolder** 
    to save space (default is false).
-   The **WaybackIndexer** is disabled by default. ::
+   The **WaybackIndexer** is enabled by default. ::
 
       # Enable this indexer
-      waybackIndexer.enabled=false
+      waybackIndexer.enabled=true
       # Frequency of checks on the merged folder (milliseconds)
       waybackIndexer.waittime=1000
       # Time to wait for the file to be indexed before giving up (milliseconds)
@@ -968,15 +968,19 @@ The following are common configuration options for the DAS adjusted via the **ap
       waybackIndexer.useSymLinks=false
 
    **PywbIndexer** configures WCT to make copies of the WARC files and ingest them to
-   the **pywbIndexer.wb-manager.store** for automatic indexing by an installed PyWB instance. The **wb-manager** command of PyWB will be called to **add** the WARC files to PyWB. **wb-manager** is a command line tool for managing common collection operations. You need to install **wb-manager** (The process of acquiring and installing wb-manager is outside the scope of this document).
-   The **PywbIndexer** is enabled by default. ::
+   the **pywbIndexer.wb-manager.store** for automatic indexing by an installed PyWB instance. The **wb-manager** command of PyWB will be called to **add** the WARC files to PyWB. **wb-manager** is a command line tool for managing common collection operations that ships with PyWB.
+   The **PywbIndexer** is disabled by default. ::
       
       # Enable this indexer
-      pywbIndexer.enable=true
+      pywbIndexer.enabled=false
       # Location of the folder where WARC files and indexes are stored
       pywbIndexer.wb-manager.store=/usr/local/wct/pywb
       # The collection name of the archive for WARC files
       pywbIndexer.wb-manager.coll=my-web-archive
+      # Create a new, isolated, pywb collection for each harvest
+      pywbIndexer.individualCollectionMode=false
+      # Create symlinks to warc files instead of copying them
+      pywbIndexer.useSymLinkForArchive=false
 
    **CDXIndexer** generates a CDX index file in the same folder as the ARC/WARC files. When a target
    instance is submitted to the archive, the CDX index will be copied along with the ARC/WARC file(s).

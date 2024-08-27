@@ -44,13 +44,19 @@ public class HttpMonitorFilter implements Filter {
             log.debug("Before doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
         }
 
+        String reqSessionMsg=wctSecurityConfig.getBasicRequestMessage(req);
         chain.doFilter(request, response);
+        String rspSessionMsg= wctSecurityConfig.getBasicResponseMessage(rsp);
+
+        if (log.isInfoEnabled() && !isResourceUrl) {
+            log.info("{} {}" ,reqSessionMsg, rspSessionMsg);
+        }
 
         if (log.isDebugEnabled() && !isResourceUrl) {
             log.debug("After doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
         }
 
-        log.info("Request URL: {} {}", url, rsp.getStatus());
+        log.debug("Request URL: {} {}", url, rsp.getStatus());
     }
 
     @Override
