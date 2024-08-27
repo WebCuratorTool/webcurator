@@ -32,12 +32,12 @@ dependencies {
     implementation 'it.unimi.dsi:mg4j:2.0.1'
     implementation 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
     implementation 'jaxen:jaxen:1.2.0'
-    implementation('org.webcurator:webcurator-core:3.2.1') {
+    implementation('org.webcurator:webcurator-core:3.2.2-SNAPSHOT') {
         exclude group: 'org.archive', module: 'heritrix'
     }
     implementation 'net.sf.ehcache:ehcache:2.10.6'
     //    compile 'wsdl4j:wsdl4j:1.6.1'
-    implementation 'org.webcurator:webcurator-submit-to-rosetta:3.2.1'
+    implementation 'org.webcurator:webcurator-submit-to-rosetta:3.2.2-SNAPSHOT'
     implementation 'joda-time:joda-time:2.10.5'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.2.4'
@@ -56,7 +56,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.2.1'
+version = '3.2.2-SNAPSHOT'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 
