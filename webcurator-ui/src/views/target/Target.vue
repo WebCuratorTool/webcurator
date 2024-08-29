@@ -11,13 +11,16 @@ import {
     useTargetSeedsDTO, 
     useNextStateStore 
 } from '@/stores/target';
-
 import TargetTabView from './target-tabs/TargetTabView.vue';
+
+import { useTargetListDataStore } from '@/stores/targetList';
+const targetListData = useTargetListDataStore();
 
 const route = useRoute()
 const targetId = route.params.id as string
 
 const rest: UseFetchApis = useFetch();
+
 
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
@@ -63,6 +66,7 @@ const save = () => {
     rest.put('targets/' + targetGeneral.id, dataReq)
     .then((data: any) => {
         console.log(data)
+        targetListData.search()
     })
     .catch((err: any) => {
         console.log(err.message)

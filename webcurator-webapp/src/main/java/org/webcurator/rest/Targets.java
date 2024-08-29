@@ -666,11 +666,13 @@ public class Targets {
      * Handle the actual search using the old Target DAO search API
      */
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
-
         // defaults
         if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
+        } else if (limit == -1) {
+            limit = Integer.MAX_VALUE;
         }
+
         if (offset == null) {
             offset = 0;
         }
