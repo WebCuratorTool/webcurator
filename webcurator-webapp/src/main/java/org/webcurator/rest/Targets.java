@@ -669,7 +669,7 @@ public class Targets {
         // defaults
         if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
-        }else if(limit == -1){
+        } else if (limit == -1) {
             limit = Integer.MAX_VALUE;
         }
 
