@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref, toRaw } from 'vue';
+import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useToast } from "primevue/usetoast";
 import { useTargetSeedsDTO } from '@/stores/target';
@@ -10,7 +10,7 @@ const AddHarvestAuthModal = defineAsyncComponent(() => import('./modals/TargetAd
 
 const toast = useToast();
 
-defineProps<{
+const props = defineProps<{
     editing: boolean
 }>()
 
@@ -30,8 +30,8 @@ const addSeed = () => {
       showErrorMessage();
     } else {
       targetSeeds.addSeed(newSeed.value);
-      newSeed.value = { seed: '', authorisations: [], primary: false };
     }
+    newSeed.value = { seed: '', authorisations: [], primary: false };
   }
 }
 
@@ -55,6 +55,12 @@ const showAddHarvestAuth = (seed: any) => {
 const showErrorMessage = () => {
   toast.add({ severity: 'error', summary: 'Seed not added', detail: 'The seed already exists on the target', life: 3000 });
 };
+
+watch(() => props.editing, async(newEditing) => {
+    if (newEditing == false) {
+        editingSeed.value = 0;
+    }
+})
 </script>
 
 <template>
