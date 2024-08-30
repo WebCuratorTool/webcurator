@@ -9,7 +9,7 @@ import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
 import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
 import TargetTabPanelHarvests from './TargetTabPanelHarvests.vue';
-import TargetTabPanelGeneral from './TargetTabPanelGeneral.vue'
+import TargetTabPanelGeneral from './TargetTabPanelGeneral/TargetTabPanelGeneral.vue'
 import TargetTabPanelProfile from './TargetTabPanelProfile.vue'
 
 const router = useRouter()

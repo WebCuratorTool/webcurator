@@ -67,7 +67,7 @@ fetch();
             <Column field="name" header="Name" />
             <Column field="authorisingAgents" header="Authorising Agents">
                 <template #body="{ data }">
-                    <div v-for="authorisingAgent in data.authorisingAgents">
+                    <div v-for="authorisingAgent in data.authorisingAgents" :key="authorisingAgent.id">
                         <span>{{ authorisingAgent }}</span>
                     </div>
                 </template>

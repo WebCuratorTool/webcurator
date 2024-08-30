@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { useToast } from "primevue/usetoast";
 import {
     setTarget,
     useTargetDescriptionDTO,
@@ -18,6 +19,7 @@ const route = useRoute()
 const targetId = route.params.id as string
 
 const rest: UseFetchApis = useFetch();
+const toast = useToast();
 
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
@@ -62,14 +64,12 @@ const save = () => {
     }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)
-    .then((data: any) => {
-        console.log(data)
+    .then(() => {
+        showSuccessMessage()
+        editing.value = false
     })
     .catch((err: any) => {
-        console.log(err.message)
-    })
-    .finally(() => {
-        editing.value = false
+        showErrorMessage(err.message)
     })
 }
 
@@ -80,11 +80,20 @@ const setEditing = (isEditing: boolean) => {
     }
 }
 
+const showErrorMessage = (message: string) => {
+    toast.add({ severity: 'error', summary: 'Target not saved', detail: message, life: 3000 });
+};
+
+const showSuccessMessage = () => {
+    toast.add({ severity: 'success', summary: 'Target succesfully saved', life: 3000 });
+};
+
 fetchTargetDetails();
 
 </script>
 
 <template>
+    <Toast />
     <TargetTabView 
         :editing=editing 
         :isTargetAvailable=isTargetAvailable
