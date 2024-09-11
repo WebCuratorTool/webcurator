@@ -36,21 +36,7 @@ public class IndexProcessorWarc extends IndexProcessor {
 
     @Override
     protected void postProcess() {
-        ApplicationContext appContext = ApplicationContextFactory.getApplicationContext();
-        if (appContext == null) {
-            log.warn("Could not get ApplicationContext instance from ApplicationContextFactory.");
-            return;
-        }
-        Indexer indexer = appContext.getBean(Indexer.class);
-        if (indexer == null) {
-            log.warn("Could not get Indexer instance from ApplicationContext.");
-            return;
-        }
-        String directory = this.baseDir + File.separator + targetInstanceId + File.separator + harvestResultNumber;
-        HarvestResultDTO hrDTO = new HarvestResultDTO();
-        hrDTO.setHarvestNumber(this.harvestResultNumber);
-        hrDTO.setTargetInstanceOid(this.targetInstanceId);
-        indexer.runIndex(hrDTO, new File(directory));
+        //Do nothing
     }
 
     @Override

@@ -54,6 +54,7 @@ public class VisualizationProcessorManager {
     }
 
     public void finalise(VisualizationAbstractProcessor processor) {
+        log.info("Process finished: {}-{}, {}, {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber(), processor.getProcessorStage(), processor.getStatus());
         //Remove existing process firstly to avoid deadlock
         queued_processors.remove(processor.getKey());
 
@@ -64,9 +65,12 @@ public class VisualizationProcessorManager {
             //Move the current metadata to history fold to avoid duplicated execution
             PatchUtil.modifier.moveJob2History(visualizationDirectoryManager.getBaseDir(), processor.getTargetInstanceId(), processor.getHarvestResultNumber());
         } else if (processor.getProcessorStage().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            if (processor.getStatus() == HarvestResult.STATUS_FINISHED) {
-                wctCoordinatorClient.finaliseIndex(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
-            }
+            /*
+             * Put the indexing finalise process in Store Service to cover both visualization and indexer
+             * */
+            //            if (processor.getStatus() == HarvestResult.STATUS_FINISHED) {
+            //                wctCoordinatorClient.finaliseIndex(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+            //            }
             //Move the current metadata to history fold to avoid duplicated execution
             PatchUtil.indexer.moveJob2History(visualizationDirectoryManager.getBaseDir(), processor.getTargetInstanceId(), processor.getHarvestResultNumber());
         }
