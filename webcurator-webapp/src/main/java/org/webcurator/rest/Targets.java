@@ -86,7 +86,7 @@ public class Targets {
         stateMap.put(Target.STATE_COMPLETED, "Completed");
     }
 
-    @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
@@ -135,13 +135,6 @@ public class Targets {
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         TargetDTO targetDTO = new TargetDTO(target);
-        int[] nextStates = new int[]{};
-        try {
-            targetManager.getNextStates(target);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        targetDTO.getGeneral().setNextStates(nextStates);
         if (section == null) {
             // Return the entire target
             return ResponseEntity.ok().body(targetDTO);
@@ -194,7 +187,7 @@ public class Targets {
     /**
      * Handler for creating new targets
      */
-    @PostMapping(path = "/save", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
         Target target = new Target();
         try {
@@ -221,28 +214,23 @@ public class Targets {
      * Handler for updating individual targets
      */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> put(@PathVariable long id, @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
+    public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
         }
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
-
-        /**
-         // Create DTO based on the current data in the database
-         TargetDTO targetDTO = new TargetDTO(target);
-         // Then update the DTO with data from the supplied JSON
-         try {
-         updateTargetDTO(targetDTO, targetMap, targetDTO);
-         } catch (BadRequestError e) {
-         e.printStackTrace();
-         return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
-         } catch (Exception e) {
-         e.printStackTrace();
-         return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
-         }
-         */
+        // Create DTO based on the current data in the database
+        TargetDTO targetDTO = new TargetDTO(target);
+        // Then update the DTO with data from the supplied JSON
+        try {
+            updateTargetDTO(targetDTO, targetMap, targetDTO);
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+        }
 
         // Validate updated DTO
         Set<ConstraintViolation<TargetDTO>> violations = validator.validate(targetDTO);
@@ -270,13 +258,6 @@ public class Targets {
     @GetMapping(path = "/states")
     public ResponseEntity getStates() {
         return ResponseEntity.ok().body(stateMap);
-    }
-
-    @GetMapping(path = "/nextStates/{id}")
-    public ResponseEntity getNextStates(@PathVariable long id) {
-        Target target = targetManager.load(id);
-        int[] targetCodes = targetManager.getNextStates(target);
-        return ResponseEntity.ok().body(targetCodes);
     }
 
     /**
@@ -380,7 +361,7 @@ public class Targets {
                             permissions.add(p);
                         }
                     } catch (ObjectNotFoundException e) {
-                        throw new BadRequestError(String.format("Uknown authorisation: %s", authorisation));
+                        throw new BadRequestError(String.format("Unknown authorisation: %s", authorisation));
                     }
                 }
                 seed.setPermissions(permissions);
@@ -500,7 +481,7 @@ public class Targets {
                 List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
                 for (TargetDTO.Group g : targetDTO.getGroups()) {
                     if (targetDAO.loadGroup(g.getId()) == null) {
-                        throw (new BadRequestError(String.format("Group %d does not exist", g.getId())));
+                        throw new BadRequestError(String.format("Group %d does not exist", g.getId()));
                     }
                     GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
                     groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
@@ -537,7 +518,7 @@ public class Targets {
             try {
                 getMethod = parent.getClass().getMethod(getMethodName);
             } catch (NoSuchMethodException e) {
-                throw new BadRequestError(String.format("Uknown key %s", key));
+                throw new BadRequestError(String.format("Unknown key %s", key));
             }
             try {
                 child = getMethod.invoke(parent);
@@ -561,7 +542,7 @@ public class Targets {
                             }
                         }
                         if (overrideToBeUpdated == null) {
-                            throw new BadRequestError(String.format("Uknown override with id %s", ((HashMap) element).get("id")));
+                            throw new BadRequestError(String.format("Unknown override with id %s", ((HashMap) element).get("id")));
                         }
                         updateTargetDTO(targetDTO, (HashMap<String, Object>) element, overrideToBeUpdated);
                     }
