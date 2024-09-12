@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 //import java.util.TimeZone;
 
@@ -475,7 +476,7 @@ public class TargetDTO {
         @NotNull(message = "primary is required")
         Boolean primary;
         @NotEmpty(message = "authorisations may not be empty")
-        List<Long> authorisations = new ArrayList<>();
+        List<Authorisation> authorisations = new ArrayList<>();
 
         public Seed() {
         }
@@ -485,9 +486,14 @@ public class TargetDTO {
             seed = s.getSeed();
             primary = s.isPrimary();
             for (Permission p : s.getPermissions()) {
-                Long authorisation = p.getSite().getOid();
+                Authorisation authorisation = new Authorisation();
+                authorisation.setId(p.getSite().getOid());
+                authorisation.setName(p.getSite().getTitle());
+                authorisation.setAgent(p.getAuthorisingAgent().getName());
+                authorisation.setStartDate(p.getStartDate());
+                authorisation.setEndDate(p.getEndDate());
                 if (!authorisations.contains(authorisation)) {
-                    authorisations.add(p.getSite().getOid());
+                    authorisations.add(authorisation);
                 }
             }
         }
@@ -516,12 +522,67 @@ public class TargetDTO {
             this.primary = primary;
         }
 
-        public List<Long> getAuthorisations() {
+        public List<Authorisation> getAuthorisations() {
             return authorisations;
         }
 
-        public void setAuthorisations(List<Long> authorisations) {
+        public void setAuthorisations(List<Authorisation> authorisations) {
             this.authorisations = authorisations;
+        }
+
+        public static class Authorisation {
+            long id;
+            String name;
+            String agent;
+            Date startDate;
+            Date endDate;
+
+            public Authorisation() {}
+
+            public long getId() {
+                return id;
+            }
+
+            public void setId(long id) {
+                this.id = id;
+            }
+
+            public String getAgent() {
+                return agent;
+            }
+
+            public void setAgent(String agent) {
+                this.agent = agent;
+            }
+
+            public Date getStartDate() {
+                return startDate;
+            }
+
+            public void setStartDate(Date startDate) {
+                this.startDate = startDate;
+            }
+
+            public Date getEndDate() {
+                return endDate;
+            }
+
+            public void setEndDate(Date endDate) {
+                this.endDate = endDate;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return this.id == ((Authorisation)other).id;
+            }
         }
     }
 

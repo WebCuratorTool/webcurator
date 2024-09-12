@@ -354,9 +354,9 @@ public class Targets {
                 seed.setSeed(s.getSeed());
                 seed.setPrimary(s.getPrimary());
                 Set<Permission> permissions = new HashSet<>();
-                for (long authorisation : s.getAuthorisations()) {
+                for (TargetDTO.Seed.Authorisation authorisation : s.getAuthorisations()) {
                     try {
-                        Site site = siteDAO.load(authorisation);
+                        Site site = siteDAO.load(authorisation.getId());
                         for (Permission p : site.getPermissions()) {
                             permissions.add(p);
                         }
