@@ -38,10 +38,10 @@ public class VisualizationProcessorManager {
         processor.init(this, visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
     }
 
-    public void startTask(VisualizationAbstractProcessor processor) throws IOException {
+    public Future<Boolean> startTask(VisualizationAbstractProcessor processor) throws IOException {
         if (queued_processors.containsKey(processor.getKey())) {
-            log.debug("Processor is in the queue: {}", processor.getKey());
-            return;
+            log.warn("Processor is in the queue: {}", processor.getKey());
+            return null;
         }
 
         this.initTask(processor);
@@ -51,6 +51,8 @@ public class VisualizationProcessorManager {
         //Cache the current running
         ProcessorHandler handler = new ProcessorHandler(processor, futureResult);
         queued_processors.put(processor.getKey(), handler);
+
+        return futureResult;
     }
 
     public void finalise(VisualizationAbstractProcessor processor) {

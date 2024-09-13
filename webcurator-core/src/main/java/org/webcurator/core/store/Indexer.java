@@ -1,23 +1,19 @@
 package org.webcurator.core.store;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.RunnableIndex.Mode;
+import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class Indexer {
     private static Log log = LogFactory.getLog(Indexer.class);
-	private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
+    private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
     public static final Object lock = new Object();
 
     public static void addRunningIndex(RunnableIndex indexer, Long harvestResultOid) {
@@ -179,6 +175,9 @@ public class Indexer {
 
     public static void main(String[] args) {
         try {
+//            BDBNetworkMapPool pool = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(BDBNetworkMapPool.class);
+//            pool.close(result.getTargetInstanceOid(), result.getHarvestNumber()); //Close the BDB instance when it is available
+
             CommandLine cl = new CommandLine(args);
 
             String host = cl.getArg("host");
@@ -206,15 +205,21 @@ public class Indexer {
             dto.setProvenanceNote("Manual Intervention");
             dto.setCreationDate(new Date());
 
-            String baseUrl = String.format("http://%s:%d", host, port);
+            String baseUrl = String.format("http://%s:%d/wct", host, port);
+
+            BDBNetworkMapPool pool = new BDBNetworkMapPool(dir.getAbsolutePath(), "4.0.1");
 
             Indexer indexer = new Indexer(true);
             WCTIndexer wctIndexer = new WCTIndexer(baseUrl, new RestTemplateBuilder());
             wctIndexer.setDoCreate(true);
+            wctIndexer.setEnabled(true);
+            wctIndexer.setPool(pool);
             List<RunnableIndex> indexers = new ArrayList<RunnableIndex>();
             indexers.add(wctIndexer);
             indexer.setIndexers(indexers);
             indexer.runIndex(dto, dir);
+            boolean retContains = Indexer.containsRunningIndex(45L);
+            System.out.println("Contains: " + retContains);
         } catch (Exception ex) {
             log.error(ex);
             syntax();

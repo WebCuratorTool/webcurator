@@ -70,7 +70,7 @@ import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
-import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+//import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
 
@@ -935,13 +935,11 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             String sourceDir = this.baseDir + File.separator + harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber();
             indexer.runIndex(harvestResult, new File(sourceDir));
 
-            VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
-            visualizationProcessorManager.startTask(processor);
+//            VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+//            visualizationProcessorManager.startTask(processor);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new DigitalAssetStoreException(e);
-        }finally {
-            wctCoordinatorClient.finaliseIndex(harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         }
     }
 
