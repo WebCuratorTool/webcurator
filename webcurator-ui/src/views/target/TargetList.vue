@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router';
-import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { type UseFetchApis, useFetch } from '@/utils/rest.api'
-import { formatDatetime } from '@/utils/helper'
-import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
-import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
-import { useTargetListSearchStore, useTargetListFiltertore } from '@/stores/targetList';
+import { formatTargetState, showTargetAction, stateList } from '@/stores/target'
+import { useTargetListFiltertore, useTargetListSearchStore } from '@/stores/targetList'
+import { useUserProfileStore, useUsersStore } from '@/stores/users'
+import { formatDatetime } from '@/utils/helper'
+import { type UseFetchApis, useFetch } from '@/utils/rest.api'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
-const confirm = useConfirm();
-const toast = useToast();
+const confirm = useConfirm()
+const toast = useToast()
 
 const options = defineProps(['props'])
 
@@ -32,31 +32,31 @@ const targetList = ref([])
 const loadingTargetList = ref(false)
 const filteredTargetList = ref()
 const filter = () => {
-  const ret = [];
+  const ret = []
   for (let idx = 0; idx < targetList.value.length; idx++) {
-    const target: any = targetList.value[idx];
-    if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.code) {
-      continue;
+    const target: any = targetList.value[idx]
+    if (filters.selectedAgency.code !== '' && target.agency !== filters.selectedAgency.code) {
+      continue
     }
 
-    if (filters.selectedUser.code !== "" && target.owner !== filters.selectedUser.code) {
-      continue;
+    if (filters.selectedUser.code !== '' && target.owner !== filters.selectedUser.code) {
+      continue
     }
 
-    let isInSelectedStates = false;
+    let isInSelectedStates = false
     for (const idx in filters.selectedState) {
-      const stateOption: any = filters.selectedState[idx];
+      const stateOption: any = filters.selectedState[idx]
       if (target.state === stateOption.code) {
-        isInSelectedStates = true;
-        break;
+        isInSelectedStates = true
+        break
       }
     }
     if (filters.selectedState.length > 0 && !isInSelectedStates) {
-      continue;
+      continue
     }
-    ret.push(target);
+    ret.push(target)
   }
-  filteredTargetList.value = ret;
+  filteredTargetList.value = ret
 }
 
 const resetFilter = () => {
@@ -70,7 +70,7 @@ const resetFilter = () => {
     code: userProfile.agency
   }
 
-  filters.selectedState = [];
+  filters.selectedState = []
 }
 
 const search = () => {
@@ -80,13 +80,13 @@ const search = () => {
     seed: searchTerms.targetSeed,
     description: searchTerms.targetDescription,
     groupName: searchTerms.targetMemberOf,
-    nonDisplayOnly: searchTerms.noneDisplayOnly,
+    nonDisplayOnly: searchTerms.noneDisplayOnly
   }
 
   const searchParams = {
     filter: searchConditions,
     offset: 0,
-    limit: 1024,
+    limit: 10000,
     sortBy: 'creationDate,asc'
   }
 
@@ -97,7 +97,7 @@ const search = () => {
       console.log(data)
       targetList.value = data['targets']
       console.log(targetList.value)
-      filter();
+      filter()
       loadingTargetList.value = false
     })
     .catch((err: any) => {
@@ -125,25 +125,29 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
-          search();
+          toast.add({
+            severity: 'info',
+            summary: 'Confirmed',
+            detail: `Target ${id} deleted`,
+            life: 3000
+          })
+          search()
         })
         .catch((err: any) => {
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
+          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 })
         })
     }
   })
-
 }
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
-  resetFilter();
-});
+  resetFilter()
+})
 
 onMounted(() => {
-  search();
-});
+  search()
+})
 </script>
 
 <template>
@@ -192,8 +196,13 @@ onMounted(() => {
         </div>
 
         <div class="col-2">
-          <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button"
-            @click="search()"></Button>
+          <Button
+            label="Search&nbsp;&nbsp;"
+            icon="pi pi-search"
+            iconPos="right"
+            id="search-button"
+            @click="search()"
+          ></Button>
         </div>
       </div>
 
@@ -201,8 +210,14 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>Agency</InputGroupAddon>
-            <Dropdown id="agency" v-model="filters.selectedAgency" :options="agencies.agencyListWithEmptyItem"
-              optionLabel="name" placeholder="Select an Agency" class="w-full md:w-18rem">
+            <Dropdown
+              id="agency"
+              v-model="filters.selectedAgency"
+              :options="agencies.agencyListWithEmptyItem"
+              optionLabel="name"
+              placeholder="Select an Agency"
+              class="w-full md:w-18rem"
+            >
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ filters.selectedAgency.name }}</div>
@@ -219,8 +234,14 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>User</InputGroupAddon>
-            <Dropdown id="user" v-model="filters.selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
-              placeholder="Select an User" class="w-full md:w-18rem">
+            <Dropdown
+              id="user"
+              v-model="filters.selectedUser"
+              :options="users.userListWithEmptyItem"
+              optionLabel="name"
+              placeholder="Select an User"
+              class="w-full md:w-18rem"
+            >
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ filters.selectedUser.name }}</div>
@@ -238,17 +259,32 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>State</InputGroupAddon>
-            <MultiSelect v-model="filters.selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
-              :maxSelectedLabels="3" class="w-full md:w-20rem" />
+            <MultiSelect
+              v-model="filters.selectedState"
+              :options="stateList"
+              optionLabel="name"
+              placeholder="Select States"
+              :maxSelectedLabels="3"
+              class="w-full md:w-20rem"
+            />
           </InputGroup>
         </div>
 
         <div class="field">
-          <Button @click="resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times"
-            class="wct-secondary-button" />
+          <Button
+            @click="resetFilter"
+            label="&nbsp;&nbsp;Reset filter"
+            icon="pi pi-times"
+            class="wct-secondary-button"
+          />
         </div>
         <div class="field">
-          <Button @click="filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" class="wct-secondary-button" />
+          <Button
+            @click="filter"
+            label="&nbsp;&nbsp;Filter"
+            icon="pi pi-filter"
+            class="wct-secondary-button"
+          />
         </div>
       </div>
     </div>
@@ -256,10 +292,21 @@ onMounted(() => {
     <Divider type="dotted" />
 
     <!-- <div class="col-12 surface-section"> -->
-    <DataTable class="w-full" :value="filteredTargetList" size="small" :paginator="true" :rows="10" dataKey="oid"
-      :rowHover="true" filterDisplay="menu" :loading="loadingTargetList"
-      :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']" resizableColumns
-      columnResizeMode="fit" showGridlines>
+    <DataTable
+      class="w-full"
+      :value="filteredTargetList"
+      size="small"
+      :paginator="true"
+      :rows="10"
+      dataKey="oid"
+      :rowHover="true"
+      filterDisplay="menu"
+      :loading="loadingTargetList"
+      :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+      resizableColumns
+      columnResizeMode="fit"
+      showGridlines
+    >
       <template #header>
         <!-- <div class="flex justify-content-between flex-column sm:flex-row">
           <h5>Results</h5> -->
@@ -282,7 +329,13 @@ onMounted(() => {
         </template>
       </Column>
       <Column field="agency" header="Agency" sortable style="min-width: 5rem"></Column>
-      <Column field="owner" header="Owner" sortable filterField="owner" style="min-width: 6rem"></Column>
+      <Column
+        field="owner"
+        header="Owner"
+        sortable
+        filterField="owner"
+        style="min-width: 6rem"
+      ></Column>
       <Column field="state" header="Status" sortable style="min-width: 2rem">
         <template #body="{ data }">
           {{ formatTargetState(data.state) }}
@@ -298,8 +351,13 @@ onMounted(() => {
       </Column>
       <Column header="Action" field="id" style="max-width: 8rem">
         <template #body="{ data }">
-          <Button v-if="showTargetAction(data, 'copy')"  icon="pi pi-copy" text />
-          <Button v-if="showTargetAction(data, 'delete')" icon="pi pi-trash" @click="deleteTarget(data.id)" text />
+          <Button v-if="showTargetAction(data, 'copy')" icon="pi pi-copy" text />
+          <Button
+            v-if="showTargetAction(data, 'delete')"
+            icon="pi pi-trash"
+            @click="deleteTarget(data.id)"
+            text
+          />
         </template>
       </Column>
     </DataTable>
