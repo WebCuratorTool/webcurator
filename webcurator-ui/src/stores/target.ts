@@ -31,13 +31,11 @@ export const initNewTarget = () => {
     useTargetAccessDTO().initData();
 }
 
-export const setTarget = (target: Target) => {
-    console.log(target);
-    
+export const setTarget = (target: Target) => {    
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);
-    useTargetProfileDTO().setData(target.profile);
+    target.profile != null && useTargetProfileDTO().setData(target.profile);
     useTargetSeedsDTO().setData(target.seeds);
     useTargetAccessDTO().setData(target.access);
 }

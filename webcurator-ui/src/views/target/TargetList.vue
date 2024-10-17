@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
@@ -15,10 +15,6 @@ import PageHeader from '@/components/PageHeader.vue'
 const router = useRouter()
 const confirm = useConfirm();
 const toast = useToast();
-
-const options = defineProps(['props'])
-
-const emit = defineEmits(['popPage'])
 
 const rest: UseFetchApis = useFetch()
 const userProfile = useUserProfileStore()
@@ -92,7 +88,7 @@ const search = () => {
 
   loadingTargetList.value = true
   rest
-    .post('targets', searchParams)
+    .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
     .then((data: any) => {
       console.log(data)
       targetList.value = data['targets']
