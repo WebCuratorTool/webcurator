@@ -27,6 +27,7 @@ public class TargetDTO {
     @Valid
     List<Seed> seeds = new ArrayList<>();
     @Valid
+    @NotNull
     Profile profile;
     @Valid
     Annotations annotations;
