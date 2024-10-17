@@ -27,7 +27,6 @@ public class TargetDTO {
     @Valid
     List<Seed> seeds = new ArrayList<>();
     @Valid
-    @NotNull
     Profile profile;
     @Valid
     Annotations annotations;
@@ -46,7 +45,9 @@ public class TargetDTO {
         for (org.webcurator.domain.model.core.Seed s : target.getSeeds()) {
             seeds.add(new Seed(s));
         }
-        profile = new Profile(target);
+        if (target.getProfile() != null) {
+            profile = new Profile(target);
+        }
         annotations = new Annotations(target);
         description = new Description(target);
         for (GroupMember m: target.getParents()) {
