@@ -13,6 +13,7 @@ import org.webcurator.domain.SiteDAO;
 import org.webcurator.domain.model.core.AuthorisingAgent;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
+import org.webcurator.domain.model.core.UrlPattern;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 
@@ -154,17 +155,29 @@ public class HarvestAuthorisations {
         summary.put("id", site.getOid());
         summary.put("creationDate", site.getCreationDate());
         summary.put("name", site.getTitle());
-        Set<Long> authorisingAgents = new HashSet<>();
+        Set<HashMap<String, Object>> authorisingAgents = new HashSet<>();
         for (AuthorisingAgent authorisingAgent : site.getAuthorisingAgents()) {
-            authorisingAgents.add(authorisingAgent.getOid());
+            HashMap<String, Object> agent = new HashMap<>();
+            agent.put("id", authorisingAgent.getOid());
+            agent.put("name", authorisingAgent.getName());
+            authorisingAgents.add(agent);
         }
         summary.put("authorisingAgents", authorisingAgents);
         summary.put("orderNo", site.getLibraryOrderNo());
-        Set<Integer> permissionStates = new HashSet<>();
-        for (Permission permission : site.getPermissions()) {
-            permissionStates.add(permission.getStatus());
+        Set<HashMap<String, Object>> permissions = new HashSet<>();
+        for (Permission p : site.getPermissions()) {
+            HashMap<String, Object> permission = new HashMap<>();
+            permission.put("status", p.getStatus());
+            permission.put("startDate", p.getStartDate());
+            permission.put("endDate", p.getEndDate());
+            List<String> urlPatterns = new ArrayList<>();
+            for (UrlPattern u : p.getUrls()) {
+                urlPatterns.add(u.getPattern());
+            }
+            permission.put("urlPatterns", urlPatterns);
+            permissions.add(permission);
         }
-        summary.put("permissionStates", permissionStates);
+        summary.put("permissions", permissions);
         return summary;
     }
 

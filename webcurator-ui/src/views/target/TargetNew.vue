@@ -45,7 +45,7 @@ const save = () => {
         dataReq.profile = targetProfile.getData();
     }
 
-    rest.post('targets/save', dataReq)
+    rest.post('targets', dataReq)
     .then((data: any) => {
         console.log(data)
         targetListData.search()

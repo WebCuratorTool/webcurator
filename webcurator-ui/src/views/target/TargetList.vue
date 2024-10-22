@@ -16,15 +16,10 @@ const router = useRouter()
 const confirm = useConfirm();
 const toast = useToast();
 
-const options = defineProps(['props'])
-
-const emit = defineEmits(['popPage'])
-
 const rest: UseFetchApis = useFetch()
 const userProfile = useUserProfileStore()
 const users = useUsersStore()
 const agencies = useAgenciesStore()
-
 const targetListData = useTargetListDataStore()
 
 const createNew = () => {
