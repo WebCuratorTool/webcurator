@@ -1,33 +1,20 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
-import { useDialog } from 'primevue/usedialog';
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
-import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
+import { useTargetGeneralDTO, formatTargetState, useNextStateStore } from '@/stores/target'
 
-import WctFormField from '@/components/WctFormField.vue'
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
+import WctFormField from '@/components/WctFormField.vue';
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 
-const AddGroupsModal = defineAsyncComponent(() => import('./TargetAddGroupsModal.vue'))
+import TargetTabPanelGeneralGroups from './TargetTabPanelGeneralGroups.vue';
+import TargetTabPanelGeneralSeeds from './TargetTabPanelGeneralSeeds.vue';
 
 defineProps<{
     editing: boolean
 }>()
 
 const targetGeneral = useTargetGeneralDTO();
-const targetGroups = useTargetGropusDTO();
-const targetSeeds = useTargetSeedsDTO();
-
 const users = useUsersStore();
 const nextStates = useNextStateStore();
-
-const addGroupsModal = useDialog();
-
-const showAddGroups = () => {
-  const modalRef = addGroupsModal.open(AddGroupsModal, {
-    props: { header: 'Add Groups', modal: true, dismissableMask: true, style: { width: '50vw' } }
-  })
-}
-
 </script>
 
 <template>
@@ -54,7 +41,7 @@ const showAddGroups = () => {
       <WctFormField label="Owner">
         <Dropdown v-if="editing" id="user" v-model="targetGeneral.selectedUser" :options="users.userList" placeholder="Select an User" checkmark
           class="w-full md:w-18rem" :disabled="!editing">
-          <template #value="slotProps">
+          <template>
             <div class="flex align-items-center">
               <div>{{ getPresentationUserName(targetGeneral.selectedUser) }}</div>
             </div>
@@ -82,7 +69,7 @@ const showAddGroups = () => {
       <WctFormField label="State">
         <Dropdown v-if="editing" id="state" v-model="targetGeneral.selectedState" :options="nextStates.nextStateList" optionLabel="label"
           optionGroupLabel="label" optionGroupChildren="items" checkmark class="w-full md:w-18rem" :disabled="!editing">
-          <template #value="slotProps">
+          <template>
             <div class="flex align-items-center">
               <div>{{ formatTargetState(targetGeneral.selectedState) }}</div>
             </div>
@@ -104,38 +91,10 @@ const showAddGroups = () => {
   </WctTabViewPanel>
 
   <!-- Groups -->
-  <div class="flex justify-content-between">
-    <h4>Groups</h4>
-    <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showAddGroups" />
-  </div>
-  <WctTabViewPanel>
-    <div class="flex flex-wrap gap-2">
-      <Chip class="px-2" v-for="group in targetGroups.targetGroups">
-          <span class="p-2 m-0">{{ group.name }}</span>
-          <Button v-if="editing" class="p-0 m-0" icon="pi pi-times-circle" style="width: 2rem;" link @click="targetGroups.removeGroup(group.id)"/>
-      </Chip>
-    </div>
-  </WctTabViewPanel>
+  <TargetTabPanelGeneralGroups :editing="editing" />
 
   <!-- Seeds -->
-  <h4>Seeds</h4>
-  <WctTabViewPanel>
-    <DataTable class="w-full" :rowHover="true" :value="targetSeeds.targetSeeds">
-      <Column field="seed" header="Seed"></Column>
-      <Column field="authorisations" header="Harvset Auth">
-        <template #body="{ data }">{{ data.authorisations[0] }}</template>
-      </Column>
-      <Column field="primary" header="Primary">
-        <template #body="{ data }">
-          <Checkbox
-              v-model="data.primary" 
-              :binary="true"
-              :disabled="!editing" 
-          />
-        </template>
-      </Column>
-    </DataTable>
-  </WctTabViewPanel>
+  <TargetTabPanelGeneralSeeds :editing="editing"/>
 
   <!-- Archive options -->
   <h4>Archive options</h4>

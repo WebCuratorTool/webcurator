@@ -155,12 +155,13 @@ export function useFetch() {
                     } else {                    
                         let errorMessage
                         const error = await rsp.json()
+                        
                         if (!error || error.length === 0) {
                             errorMessage = "Unknown error."
                         } else {
                             errorMessage = error.Error
                         }
-                        throw new Error(rsp.status + " : " + errorMessage);
+                        throw new Error(errorMessage);
                     }
                 });
 
