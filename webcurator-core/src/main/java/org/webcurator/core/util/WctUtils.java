@@ -49,6 +49,7 @@ public class WctUtils {
         return str == null || "".equals(str.trim());
     }
 
+
     /**
      * This method checks if a value has changed between the original
      * and the new values. This is typically used for testing if a
@@ -236,6 +237,10 @@ public class WctUtils {
             }
         }
         return count;
+    }
+
+    public static boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
     }
 
     public static void main(String... args) {

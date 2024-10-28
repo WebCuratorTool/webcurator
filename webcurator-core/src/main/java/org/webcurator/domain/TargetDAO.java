@@ -15,12 +15,15 @@
  */
 package org.webcurator.domain;
 
+import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
@@ -36,12 +39,14 @@ import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.targets.PermissionCriteria;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.AbstractTargetDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.Utils;
+import org.webcurator.domain.model.dto.TargetSummaryDTO;
 
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -547,13 +552,271 @@ public class TargetDAO extends BaseDAO {
         );
     }
 
-    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
+    private List<SeedDTO> getSeedsOfTarget(final Session session, final int pageSize, final long targetId, final Map<Long, List<SeedDTO>> seedsMap) {
+        if (pageSize >= 1000) {
+            if (seedsMap.containsKey(targetId)) {
+                return seedsMap.get(targetId);
+            } else {
+                return new ArrayList<>();
+            }
+        }
+
+        String sqlSeeds = "SELECT SEED.S_OID,\n" +
+                "SEED.S_SEED,\n" +
+                "SEED.S_PRIMARY,\n" +
+                "SEED.S_TARGET_ID\n" +
+                "FROM DB_WCT.SEED\n" +
+                "WHERE SEED.S_TARGET_ID=" + targetId + ";";
+//        Transaction txSeed = session.beginTransaction();
+        NativeQuery seedsQuery = session.createNativeQuery(sqlSeeds);
+//        txSeed.commit();
+
+        List<SeedDTO> seedsList = new ArrayList<>();
+
+        for (Object[] cols : (List<Object[]>) seedsQuery.list()) {
+            SeedDTO seedDTO = new SeedDTO();
+            seedDTO.setOid(((BigInteger) cols[0]).longValue());
+            seedDTO.setSeed((String) cols[1]);
+            seedDTO.setPrimary((Boolean) cols[2]);
+            seedDTO.setTargetOid(((BigInteger) cols[3]).longValue());
+            seedsList.add(seedDTO);
+        }
+        return seedsList;
+    }
+
+    public Pagination searchSummary(final SessionFactory sessionFactory, final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
+        // Create a session
+        Session session = sessionFactory.openSession();
+
+        Map<Long, List<SeedDTO>> seedsMap = new HashMap<>();
+        if (pageSize >= 1000) {
+//            Transaction txSeed = session.beginTransaction();
+            String sqlSeeds = "SELECT SEED.S_OID,\n" +
+                    "SEED.S_SEED,\n" +
+                    "SEED.S_PRIMARY,\n" +
+                    "SEED.S_TARGET_ID\n" +
+                    "FROM DB_WCT.SEED;";
+            NativeQuery seedsQuery = session.createNativeQuery(sqlSeeds);
+//            txSeed.commit();
+
+            List<SeedDTO> seedsList = new ArrayList<>();
+            List<Object[]> seedsResultSets = seedsQuery.getResultList();
+
+            for (Object[] cols : seedsResultSets) {
+                try {
+                    SeedDTO seedDTO = new SeedDTO();
+                    if (cols[0] != null) {
+                        seedDTO.setOid(((BigInteger) cols[0]).longValue());
+                    }
+                    if (cols[1] != null) {
+                        seedDTO.setSeed((String) cols[1]);
+                    }
+                    if (cols[2] != null) {
+                        seedDTO.setPrimary((Boolean) cols[2]);
+                    }
+
+                    if (cols[3] != null) {
+                        seedDTO.setTargetOid(((BigInteger) cols[3]).longValue());
+                    } else {
+                        seedDTO.setTargetOid(-1L);
+                    }
+                    seedsList.add(seedDTO);
+                } catch (Exception ex) {
+                    log.error("Failed to catch seeds.", ex);
+                }
+            }
+
+            seedsMap = seedsList.stream().collect(Collectors.groupingBy(SeedDTO::getTargetOid));
+            seedsList.clear();
+        }
+
+        String sql = "SELECT ABSTRACT_TARGET.AT_OID,\n" +
+                "\t\tABSTRACT_TARGET.AT_NAME,\n" +
+                "\t\tABSTRACT_TARGET.AT_DESC,\n" +
+                "\t\tABSTRACT_TARGET.AT_STATE,\n" +
+                "\t\tABSTRACT_TARGET.AT_CREATION_DATE,\n" +
+                "\t\tABSTRACT_TARGET.AT_DISPLAY_TARGET,\n" +
+                "\t\tABSTRACT_TARGET.AT_OWNER_ID,\n" +
+                "\t\tUSER_AGENCY.USR_USERNAME,\n" +
+                "\t\tUSER_AGENCY.USR_FIRSTNAME,\n" +
+                "\t\tUSER_AGENCY.USR_LASTNAME,\n" +
+                "\t\tUSER_AGENCY.AGC_OID,\n" +
+                "\t\tUSER_AGENCY.AGC_NAME\n" +
+                "\t\tFROM DB_WCT.ABSTRACT_TARGET\n";
+
+        List<Object> queryParameters = new ArrayList<>();
+
+        List<String> queryConditionsAbstractTarget = new ArrayList<>();
+        if (searchOid != null) {
+            queryConditionsAbstractTarget.add("ABSTRACT_TARGET.AT_OID = ?");
+            queryParameters.add(searchOid);
+        }
+
+        if (nondisplayonly) {
+            queryConditionsAbstractTarget.add("ABSTRACT_TARGET.AT_DISPLAY_TARGET = ?");
+            queryParameters.add(false);
+        }
+
+        if (!WctUtils.isEmpty(targetName)) {
+            queryConditionsAbstractTarget.add("ABSTRACT_TARGET.AT_NAME like ?");
+            queryParameters.add("%" + targetName.trim() + "%");
+        }
+
+        if (!WctUtils.isEmpty(description)) {
+            queryConditionsAbstractTarget.add("ABSTRACT_TARGET.AT_DESC like ?");
+            queryParameters.add("%" + description.trim() + "%");
+        }
+
+        if (states != null && !states.isEmpty()) {
+            String aryStates = states.stream()
+                    .map(String::valueOf) // Convert each Integer to String
+                    .collect(Collectors.joining(", "));
+            queryConditionsAbstractTarget.add("ABSTRACT_TARGET.AT_STATE in ?");
+            queryParameters.add("(" + aryStates + ")");
+        }
+
+        if (!queryConditionsAbstractTarget.isEmpty()) {
+            sql += " WHERE " + String.join(" and ", queryConditionsAbstractTarget);
+        }
+        sql += "INNER JOIN DB_WCT.TARGET\n" +
+                "\tON ABSTRACT_TARGET.AT_OID = TARGET.T_AT_OID\n";
+
+
+        String sqlWctUserAndAgency = "SELECT WCTUSER.USR_OID, \n" +
+                "WCTUSER.USR_USERNAME,\n" +
+                "WCTUSER.USR_FIRSTNAME,\n" +
+                "WCTUSER.USR_LASTNAME,\n" +
+                "AGENCY.AGC_OID,\n" +
+                "AGENCY.AGC_NAME\n" +
+                "FROM DB_WCT.WCTUSER,DB_WCT.AGENCY\n" +
+                "WHERE WCTUSER.USR_AGC_OID = AGENCY.AGC_OID";
+        List<String> queryConditionsWctUserAndAgency = new ArrayList<>();
+        if (!WctUtils.isEmpty(username)) {
+            queryConditionsWctUserAndAgency.add("WCTUSER.USR_USERNAME like ?");
+            queryParameters.add("%" + username.trim() + "%");
+        }
+        if (!WctUtils.isEmpty(agencyName)) {
+            queryConditionsWctUserAndAgency.add("AGENCY.AGC_NAME like ?");
+            queryParameters.add("%" + username.trim() + "%");
+        }
+
+        if (!queryConditionsWctUserAndAgency.isEmpty()) {
+            sqlWctUserAndAgency += " and " + String.join(" and ", queryConditionsWctUserAndAgency);
+        }
+        sql += " INNER JOIN (" + sqlWctUserAndAgency + " ) USER_AGENCY\n";
+        sql += "ON ABSTRACT_TARGET.AT_OWNER_ID = USER_AGENCY.USR_OID\n";
+
+        String sqlSeed = "SELECT SEED.S_TARGET_ID\n" +
+                "\t\tFROM DB_WCT.SEED\n";
+        List<String> queryConditionsSeed = new ArrayList<>();
+        if (!WctUtils.isEmpty(seed)) {
+            queryConditionsSeed.add("SEED.S_SEED like ?");
+            queryParameters.add("%" + seed.trim() + "%");
+        }
+
+        if (!queryConditionsSeed.isEmpty()) {
+            sql += " INNER JOIN (" + sqlSeed + " WHERE " + String.join(" and ", queryConditionsSeed) + "\n GROUP BY SEED.S_TARGET_ID ) FILTERED_SEED\n";
+            sql += "ON ABSTRACT_TARGET.AT_OID = FILTERED_SEED.S_TARGET_ID\n";
+        }
+
+        String sqlTargetGroup = "SELECT \t\tGROUP_MEMBER.GM_CHILD_ID AS TARGET_ID,\n" +
+                "\t\t\t\t\t\tABSTRACT_TARGET.AT_NAME\n" +
+                "\t\t\t\t\t\tFROM \tDB_WCT.GROUP_MEMBER\n" +
+                "\t\t\t\t\t\tINNER JOIN DB_WCT.ABSTRACT_TARGET\n" +
+                "\t\t\t\t\t\t\tON GROUP_MEMBER.GM_PARENT_ID = ABSTRACT_TARGET.AT_OID";
+        List<String> queryConditionsTargetGroup = new ArrayList<>();
+        if (!WctUtils.isEmpty(memberOf)) {
+            queryConditionsTargetGroup.add("ABSTRACT_TARGET.AT_NAME like ?");
+            queryParameters.add("%" + memberOf.trim() + "%");
+        }
+        if (!queryConditionsTargetGroup.isEmpty()) {
+            sql += " INNER JOIN (" + sqlTargetGroup + " WHERE " + String.join(" and ", queryConditionsTargetGroup) + " ) TARGET_GROUPS";
+            sql += "ON ABSTRACT_TARGET.AT_OID = TARGET_GROUPS.TARGET_ID\n";
+        }
+
+//        sql += " LEFT JOIN DB_WCT.SEED \n";
+//        sql += " ON ABSTRACT_TARGET.AT_OID = SEED.S_TARGET_ID \n";
+
+        List<String> sortOrder = new ArrayList<>();
+        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
+            sortOrder.add("ABSTRACT_TARGET.AT_NAME ASC");
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
+            sortOrder.add("ABSTRACT_TARGET.AT_NAME DESC");
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
+            sortOrder.add("ABSTRACT_TARGET.AT_CREATION_DATE ASC");
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
+            sortOrder.add("ABSTRACT_TARGET.AT_CREATION_DATE DESC");
+        }
+
+        sql += "ORDER BY " + String.join(",", sortOrder) + ";";
+
+        log.debug(sql);
+
+        // Create SQL query
+//        Transaction txTarget = session.beginTransaction();
+        NativeQuery query = session.createNativeQuery(sql);
+        for (int idx = 0; idx < queryParameters.size(); idx++) {
+            query.setParameter(idx + 1, queryParameters.get(idx));
+        }
+
+//        txTarget.commit();
+
+        //Get the size of the resultsets
+        ScrollableResults scrollableResults = query.scroll(ScrollMode.SCROLL_INSENSITIVE);
+        scrollableResults.last();
+        int rowCount = scrollableResults.getRowNumber() + 1;
+        scrollableResults.close();
+
+//        scrollableResults.beforeFirst();
+//        if (pageNumber > 0) {
+//            query.setFirstResult(pageNumber * pageSize);
+//        }
+//
+//        if (pageSize < rowCount) {
+//            query.setFetchSize(pageSize);
+//        }
+
+        List<TargetSummaryDTO> targetList = new LinkedList<>();
+
+        List<Object[]> datasets = (List<Object[]>) query.getResultList();
+        for (int idx = pageNumber * pageSize; idx < pageNumber * pageSize + pageSize && idx < datasets.size(); idx++) {
+            Object[] cols = datasets.get(idx);
+            TargetSummaryDTO dto = new TargetSummaryDTO();
+            dto.setOid(((BigInteger) cols[0]).longValue());
+            dto.setName((String) cols[1]);
+            dto.setDesc((String) cols[2]);
+            dto.setState((Integer) cols[3]);
+            dto.setCreationDate((Date) cols[4]);
+            dto.setDisplayTarget((Boolean) cols[5]);
+            dto.setUsrOid(((BigInteger) cols[6]).longValue());
+            dto.setUserName((String) cols[7]);
+            dto.setUserFirstName((String) cols[8]);
+            dto.setUserLastName((String) cols[9]);
+            dto.setAgcOid(((BigInteger) cols[10]).longValue());
+            dto.setAgcName((String) cols[11]);
+//            if (seedsMap.containsKey(dto.getOid())) {
+//                dto.setSeeds(seedsMap.get(dto.getOid()));
+//            } else {
+//                dto.setSeeds(new ArrayList<>());
+//            }
+            dto.setSeeds(getSeedsOfTarget(session, pageSize, dto.getOid(), seedsMap));
+            targetList.add(dto);
+        }
+        session.close();
+        seedsMap.clear();
+        return new Pagination(targetList, rowCount, pageNumber, pageSize);
+    }
+
+
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid,
+                                   final String name,
                                    final String owner, final String agency, final String memberOf, final String groupType,
                                    final boolean nondisplayonly) {
         return searchGroups(pageNumber, pageSize, searchOid, name, null, owner, agency, memberOf, groupType, nondisplayonly);
     }
 
-    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid,
+                                   final String name,
                                    final Set<Integer> states, final String owner, final String agency, final String memberOf,
                                    final String groupType, final boolean nondisplayonly) {
         return (Pagination) getHibernateTemplate().execute(
@@ -728,7 +991,8 @@ public class TargetDAO extends BaseDAO {
         );
     }
 
-    public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber, final int pageSize) {
+    public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber,
+                                            final int pageSize) {
         return (Pagination) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
@@ -746,7 +1010,8 @@ public class TargetDAO extends BaseDAO {
         );
     }
 
-    public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber, final int pageSize) {
+    public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber,
+                                         final int pageSize) {
         return (Pagination) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
@@ -992,7 +1257,8 @@ public class TargetDAO extends BaseDAO {
         return parents;
     }
 
-    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final Map<Long, Long> duplicateValidator) {
+    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid,
+                                                           final Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
         }
@@ -1252,7 +1518,7 @@ public class TargetDAO extends BaseDAO {
                         try {
                             log.debug("Before Deleting Object");
 
-                            // Step one - check that the target group has 
+                            // Step one - check that the target group has
                             // no target instances.
                             Criteria criteria = currentSession()
                                     .createCriteria(TargetInstance.class)

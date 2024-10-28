@@ -1,7 +1,7 @@
 package org.webcurator.rest;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
@@ -20,6 +20,7 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.dto.TargetSummaryDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
@@ -73,6 +74,9 @@ public class Targets {
 
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private Map<Integer, String> stateMap = new TreeMap<>();
 
@@ -704,12 +708,12 @@ public class Targets {
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.searchSummary(pageNumber, limit, filter.targetId, filter.name,
+        Pagination pagination = targetDAO.searchSummary(sessionFactory, pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (AbstractTargetSummaryView t : (List<AbstractTargetSummaryView>) pagination.getList()) {
-            targetSummaries.add(getTargetSummary(t));
+        for (Object t : pagination.getList()) {
+            targetSummaries.add(getTargetSummary((TargetSummaryDTO) t));
         }
         pagination.close();
         return new SearchResult(pagination.getTotal(), targetSummaries);
@@ -718,28 +722,16 @@ public class Targets {
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(AbstractTargetSummaryView t) {
+    private HashMap<String, Object> getTargetSummary(TargetSummaryDTO t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
-        targetSummary.put("creationDate", t.getCreationDate());
         targetSummary.put("name", t.getName());
-        targetSummary.put("agency", t.getAgcName());
+        targetSummary.put("description", t.getDesc());
+        targetSummary.put("state", t.getState());
+        targetSummary.put("creationDate", t.getCreationDate());
         targetSummary.put("owner", t.getUserName());
-//        targetSummary.put("state", t.getState());
-        targetSummary.put("state", Integer.parseInt(t.getState()));
-
-        ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        if (!StringUtils.isEmpty(t.getSeedNames()) && !StringUtils.isEmpty(t.getSeedPrimaries())) {
-            String[] seedNames = t.getSeedNames().split(",");
-            String[] primaryFlags = t.getSeedPrimaries().split(",");
-            for (int idx = 0; idx < seedNames.length && idx < primaryFlags.length; idx++) {
-                HashMap<String, Object> seed = new HashMap<>();
-                seed.put("seed", seedNames[idx]);
-                seed.put("primary", primaryFlags[idx].trim().equals("1"));
-                seeds.add(seed);
-            }
-        }
-        targetSummary.put("seeds", seeds);
+        targetSummary.put("agency", t.getAgcName());
+        targetSummary.put("seeds", t.getSeeds());
         return targetSummary;
     }
 
