@@ -17,6 +17,7 @@ package org.webcurator.domain;
 
 import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.*;
@@ -49,6 +50,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.Utils;
+import org.webcurator.domain.model.view.ViewEntityTargetSummary;
 
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -60,6 +62,7 @@ import javax.persistence.criteria.Root;
 /**
  * The TargetDAO provides access to targets, target groups and their related objects
  * from the persistent store.
+ *
  * @author bbeaumont
  */
 @SuppressWarnings("all")
@@ -77,7 +80,7 @@ public class TargetDAO extends BaseDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Saving of Target");
-                            Session session=currentSession();
+                            Session session = currentSession();
                             session.saveOrUpdate(aTarget);
 
                             if (parents != null) {
@@ -466,6 +469,89 @@ public class TargetDAO extends BaseDAO {
                         }
                         cntQuery.setProjection(Projections.rowCount());
 
+                        return new Pagination(cntQuery, query, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination searchSummary(final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Criteria query = session.createCriteria(ViewEntityTargetSummary.class);
+                        Criteria cntQuery = session.createCriteria(ViewEntityTargetSummary.class);
+
+                        //To skip duplicated data.
+                        query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+                        cntQuery.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+
+                        Criteria ownerCriteria = null;
+                        Criteria cntOwnerCriteria = null;
+
+                        if (targetName != null && !"".equals(targetName.trim())) {
+                            query.add(Restrictions.ilike("name", targetName, MatchMode.START));
+                            cntQuery.add(Restrictions.ilike("name", targetName, MatchMode.START));
+                        }
+
+                        if (description != null && !"".equals(description.trim())) {
+                            query.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
+                            cntQuery.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
+                        }
+
+                        if (states != null && states.size() > 0) {
+                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            for (Integer i : states) {
+                                stateDisjunction.add(Restrictions.eq("state", i));
+                            }
+                            query.add(stateDisjunction);
+                            cntQuery.add(stateDisjunction);
+                        }
+
+                        if (!StringUtils.isEmpty(seed)) {
+//                            query.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
+//                            cntQuery.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
+                            query.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+                            cntQuery.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+                        }
+
+                        if (!Utils.isEmpty(username)) {
+                            query.add(Restrictions.eq("userName", username));
+                            cntQuery.add(Restrictions.eq("userName", username));
+                        }
+
+                        // Parents criteria.
+                        if (!Utils.isEmpty(memberOf)) {
+                            query.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
+                            cntQuery.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
+                        }
+
+                        if (!Utils.isEmpty(agencyName)) {
+                            query.add(Restrictions.eq("agcName", agencyName));
+                            cntQuery.add(Restrictions.eq("agcName", agencyName));
+                        }
+
+                        if (searchOid != null) {
+                            query.add(Restrictions.eq("oid", searchOid));
+                            cntQuery.add(Restrictions.eq("oid", searchOid));
+                        }
+
+                        if (nondisplayonly) {
+                            query.add(Restrictions.eq("displayTarget", false));
+                            cntQuery.add(Restrictions.eq("displayTarget", false));
+                        }
+
+                        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
+                            query.addOrder(Order.asc("name"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
+                            query.addOrder(Order.desc("name"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
+                            query.addOrder(Order.asc("creationDate"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
+                            query.addOrder(Order.desc("creationDate"));
+                        }
+                        cntQuery.setProjection(Projections.rowCount());
                         return new Pagination(cntQuery, query, pageNumber, pageSize);
                     }
                 }
@@ -876,17 +962,18 @@ public class TargetDAO extends BaseDAO {
 
     @SuppressWarnings("unchecked")
     public Set<Long> getAncestorOids(final Long childOid) {
-        Map<Long, Long> duplicateValidator=new HashMap<>();
-        Set<Long> parents=getAncestorOidsInternal(childOid,duplicateValidator);
+        Map<Long, Long> duplicateValidator = new HashMap<>();
+        Set<Long> parents = getAncestorOidsInternal(childOid, duplicateValidator);
         duplicateValidator.clear();
         return parents;
     }
-    private Set<Long> getAncestorOidsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+
+    private Set<Long> getAncestorOidsInternal(final Long childOid, final Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
         }
 
-        if(!duplicateValidator.containsKey(childOid.longValue())){
+        if (!duplicateValidator.containsKey(childOid.longValue())) {
             duplicateValidator.put(childOid.longValue(), childOid);
         }
 
@@ -898,7 +985,7 @@ public class TargetDAO extends BaseDAO {
                         .list());
 
         for (Long parentOid : immediateParents) {
-            if(!duplicateValidator.containsKey(parentOid.longValue())) {
+            if (!duplicateValidator.containsKey(parentOid.longValue())) {
                 parentOids.add(parentOid);
                 parentOids.addAll(getAncestorOidsInternal(parentOid, duplicateValidator));
             }
@@ -910,19 +997,19 @@ public class TargetDAO extends BaseDAO {
 
     @SuppressWarnings("unchecked")
     public Set<AbstractTargetDTO> getAncestorDTOs(final Long childOid) {
-        Map<Long, Long> duplicateValidator=new HashMap<>();
-        Set<AbstractTargetDTO> parents=getAncestorDTOsInternal(childOid,duplicateValidator);
+        Map<Long, Long> duplicateValidator = new HashMap<>();
+        Set<AbstractTargetDTO> parents = getAncestorDTOsInternal(childOid, duplicateValidator);
         duplicateValidator.clear();
         return parents;
     }
 
-    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
         }
 
-        if(!duplicateValidator.containsKey(childOid.longValue())) {
-            duplicateValidator.put(childOid.longValue(),childOid);
+        if (!duplicateValidator.containsKey(childOid.longValue())) {
+            duplicateValidator.put(childOid.longValue(), childOid);
         }
 
         Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
@@ -933,7 +1020,7 @@ public class TargetDAO extends BaseDAO {
                         .list());
 
         for (AbstractTargetDTO parent : immediateParents) {
-            if(!duplicateValidator.containsKey(parent.getOid().longValue())) {
+            if (!duplicateValidator.containsKey(parent.getOid().longValue())) {
                 parents.add(parent);
                 parents.addAll(getAncestorDTOsInternal(parent.getOid(), duplicateValidator));
             }
@@ -1141,9 +1228,10 @@ public class TargetDAO extends BaseDAO {
 
     /**
      * Delete a schedule
+     *
      * @param schedule
      */
-    public void delete(final Schedule schedule){
+    public void delete(final Schedule schedule) {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
@@ -1160,6 +1248,7 @@ public class TargetDAO extends BaseDAO {
                 }
         );
     }
+
     /**
      * Delete a TargetGroup as long as it has no Target Instances associated
      * with it.
