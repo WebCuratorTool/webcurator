@@ -3,12 +3,9 @@ package org.webcurator.domain.model.simple;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import org.webcurator.core.util.WctUtils;
-import org.webcurator.domain.model.dto.GroupMemberDTO;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -20,21 +17,10 @@ import javax.validation.constraints.Size;
 @Entity
 @Table(name = "TARGET_GROUP")
 @PrimaryKeyJoinColumn(name = "TG_AT_OID", referencedColumnName = "AT_OID")
-@NamedQueries({
-        @NamedQuery(name = "org.webcurator.domain.model.simple.TargetGroup.getGroupDTOsByNameAndType",
-                query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType, t.type) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types) ORDER BY UPPER(t.name), t.type"),
-        @NamedQuery(name = "org.webcurator.domain.model.simple.TargetGroup.cntGroupDTOsByNameAndType",
-                query = "SELECT count(*) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types)")
-})
 public class SimpleTargetGroup extends SimpleAbstractTarget {
 
     /** The maximum length of the type field. */
     public static final int MAX_TYPE_LENGTH = 255;
-
-    /** Query identifier for retrieving Group DTOs by name */
-    public static final String QUERY_GROUP_DTOS_BY_NAME_AND_TYPE = "org.webcurator.domain.model.simple.TargetGroup.getGroupDTOsByNameAndType";
-    public static final String QUERY_CNT_GROUP_DTOS_BY_NAME_AND_TYPE = "org.webcurator.domain.model.simple.TargetGroup.cntGroupDTOsByNameAndType";
-
 
     /** The TargetGroup is Active - at least one child can be scheduled */
     public static final int STATE_ACTIVE = 9;
@@ -68,12 +54,6 @@ public class SimpleTargetGroup extends SimpleAbstractTarget {
     @JoinColumn(name = "GM_PARENT_ID")
     private Set<SimpleGroupMember> children = new HashSet<>();
 
-    /** Unpersisted - List of new children */
-    @Transient
-    private List<GroupMemberDTO> newChildren = new LinkedList<GroupMemberDTO>();
-    /** Set of children that have been removed */
-    @Transient
-    private Set<Long> removedChildren = new HashSet<Long>();
     /** The type of the group */
     @Size(max=255)
     @Column(name = "TG_TYPE")
@@ -173,18 +153,6 @@ public class SimpleTargetGroup extends SimpleAbstractTarget {
         this.ownershipMetaData = ownerhsipMetaData;
     }
 
-
-    /**
-     * Get the list of children that have been added to the group after it
-     * was loaded from the database.
-     * @return A List of GroupMemberDTO objects.
-     */
-    public List<GroupMemberDTO> getNewChildren() {
-        return newChildren;
-    }
-
-
-
     /**
      * Gets a set of all the children.
      * @return Returns the children.
@@ -199,15 +167,6 @@ public class SimpleTargetGroup extends SimpleAbstractTarget {
      */
     public void setChildren(Set<SimpleGroupMember> children) {
         this.children = children;
-    }
-
-    /**
-     * Gets the set of OIDs for children that have been removed since the 
-     * TargetGroup was loaded from the database.
-     * @return Returns the removedChildren.
-     */
-    public Set<Long> getRemovedChildren() {
-        return removedChildren;
     }
 
     /**

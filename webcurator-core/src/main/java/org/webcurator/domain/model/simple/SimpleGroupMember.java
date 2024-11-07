@@ -36,13 +36,6 @@ public class SimpleGroupMember {
     @ManyToOne
     @JoinColumn(name = "GM_PARENT_ID")
     private SimpleTargetGroup parent = null;
-    /**
-     * The child
-     */
-    @ManyToOne(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "GM_CHILD_ID", foreignKey = @ForeignKey(name = "FK_GM_CHILD_ID"))
-    private SimpleAbstractTarget child = null;
-
 
     /**
      * Get the OID of the GroupMember.
@@ -60,24 +53,6 @@ public class SimpleGroupMember {
      */
     public void setOid(Long aOid) {
         this.oid = aOid;
-    }
-
-    /**
-     * Get the child of the relationship.
-     *
-     * @return Returns the child.
-     */
-    public SimpleAbstractTarget getChild() {
-        return child;
-    }
-
-    /**
-     * Set the child of the relationship.
-     *
-     * @param child The child to set.
-     */
-    public void setChild(SimpleAbstractTarget child) {
-        this.child = child;
     }
 
     /**
