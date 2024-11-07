@@ -19,6 +19,8 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.simple.SimpleSeed;
+import org.webcurator.domain.model.simple.SimpleTarget;
 import org.webcurator.domain.model.view.ViewEntitySeed;
 import org.webcurator.domain.model.view.ViewEntityTargetSummary;
 import org.webcurator.rest.common.BadRequestError;
@@ -30,7 +32,6 @@ import javax.validation.*;
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -692,7 +693,7 @@ public class Targets {
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (ViewEntityTargetSummary t : (List<ViewEntityTargetSummary>) pagination.getList()) {
+        for (SimpleTarget t : (List<SimpleTarget>) pagination.getList()) {
             targetSummaries.add(getTargetSummary(t));
         }
         return new SearchResult(pagination.getTotal(), targetSummaries);
@@ -701,16 +702,16 @@ public class Targets {
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(ViewEntityTargetSummary t) {
+    private HashMap<String, Object> getTargetSummary(SimpleTarget t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
         targetSummary.put("creationDate", t.getCreationDate());
         targetSummary.put("name", t.getName());
-        targetSummary.put("agency", t.getAgcName());
-        targetSummary.put("owner",t.getUserName());
+        targetSummary.put("agency", t.getOwner().getAgency().getName());
+        targetSummary.put("owner",t.getOwner().getUsername());
         targetSummary.put("state", t.getState());
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        for (ViewEntitySeed s : t.getSeeds()) {
+        for (SimpleSeed s : t.getSeeds()) {
             HashMap<String, Object> seed = new HashMap<>();
             seed.put("seed", s.getSeed());
             seed.put("primary", s.isPrimary());

@@ -50,6 +50,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.Utils;
+import org.webcurator.domain.model.simple.SimpleTarget;
 import org.webcurator.domain.model.view.ViewEntityTargetSummary;
 
 
@@ -480,8 +481,8 @@ public class TargetDAO extends BaseDAO {
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
 
-                        Criteria query = session.createCriteria(ViewEntityTargetSummary.class);
-                        Criteria cntQuery = session.createCriteria(ViewEntityTargetSummary.class);
+                        Criteria query = session.createCriteria(SimpleTarget.class);
+                        Criteria cntQuery = session.createCriteria(SimpleTarget.class);
 
                         //To skip duplicated data.
                         query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
@@ -496,8 +497,8 @@ public class TargetDAO extends BaseDAO {
                         }
 
                         if (description != null && !"".equals(description.trim())) {
-                            query.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
-                            cntQuery.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
+                            query.add(Restrictions.ilike("description", description, MatchMode.ANYWHERE));
+                            cntQuery.add(Restrictions.ilike("description", description, MatchMode.ANYWHERE));
                         }
 
                         if (states != null && states.size() > 0) {
@@ -509,27 +510,33 @@ public class TargetDAO extends BaseDAO {
                             cntQuery.add(stateDisjunction);
                         }
 
-                        if (!StringUtils.isEmpty(seed)) {
-//                            query.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
-//                            cntQuery.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
+                        if (seed != null && !"".equals(seed.trim())) {
                             query.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
                             cntQuery.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
                         }
 
                         if (!Utils.isEmpty(username)) {
-                            query.add(Restrictions.eq("userName", username));
-                            cntQuery.add(Restrictions.eq("userName", username));
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.add(Restrictions.eq("username", username));
+                            cntOwnerCriteria.add(Restrictions.eq("username", username));
                         }
 
                         // Parents criteria.
                         if (!Utils.isEmpty(memberOf)) {
-                            query.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
-                            cntQuery.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
+                            query.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
+                            cntQuery.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
                         }
 
                         if (!Utils.isEmpty(agencyName)) {
-                            query.add(Restrictions.eq("agcName", agencyName));
-                            cntQuery.add(Restrictions.eq("agcName", agencyName));
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
+                            cntOwnerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
                         }
 
                         if (searchOid != null) {
@@ -552,11 +559,95 @@ public class TargetDAO extends BaseDAO {
                             query.addOrder(Order.desc("creationDate"));
                         }
                         cntQuery.setProjection(Projections.rowCount());
+
                         return new Pagination(cntQuery, query, pageNumber, pageSize);
                     }
                 }
         );
     }
+
+//    public Pagination searchSummary(final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
+//        return (Pagination) getHibernateTemplate().execute(
+//                new HibernateCallback() {
+//                    public Object doInHibernate(Session session) {
+//
+//                        Criteria query = session.createCriteria(ViewEntityTargetSummary.class);
+//                        Criteria cntQuery = session.createCriteria(ViewEntityTargetSummary.class);
+//
+//                        //To skip duplicated data.
+//                        query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+//                        cntQuery.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+//
+//                        Criteria ownerCriteria = null;
+//                        Criteria cntOwnerCriteria = null;
+//
+//                        if (targetName != null && !"".equals(targetName.trim())) {
+//                            query.add(Restrictions.ilike("name", targetName, MatchMode.START));
+//                            cntQuery.add(Restrictions.ilike("name", targetName, MatchMode.START));
+//                        }
+//
+//                        if (description != null && !"".equals(description.trim())) {
+//                            query.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
+//                            cntQuery.add(Restrictions.ilike("desc", description, MatchMode.ANYWHERE));
+//                        }
+//
+//                        if (states != null && states.size() > 0) {
+//                            Disjunction stateDisjunction = Restrictions.disjunction();
+//                            for (Integer i : states) {
+//                                stateDisjunction.add(Restrictions.eq("state", i));
+//                            }
+//                            query.add(stateDisjunction);
+//                            cntQuery.add(stateDisjunction);
+//                        }
+//
+//                        if (!StringUtils.isEmpty(seed)) {
+////                            query.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
+////                            cntQuery.add(Restrictions.ilike("seedNames", seed, MatchMode.ANYWHERE));
+//                            query.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+//                            cntQuery.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+//                        }
+//
+//                        if (!Utils.isEmpty(username)) {
+//                            query.add(Restrictions.eq("userName", username));
+//                            cntQuery.add(Restrictions.eq("userName", username));
+//                        }
+//
+//                        // Parents criteria.
+//                        if (!Utils.isEmpty(memberOf)) {
+//                            query.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
+//                            cntQuery.add(Restrictions.ilike("groupNames", memberOf, MatchMode.ANYWHERE));
+//                        }
+//
+//                        if (!Utils.isEmpty(agencyName)) {
+//                            query.add(Restrictions.eq("agcName", agencyName));
+//                            cntQuery.add(Restrictions.eq("agcName", agencyName));
+//                        }
+//
+//                        if (searchOid != null) {
+//                            query.add(Restrictions.eq("oid", searchOid));
+//                            cntQuery.add(Restrictions.eq("oid", searchOid));
+//                        }
+//
+//                        if (nondisplayonly) {
+//                            query.add(Restrictions.eq("displayTarget", false));
+//                            cntQuery.add(Restrictions.eq("displayTarget", false));
+//                        }
+//
+//                        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
+//                            query.addOrder(Order.asc("name"));
+//                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
+//                            query.addOrder(Order.desc("name"));
+//                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
+//                            query.addOrder(Order.asc("creationDate"));
+//                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
+//                            query.addOrder(Order.desc("creationDate"));
+//                        }
+//                        cntQuery.setProjection(Projections.rowCount());
+//                        return new Pagination(cntQuery, query, pageNumber, pageSize);
+//                    }
+//                }
+//        );
+//    }
 
     public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
                                    final String owner, final String agency, final String memberOf, final String groupType,
