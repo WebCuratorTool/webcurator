@@ -51,7 +51,6 @@ import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.Utils;
 import org.webcurator.domain.model.simple.SimpleTarget;
-import org.webcurator.domain.model.view.ViewEntityTargetSummary;
 
 
 import javax.persistence.criteria.CriteriaBuilder;

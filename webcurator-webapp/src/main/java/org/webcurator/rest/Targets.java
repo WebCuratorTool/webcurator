@@ -21,8 +21,6 @@ import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.simple.SimpleSeed;
 import org.webcurator.domain.model.simple.SimpleTarget;
-import org.webcurator.domain.model.view.ViewEntitySeed;
-import org.webcurator.domain.model.view.ViewEntityTargetSummary;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
