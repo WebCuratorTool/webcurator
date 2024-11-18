@@ -2,6 +2,8 @@
 import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useToast } from "primevue/usetoast";
+import { formatDate } from '@/utils/helper';
+
 import { useTargetSeedsDTO } from '@/stores/target';
 
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
@@ -11,7 +13,7 @@ const AddHarvestAuthModal = defineAsyncComponent(() => import('./modals/TargetAd
 const toast = useToast();
 
 const props = defineProps<{
-    editing: boolean
+  editing: boolean
 }>()
 
 const targetSeeds = useTargetSeedsDTO();
@@ -45,8 +47,12 @@ const cancelEditSeed = () => {
   editingSeed.value = 0;
 }
 
+const removeHarvestAuth = (seed: any, auth: any) => {
+  seed.authorisations = seed.authorisations.filter((a: any) => a.permissionId !== auth.permissionId);
+}
+
 const showAddHarvestAuth = (seed: any) => {
-  const modalRef = addSeedsModal.open(AddHarvestAuthModal, {
+  addSeedsModal.open(AddHarvestAuthModal, {
     props: { header: `Add Harvest Auth to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
     data: { seed: seed }
   })
@@ -57,9 +63,9 @@ const showErrorMessage = () => {
 };
 
 watch(() => props.editing, async(newEditing) => {
-    if (newEditing == false) {
-        editingSeed.value = 0;
-    }
+  if (newEditing == false) {
+    editingSeed.value = 0;
+  }
 })
 </script>
 
@@ -84,50 +90,79 @@ watch(() => props.editing, async(newEditing) => {
       </div>
     </div>
 
-    <DataTable class="w-full" :rowHover="true" :value="targetSeeds.targetSeeds">
-      <Column field="seed" header="Seed">
-        <template #body="{ data }">
-          <div class="flex align-items-center justify-content-between">
+    <table class="w-full target-seed-parent-table">
+      <thead>
+        <tr style="border-bottom: 1px solid #E4E4E4;">
+          <th style="width: 20%; text-align: left; padding: .5rem;">Seed</th>
+          <th style="width: 10%; text-align: left; padding: .5rem;">Primary</th>
+          <th style="width: 15%; text-align: left; padding: .5rem;">Harvest Auth</th>
+          <th style="width: 15%; text-align: left; padding: .5rem;">Auth Agent</th>
+          <th style="width: 17.5%; text-align: left; padding: .5rem;">Start Date</th>
+          <th style="width: 17.5%; text-align: left; padding: .5rem;">End Date</th>
+          <th style="width: 10%; text-align: left; padding: .5rem;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(data, index) in targetSeeds.targetSeeds" :key="index">
+          <td style="width: 20%; padding: .5rem;">
             <span v-if="editingSeed != data.id">{{ data.seed }}</span>
             <InputText v-else v-model="data.seed" />
-          </div>
-        </template>
-      </Column>
-      <Column field="authorisations" header="Harvset Auth">
-        <template #body="{ data }">
-          <div class="flex align-items-center">
-            <div>
-              <div v-for="authorisation in data.authorisations" :key="authorisation.id">
-                {{ authorisation }}
-              </div>
+          </td>
+          <td style="width: 10%; padding: .5rem;">
+            <span v-if="editingSeed != data.id">{{ data.primary ? 'Yes' : 'No' }}</span>
+            <Checkbox v-else v-model="data.primary" :binary="true" />
+          </td>
+          <td colspan="5" style="padding: .5rem;">
+            <table class="w-full target-seed-child-table">
+              <tbody>
+                <tr v-for="authorisation in data.authorisations" :key="authorisation.id">
+                  <td style="width: 15%; padding: .5rem;">{{ authorisation.name }}</td>
+                  <td style="width: 15%; padding: .5rem;">{{ authorisation.agent }}</td>
+                  <td style="width: 17.5%; padding: .5rem;">{{ formatDate(authorisation.startDate) }}</td>
+                  <td style="width: 17.5%; padding: .5rem;">{{ formatDate(authorisation.endDate) }}</td>
+                  <td style="width: 5%; padding: .5rem;">
+                    <div class="flex">
+                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text />
+                      <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removeHarvestAuth(data, authorisation)" />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+          <td v-if="editing" style="width: 5%; padding: .5rem;">
+            <div v-if="editing && editingSeed != data.id" class="flex">
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Harvest Auth'" text @click="showAddHarvestAuth(data)" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
             </div>
-            <div class="flex-shrink-0">
-              <Button v-if="editing && editingSeed == data.id" label="+/-" text @click="showAddHarvestAuth(data)" />
+            <div v-else-if="editing && editingSeed == data.id" class="flex">
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-save" v-tooltip.bottom="'Save'" text @click="editingSeed = 0" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-times" v-tooltip.bottom="'Cancel'" text @click="cancelEditSeed()" />
             </div>
-          </div>
-        </template>
-      </Column>
-      <Column field="primary" header="Primary">
-        <template #body="{ data }">
-          <Checkbox
-              v-model="data.primary" 
-              :binary="true"
-              :disabled="!editing || editingSeed != data.id" 
-          />
-        </template>
-      </Column>
-      <Column header="Actions" v-if="editing" style="max-width: 8rem">
-        <template #body="{ data }">
-          <div v-if="editing && editingSeed != data.id">
-            <Button icon="pi pi-pencil" text @click="editSeed(data)" />
-            <Button icon="pi pi-trash" text @click="targetSeeds.removeSeed(data.id)" />
-          </div>
-          <div v-else-if="editing && editingSeed == data.id">
-              <Button icon="pi pi-save" text @click="editingSeed = 0" />
-              <Button icon="pi pi-times" text @click="cancelEditSeed()" />
-            </div>
-        </template>
-      </Column>
-    </DataTable>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </WctTabViewPanel>
 </template>
+
+<style>
+table { 
+  border-collapse: collapse; 
+}
+
+.target-seed-parent-table tr:not(:last-child) {
+  border-bottom: 1px solid #E4E4E4 !important;
+}
+
+.target-seed-parent-table table {
+  border: none;
+  border-collapse: separate;
+}
+
+.target-seed-parent-table tbody tr:hover {
+  background-color: #F5F5F5;
+}
+
+</style>

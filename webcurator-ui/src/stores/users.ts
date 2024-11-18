@@ -143,7 +143,6 @@ export const useUsersStore = defineStore('users', () => {
   return { data, userList, userListWithEmptyItem, initialFetch }
 });
 
-
 export const getPresentationUserName = (selectedUser: string | any) => {
   if (!selectedUser) {
     console.log('The input selectedUser is ' + selectedUser);
@@ -156,7 +155,7 @@ export const getPresentationUserName = (selectedUser: string | any) => {
   } else {
     userName = selectedUser.code;
   }
-
+   
   const users = useUsersStore();
   const data = users.data;
   for (let i = 0; i < data.length; i++) {

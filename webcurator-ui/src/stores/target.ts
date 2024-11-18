@@ -31,7 +31,7 @@ export const initNewTarget = () => {
     useTargetAccessDTO().initData();
 }
 
-export const setTarget = (target: Target) => {    
+export const setTarget = (target: Target) => {         
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);

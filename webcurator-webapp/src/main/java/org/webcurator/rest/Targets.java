@@ -522,8 +522,8 @@ public class Targets {
             }
             try {
                 child = getMethod.invoke(parent);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new BadRequestError(e.getMessage());
+            } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+                throw new BadRequestError(e.getMessage() + child + " here");
             }
             Class childType = getMethod.getReturnType(); // child.getClass() may return a narrower type
             if (value instanceof HashMap) { // recurse
