@@ -14,11 +14,11 @@ interface HarvestAuth {
   permissions: any[];
 }
 
-const harvestAuths = ref<HarvestAuth[]>([]);
-const filteredHarvestAuths = ref<HarvestAuth[]>([]);
+const returnedHarvestAuths = ref<HarvestAuth[]>([]);
 const loading = ref(false);
 
-const preppedAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '' }[]>([]);
+const harvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '', urlPatterns: [] }[]>([]);
+const filteredHarvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '',  urlPatterns: []  }[]>([]);
 
 const searchTerm = ref('');
 
@@ -29,18 +29,20 @@ const prepareData = (data: HarvestAuth[]) => {
     if (harvestAuth.authorisingAgents.length > 0) {
       harvestAuth.authorisingAgents.forEach((authorisingAgent: any) => {
         if (authorisingAgent.permissions.length > 0) {
-          preppedAuths.value.push({
+          harvestAuths.value.push({
             id: harvestAuth.id,
             name: harvestAuth.name,
             agent: authorisingAgent.name,
             permissionId: authorisingAgent.permissions[0].id,
             startDate: authorisingAgent.permissions[0].startDate,
-            endDate: authorisingAgent.permissions[0].endDate
+            endDate: authorisingAgent.permissions[0].endDate,
+            urlPatterns: authorisingAgent.permissions[0].urlPatterns
           });
         }
       })
     }
   });
+  filteredHarvestAuths.value = harvestAuths.value;
 };
 
 const fetch = () => {
@@ -54,9 +56,8 @@ const fetch = () => {
   rest
     .post('harvest-authorisations', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
     .then((data: any) => {
-      harvestAuths.value = data['harvestAuthorisations'];
-      filteredHarvestAuths.value = harvestAuths.value;
-      prepareData(harvestAuths.value);
+      returnedHarvestAuths.value = data['harvestAuthorisations'];
+      prepareData(returnedHarvestAuths.value);
       loading.value = false;
     })
     .catch((err: any) => {
@@ -68,7 +69,13 @@ const fetch = () => {
 const search = () => {
   const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
   filteredHarvestAuths.value = harvestAuths.value.filter((g: any) => 
-    g.name.toLowerCase().includes(lowerCaseSearchTerm)
+    g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+    g.urlPatterns.some((urlPattern: string) => {
+      // Ignore trailing slashes
+      const trimmedUrlPattern = urlPattern.replace(/\/$/, '');
+      const trimmedSearchTerm = lowerCaseSearchTerm.replace(/\/$/, '');
+      return trimmedUrlPattern.includes(trimmedSearchTerm);
+    })
   );
 };
 
@@ -85,15 +92,24 @@ fetch();
 <template>
   <div class="h-full">
     <h5>Search</h5>
+    <Button class="mb-4" label="Search for Seed URL"  @click="searchTerm = seed.seed; search()" />
     <div class="flex mb-4">
-      <InputText v-model="searchTerm" type="text" class="mr-4" />
+      <InputText v-model="searchTerm" type="text" placeholder="Keyword" class="mr-4" />
       <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
+      <Button class="ml-2 wct-secondary-button" label="Clear" icon="pi pi-times" iconPos="right" @click="searchTerm = ''; search()" />
     </div>
 
-    <DataTable class="w-full" :value="preppedAuths" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
+    <DataTable class="w-full" :value="filteredHarvestAuths" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
       <Column expander style="width: 5rem" />
       <Column field="name" header="Name" />
       <Column field="agent" header="Authorising Agent" />
+      <Column  header="URL Patterns">
+        <template #body="{ data }">
+          <div v-for="(urlPattern, index) in data.urlPatterns" :key="index">
+            {{ urlPattern }}
+          </div>
+        </template>
+      </Column>
       <Column field="startDate" header="Start Date">
         <template #body="{ data }">
           {{ formatDate(data.startDate) }}
