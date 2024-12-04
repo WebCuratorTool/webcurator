@@ -125,13 +125,14 @@ fetch();
           <div class="flex justify-content-center">
             <div v-if="isAuthAdded(data.permissionId)" class="flex align-items-center">
               <i class="pi pi-check" />
-              <Button icon="pi pi-trash" text @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== data.permissionId)" />
+              <Button icon="pi pi-trash" text v-tooltip.bottom="'Remove from Seed'" @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== data.permissionId)" />
             </div>
             <Button
               v-else
               class="p-0 m-0"
               label="Add"
               text
+              v-tooltip.bottom="'Add to Seed'"
               @click="
                 seed.authorisations.push({
                   id: data.id,
