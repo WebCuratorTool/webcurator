@@ -144,6 +144,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("**/digital-asset-store/**").permitAll()
                 .antMatchers("/spa/**").permitAll()
                 .antMatchers("/index.html").permitAll()
+                .antMatchers("/view/**").permitAll()
                 .antMatchers("/favicon.ico").permitAll()
                 .antMatchers("/themes/**").permitAll()
                 .antMatchers("/assets/**").permitAll()

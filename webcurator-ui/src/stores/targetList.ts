@@ -104,13 +104,13 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
         const searchParams = {
           filter: searchConditions,
           offset: 0,
-          limit: -1,
+          limit: 10,
           sortBy: 'creationDate,asc'
         }
       
         loadingTargetList.value = true
         rest
-          .post('targets', searchParams)
+          .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
           .then((data: any) => {
             console.log(data)
             targetList.value = data['targets']

@@ -4,8 +4,8 @@
             <img class="logo" src="@/assets/wct_logo.png" />
             <div class="flex w-full justify-content-between">
                 <div class="nav-bar-links">
-                    <router-link class="nav-bar-link" to="/wct/dashboard">Dashboard</router-link>
-                    <router-link class="nav-bar-link" to="/wct/targets">Targets</router-link>
+                    <router-link class="nav-bar-link" to="/view/dashboard">Dashboard</router-link>
+                    <router-link class="nav-bar-link" to="/view/targets">Targets</router-link>
                 </div>
                 <div class="nav-bar-links pr-4">
                     <Button label="Logout" @click="logout" />
