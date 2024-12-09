@@ -24,6 +24,30 @@ public class StaticFileReaderController {
     @Autowired
     private ServletContext servletContext;
 
+    private static String getContentTypeFor(String path) {
+        if (StringUtils.isEmpty(path)) {
+            return null;
+        }
+        path = path.toLowerCase();
+        if (path.endsWith(".css")) {
+            return "text/css";
+        } else if (path.endsWith(".js")) {
+            return "application/javascript";
+        } else if (path.endsWith(".json")) {
+            return "application/json";
+        } else if (path.endsWith(".htm") || path.endsWith(".html")) {
+            return "text/html;charset=UTF-8";
+        } else if (path.endsWith(".png")) {
+            return "image/png";
+        } else if (path.endsWith(".jpg") || path.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (path.endsWith(".ico")) {
+            return "image/vnd.microsoft.icon";
+        }
+        FileNameMap fileNameMap = URLConnection.getFileNameMap();
+        return fileNameMap.getContentTypeFor(path);
+    }
+
     /**
      * For the single page application, the request can be an internal route paths, there is no implicit files link to these kinds of paths. These kinks of links often point to the section of index.html (.js, .css included).
      *
@@ -31,7 +55,7 @@ public class StaticFileReaderController {
      * @param response: the http response
      * @throws IOException: error happens
      */
-    @GetMapping("/view/**")
+    @GetMapping("/**")
     public void outputFile(ServletRequest request, ServletResponse response) throws IOException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse rsp = ((HttpServletResponse) response);
@@ -40,13 +64,12 @@ public class StaticFileReaderController {
         String url = req.getRequestURI().substring(contentUri.length());
 
         log.debug("Received request: {}", url);
-        FileNameMap fileNameMap = URLConnection.getFileNameMap();
-        String contentType = fileNameMap.getContentTypeFor(url.toLowerCase());
+        String contentType = getContentTypeFor(url);
 
         byte[] fileData = StreamUtils.copyToByteArray(servletContext.getResourceAsStream(url));
         if (fileData.length == 0) {
             fileData = StreamUtils.copyToByteArray(servletContext.getResourceAsStream("/index.html"));
-            contentType = fileNameMap.getContentTypeFor("/index.html");
+            contentType = getContentTypeFor("/index.html");
         }
 
         if (!StringUtils.isEmpty(contentType)) {

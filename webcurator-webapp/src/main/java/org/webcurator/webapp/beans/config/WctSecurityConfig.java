@@ -129,26 +129,13 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(final HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/api/**").permitAll() // The ResT API has its own authentication
-                .antMatchers("/auth/**").permitAll() // The ResT API has its own authentication
+                // The ResT API has its own authentication
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
-//                .antMatchers("/curator/**").permitAll()
                 .antMatchers("/jsp/**").hasRole("LOGIN")
                 .antMatchers("/replay/**").hasRole("LOGIN")
                 .antMatchers("/help/**").hasRole("LOGIN")
-                .antMatchers("/styles/**").permitAll()
-                .antMatchers("/images/**").permitAll()
-                .antMatchers("/scripts/**").permitAll()
-                .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
-                .antMatchers("**/digital-asset-store/**").permitAll()
-                .antMatchers("/spa/**").permitAll()
-                .antMatchers("/index.html").permitAll()
-                .antMatchers("/view/**").permitAll()
-                .antMatchers("/favicon.ico").permitAll()
-                .antMatchers("/themes/**").permitAll()
-                .antMatchers("/assets/**").permitAll()
-//                .antMatchers("/visualization/**").permitAll()
+                .antMatchers("/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")

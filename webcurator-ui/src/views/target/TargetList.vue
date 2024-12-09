@@ -24,7 +24,7 @@ const targetListData = useTargetListDataStore()
 
 const createNew = () => {
   if (router) {
-    router.push('/view/targets/new/')
+    router.push('/targets/new/')
   }
 }
 
@@ -190,7 +190,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
       </Column>
       <Column field="name" header="Name" sortable style="min-width: 8rem">
         <template #body="{ data }">
-          <router-link :to="`/view/targets/${data.id}`">{{ data.name }}</router-link>
+          <router-link :to="`/targets/${data.id}`">{{ data.name }}</router-link>
         </template>
       </Column>
       <Column field="agency" header="Agency" sortable style="min-width: 5rem"></Column>

@@ -26,7 +26,7 @@ const emit = defineEmits(['setEditing', 'save'])
 
 const navigateBack = () => {
   if (router) {
-    router.push('/view/targets/')
+    router.push('/targets/')
   }
 }
 
