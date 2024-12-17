@@ -33,12 +33,20 @@ const fetchTargetInstances = () => {
             console.log(err.message)
             loading.value = false
         })
+
+    targetTimeline.value.push({ date: targetGeneral.creationDate, event: "Target Created", type: 'target' })
+    targetAnnotations.targetAnnotations.annotations.forEach(annotation => {
+        annotation.type = 'target'
+        targetTimeline.value.push(annotation);
+    });
+
+    targetInstances.value.forEach((ti: any )=> {
+      if (ti.status === 5) {
+          targetTimeline.value.push({ })
+      }
+    })
 }
 
-targetTimeline.value.push({ date: targetGeneral.creationDate, event: "Target Created"})
-targetAnnotations.targetAnnotations.annotations.forEach(annotation => {
-    targetTimeline.value.push(annotation);
-});
 
 targetTimeline.value.reverse()
     
@@ -52,7 +60,7 @@ fetchTargetInstances();
         <div v-if="slotProps.item.event">
             {{ `${formatDatetime(slotProps.item.date)} ${slotProps.item.event}` }}
         </div>
-        <div v-else class="tooltip ml-2 mt-1 mb-2">
+        <div v-else class="anotation-speech-bubble ml-2 mt-1 mb-2">
             <div>
                 {{ `${formatDatetime(slotProps.item.date)} - ${slotProps.item.user}` }}
             </div>
@@ -63,13 +71,7 @@ fetchTargetInstances();
 </template>
 
 <style>
-/* HTML: <div class="tooltip">This is a Tooltip with a border and with a border radius. Border and background have a solid coloration</div> */
-.tooltip {
-  /* color: #fff; */
-  /* font-size: 18px; */
-  max-width: 50ch;
-}
-.tooltip {
+.anotation-speech-bubble {
   /* triangle dimension */
   --a: 90deg; /* angle */
   --h: 1em;   /* height */
@@ -80,6 +82,7 @@ fetchTargetInstances();
   --c1: #3F51B5;
   --c2: #fafafa;
 
+  max-width: 50ch;
   padding: 1em;
   border-radius: var(--r)/min(var(--r),var(--p) - var(--h)*tan(var(--a)/2)) var(--r) var(--r) min(var(--r),100% - var(--p) - var(--h)*tan(var(--a)/2));
   clip-path: polygon(0 0,100% 0,100% 100%,0 100%,
@@ -91,7 +94,7 @@ fetchTargetInstances();
     max(0%,var(--p) - var(--h)*tan(var(--a)/2)) var(--r) max(0%,100% - var(--p) - var(--h)*tan(var(--a)/2)) 0/0 0 0 var(--h);
   position: relative;
 }
-.tooltip:before {
+.anotation-speech-bubble:before {
   content: "";
   position: absolute;
   z-index: -1;
