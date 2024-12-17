@@ -1,7 +1,7 @@
-import { ref, computed} from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetAnnotations, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
+import { type Target, type TargetAccess, type TargetAnnotations, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSeeds } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -38,7 +38,7 @@ export const setTarget = (target: Target) => {
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);
-    useTargetProfileDTO().setData(target.profile);
+    target.profile != null && useTargetProfileDTO().setData(target.profile);
     useTargetSeedsDTO().setData(target.seeds);
 }
 
@@ -321,18 +321,31 @@ export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () =>
 });
 
 export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
-    const targetSeeds = ref([]);
+    const targetSeeds = ref([] as TargetSeeds);
     
     const initData = () => {
-        targetSeeds.value = [];
+        targetSeeds.value = [] as TargetSeeds;
     }
 
-    const setData = (data: any) => {
+    const setData = (data: TargetSeeds) => {
         targetSeeds.value = data;
     }
+
     const getData = () => targetSeeds.value;
 
-    return { targetSeeds, initData, setData, getData }
+    const addSeed = (seed: any) => {
+        targetSeeds.value.push(seed)
+    }
+
+    const removeSeed = (seedId: number) => {
+        targetSeeds.value = targetSeeds.value.filter(s => s.id != seedId)
+    }
+
+    const replaceSeed = (replacementSeed: any) => {
+        targetSeeds.value = targetSeeds.value.map(seed => seed.id === replacementSeed.id ? replacementSeed : seed);
+    }
+
+    return { targetSeeds, addSeed, getData, initData, removeSeed, replaceSeed, setData }
 });
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {

@@ -4,8 +4,9 @@ import { useRouter } from 'vue-router';
 import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore, initNewTarget, useTargetGropusDTO } from '@/stores/target';
 import { useProfiles } from '@/stores/profiles';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-
 import TargetTabView from './target-tabs/TargetTabView.vue';
+import { useTargetListDataStore } from '@/stores/targetList';
+const targetListData = useTargetListDataStore();
 
 const router = useRouter()
 
@@ -44,9 +45,10 @@ const save = () => {
         dataReq.profile = targetProfile.getData();
     }
 
-    rest.post('targets/save', dataReq)
+    rest.post('targets', dataReq)
     .then((data: any) => {
         console.log(data)
+        targetListData.search()
     })
     .catch((err: any) => {
         console.log(err.message)

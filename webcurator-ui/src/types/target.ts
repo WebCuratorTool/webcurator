@@ -42,7 +42,7 @@ interface TargetDescription {
     isbn: string,
 }
 
-interface TargetGeneral {
+interface TargetGeneral { 
     id: number,
     name: string,
     creationDate: number,
@@ -63,7 +63,12 @@ interface TargetGroup {
     name: string
 }
 
-interface TargetGroups extends Array<TargetGroup>{}
+interface TargetProfileOverride {
+    id: string;
+    value: string | number | boolean | any[];
+    enabled: boolean;
+    unit?: string; 
+}
 
 interface TargetProfile {
     id: number | null,
@@ -73,19 +78,16 @@ interface TargetProfile {
     overrides: Array<TargetProfileOverride>
 }
 
-interface TargetProfileOverride {
-    id: string;
-    value: string | number | boolean | any[];
-    enabled: boolean;
-    unit?: string; 
-}
+interface TargetGroups extends Array<TargetGroup>{}
 
-interface TargetSeeds {
+interface TargetSeed {
     id: number,
     seed: string,
     primary: boolean,
     authorisations: []
 }
+
+interface TargetSeeds extends Array<TargetSeed>{}
 
 export type {
     Target,
@@ -97,5 +99,6 @@ export type {
     TargetGroups,
     TargetProfile,
     TargetProfileOverride,
+    TargetSeed,
     TargetSeeds
 }

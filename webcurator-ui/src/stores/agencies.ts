@@ -15,8 +15,8 @@ export const useAgenciesStore = defineStore('agencies', () => {
 
   const agencyList = computed(() => {
     const formatedData = [];
-    for (var i = 0; i < data.value.length; i++) {
-      var item = data.value[i];
+    for (let i = 0; i < data.value.length; i++) {
+      const item = data.value[i];
       formatedData.push({
         "name": item["name"],
         "code": item["id"],
@@ -30,8 +30,8 @@ export const useAgenciesStore = defineStore('agencies', () => {
       "name": " ",
       "code": "",
     }];
-    for (var i = 0; i < data.value.length; i++) {
-      var item = data.value[i];
+    for (let i = 0; i < data.value.length; i++) {
+      const item = data.value[i];
       formatedData.push({
         "name": item["name"],
         "code": item["id"],
@@ -40,5 +40,7 @@ export const useAgenciesStore = defineStore('agencies', () => {
     return formatedData;
   });
 
+  initialFetch();
+  
   return { data, initialFetch, agencyList, agencyListWithEmptyItem }
 });
