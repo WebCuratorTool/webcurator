@@ -25,6 +25,8 @@ import { useLayout } from '@/layout/composables/layout'
 import { useUserProfileStore } from '@/stores/users'
 import { useLoginStore } from '@/utils/rest.api'
 import { usePrimeVue } from 'primevue/config'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const loginStore = useLoginStore()
 
@@ -33,8 +35,8 @@ const $primevue = usePrimeVue()
 
 const token = useUserProfileStore()
 const logout = () => {
-  token.clear()
-  loginStore.startLogin()
+  loginStore.logout()
+  router.push("/wct")
 }
 
 const onDarkModeChange = (value: any) => {
