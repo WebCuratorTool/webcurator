@@ -4,7 +4,8 @@ interface Target {
     profile: TargetProfile,
     seeds: TargetSeeds,
     access: TargetAccess,
-    groups: TargetGroups
+    groups: TargetGroups,
+    schedule: TargetSchedule
 }
 
 interface TargetAccess {
@@ -77,6 +78,23 @@ interface TargetSeed {
     authorisations: []
 }
 
+interface TargetSchedule {
+    harvestNow: boolean,
+    harvsestOptimization: boolean,
+    schedules: Array<TargetHarvests>
+}
+
+interface TargetHarvests {
+    id: number,
+    cron: string,
+    startDate: number,
+    endDate: number,
+    type: number,
+    nextExecutionDate: number,
+    lastProcessedDate: number,
+    owner: string
+}
+
 interface TargetSeeds extends Array<TargetSeed>{}
 
 export type {
@@ -86,8 +104,10 @@ export type {
     TargetGeneral,
     TargetGroup,
     TargetGroups,
+    TargetHarvests,
     TargetProfile,
     TargetProfileOverride,
+    TargetSchedule,
     TargetSeed,
     TargetSeeds
 }
