@@ -81,10 +81,10 @@ interface TargetSeed {
 interface TargetSchedule {
     harvestNow: boolean,
     harvsestOptimization: boolean,
-    schedules: Array<TargetHarvests>
+    schedules: Array<TargetHarvest>
 }
 
-interface TargetHarvests {
+interface TargetHarvest {
     id: number,
     cron: string,
     startDate: number,
@@ -104,7 +104,7 @@ export type {
     TargetGeneral,
     TargetGroup,
     TargetGroups,
-    TargetHarvests,
+    TargetHarvest,
     TargetProfile,
     TargetProfileOverride,
     TargetSchedule,
