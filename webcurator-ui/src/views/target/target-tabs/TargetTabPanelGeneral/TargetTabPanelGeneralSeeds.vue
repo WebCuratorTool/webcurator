@@ -103,7 +103,7 @@ watch(() => props.editing, async(newEditing) => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(data, index) in targetSeeds.targetSeeds" :key="index">
+        <tr v-for="data in targetSeeds.targetSeeds" :key="data.id">
           <td style="width: 20%; padding: .5rem;">
             <span v-if="editingSeed != data.id">{{ data.seed }}</span>
             <InputText v-else v-model="data.seed" />
@@ -118,8 +118,8 @@ watch(() => props.editing, async(newEditing) => {
                 <tr v-for="authorisation in data.authorisations" :key="authorisation.id">
                   <td style="width: 15%; padding: .5rem;">{{ authorisation.name }}</td>
                   <td style="width: 15%; padding: .5rem;">{{ authorisation.agent }}</td>
-                  <td style="width: 17.5%; padding: .5rem;">{{ formatDate(authorisation.startDate) }}</td>
-                  <td style="width: 17.5%; padding: .5rem;">{{ formatDate(authorisation.endDate) }}</td>
+                  <td style="width: 17.5%; padding: .5rem;">{{ authorisation.startDate && formatDate(authorisation.startDate) }}</td>
+                  <td style="width: 17.5%; padding: .5rem;">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
                   <td style="width: 5%; padding: .5rem;">
                     <div class="flex">
                       <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text />

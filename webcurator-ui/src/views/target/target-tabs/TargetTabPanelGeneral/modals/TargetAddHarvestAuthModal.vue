@@ -92,14 +92,20 @@ fetch();
 <template>
   <div class="h-full">
     <h5>Search</h5>
-    <Button class="mb-4" label="Search for Seed URL"  @click="searchTerm = seed.seed; search()" />
     <div class="flex mb-4">
-      <InputText v-model="searchTerm" type="text" placeholder="Keyword" class="mr-4" />
+      <InputText v-model="searchTerm" type="text" placeholder="Keyword" v-tooltip.bottom="'Search names and URL patterns'"
+      class="mr-4" />
       <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
-      <Button class="ml-2 wct-secondary-button" label="Clear" icon="pi pi-times" iconPos="right" @click="searchTerm = ''; search()" />
+      <Button 
+        class="ml-2 wct-secondary-button"
+        label="Clear" icon="pi pi-times" 
+        iconPos="right" 
+        @click="searchTerm = ''; search()" 
+      />
     </div>
+    <Button v-if="seed" class="p-0" :label="`Search for ${seed.seed}`" text iconPos="right" @click="searchTerm = seed.seed; search()" />
 
-    <DataTable class="w-full" :value="filteredHarvestAuths" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
+    <DataTable class="w-full mt-4" :value="filteredHarvestAuths" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
       <Column expander style="width: 5rem" />
       <Column field="name" header="Name" />
       <Column field="agent" header="Authorising Agent" />
@@ -112,12 +118,12 @@ fetch();
       </Column>
       <Column field="startDate" header="Start Date">
         <template #body="{ data }">
-          {{ formatDate(data.startDate) }}
+          {{ data.startDate && formatDate(data.startDate) }}
         </template>
       </Column>
       <Column field="endDate" header="End Date">
         <template #body="{ data }">
-          {{ formatDate(data.endDate) }}
+          {{ data.endDate && formatDate(data.endDate) }}
         </template>
       </Column>
       <Column>
