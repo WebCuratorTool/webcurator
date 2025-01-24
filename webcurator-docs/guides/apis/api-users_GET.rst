@@ -3,20 +3,16 @@ Retrieve Users (GET)
 
 Returns all users with a subset of the available information based upon given filter and sorting.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/users``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-query-method.rst
 
 ====== ====== ========
@@ -49,7 +45,7 @@ The following information is returned per found user:
 ============ ====== ========
 **Body**
 ----------------------------
-userId       Number Required
+id           Number Required
 userName     String Required
 firstName    String Required
 lastName     String Required

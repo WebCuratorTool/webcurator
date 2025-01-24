@@ -2,10 +2,6 @@ Update Target (PUT)
 ===================
 Update a specific target or part therof.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets/{target-id}``
@@ -38,12 +34,12 @@ Fields of mutable lists (seeds, schedule.schedules, annotations.annotations, gro
 +-------------+
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
-.. include:: /guides/apis/descriptions/desc-target_request.rst
+^^^^
+.. include:: /guides/apis/descriptions/desc-target.rst
 
 Response
 --------

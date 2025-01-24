@@ -1,6 +1,5 @@
------------------
 **part: profile**
------------------
+^^^^^^^^^^^^^^^^^
 A list of profile properties that belong to a target instanace. This contains the following information:
 
 =============== ======= ========

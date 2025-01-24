@@ -2,21 +2,17 @@ Create Target (POST)
 ====================
 Create a target.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
-.. include:: /guides/apis/descriptions/desc-target_request.rst
+^^^^
+.. include:: /guides/apis/descriptions/desc-target.rst
 
 Response
 --------

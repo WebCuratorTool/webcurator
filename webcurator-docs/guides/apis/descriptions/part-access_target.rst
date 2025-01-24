@@ -1,6 +1,5 @@
-----------------
 **part: access**
-----------------
+^^^^^^^^^^^^^^^^
 A list of access properties that belong to a target or group. This contains the following information:
 
 =================== ======= ========
@@ -14,7 +13,7 @@ displayNote         String  Optional
 =================== ======= ========
 
 | **accessZone**
-| The access zone of a target is an integer with the following values:
+| The access zone of a target or group is an integer with the following values:
 
 ======== ===============
 **Zone** **Description**

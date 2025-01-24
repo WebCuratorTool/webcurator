@@ -1,22 +1,17 @@
 Retrieve Group types (GET)
 ==========================
-
 Returns a list of all the types that a group can have.
-
-Version
--------
-1.0.0
 
 Request
 -------
 ``https://--WCT_base--/api/v1/groups/types``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -25,7 +20,7 @@ Response
 
 ===== ==== ========
 **Body**
---------------------
+-------------------
 types List Required
 ===== ==== ========
 
@@ -48,4 +43,7 @@ Example
 -------
 .. code-block:: linux
 
-  TODO
+  curl \
+  --location --request GET 'http://localhost/wct/auth/v1/groups/types' \
+  --header 'Authorization: Bearer <token>' \
+  --data ''
