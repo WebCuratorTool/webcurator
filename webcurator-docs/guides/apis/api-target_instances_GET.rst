@@ -2,20 +2,16 @@ Retrieve Target Instances (GET)
 ===============================
 Returns all target instances with a subset of the available information based upon given filter and sorting.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/target-instances``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-query-method.rst
 
 ====== ====== ========
