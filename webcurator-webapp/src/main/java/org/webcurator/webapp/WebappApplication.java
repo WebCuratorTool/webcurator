@@ -16,6 +16,7 @@ import java.util.Arrays;
 @ComponentScan(basePackages = {"org.webcurator.webapp",
         "org.webcurator.rest",
         "org.webcurator.ui",
+        "org.webcurator.serv",
         "org.webcurator.core.coordinator",
         "org.webcurator.core.harvester.coordinator",
         "org.webcurator.core.store.coordinator",

@@ -26,7 +26,7 @@ const emit = defineEmits(['setEditing', 'save'])
 
 const navigateBack = () => {
   if (router) {
-    router.push('/wct/targets/')
+    router.push('/targets/')
   }
 }
 

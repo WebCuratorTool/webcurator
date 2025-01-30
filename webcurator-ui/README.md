@@ -45,11 +45,7 @@ npm run lint
 ```
 
 ### Deploy in production environment
-The webcurator-ui can be packaged to jar file and installed into local Maven Repository. The webcurator-ui has been integrated to webcurator-webapp and served by webcurator-webapp.
-
-```sh
-./gradlew clear install
-```
+The webcurator-ui has been integrated to webcurator-webapp and served by webcurator-webapp. When you build the webcurator-webapp project, the webcurator-ui will be packaged into the war file automatically.
 
 Then you can build and run webcurator-webapp. The access url of the new ui: http://localhost:8080/wct/index.html.
 
