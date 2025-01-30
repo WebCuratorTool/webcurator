@@ -6,6 +6,7 @@ public class ScreenshotPaths {
     public static final String ROOT_PATH = "/screenshot";
     public static final String CREATE_SCREENSHOT = ROOT_PATH + "/create-screenshot";
     public static final String BROWSE_SCREENSHOT = ROOT_PATH + "/browse-screenshot";
+    public static final String CHECK_SCREENSHOT_STATE = ROOT_PATH + "/check-screenshot-state";
 
     private final static String SCREENSHOT_FOLDER = "_snapshots";
 

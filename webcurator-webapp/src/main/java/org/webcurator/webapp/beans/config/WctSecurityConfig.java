@@ -1,6 +1,7 @@
 package org.webcurator.webapp.beans.config;
 
 import org.apache.catalina.session.StandardSession;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -526,23 +527,78 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         return new HttpSessionListener() {
             @Override
             public void sessionCreated(HttpSessionEvent hse) {
-                synchronized (SESSION_LOCK) {
-                    log.info("Created session: {}", hse.getSession().getId());
-                    sessions.put(hse.getSession().getId(), hse.getSession());
+                //The session id will be rotated after the authentication, so it's
+//                synchronized (SESSION_LOCK) {
+//                    log.info("Created session: {}", hse.getSession().getId());
+//                    sessions.put(hse.getSession().getId(), hse.getSession());
+//                }
+                String userName = "initial";
+                HttpSession ss = hse.getSession();
+                SecurityContext attr=(SecurityContext)ss.getAttribute("SPRING_SECURITY_CONTEXT");
+                if(attr!=null) {
+                    userName=attr.getAuthentication().getName();
                 }
+                log.info("Created session: {}, for: {}", getSessionDetails(ss), userName);
             }
 
             @Override
             public void sessionDestroyed(HttpSessionEvent hse) {
-                synchronized (SESSION_LOCK) {
-                    sessions.remove(hse.getSession().getId());
-                    log.info("Removed session: {}", hse.getSession().getId());
+//                synchronized (SESSION_LOCK) {
+//                    sessions.remove(hse.getSession().getId());
+//                    log.info("Removed session: {}", hse.getSession().getId());
+//                }
+                String userName = "initial";
+                HttpSession ss = hse.getSession();
+                SecurityContext attr=(SecurityContext)ss.getAttribute("SPRING_SECURITY_CONTEXT");
+                if(attr!=null) {
+                    userName=attr.getAuthentication().getName();
                 }
+                log.info("Destroyed session: {}, for: {}", getSessionDetails(ss), userName);
             }
         };
     }
 
     private static final Map<String, HttpSession> sessions = new HashMap<>();
+
+    public String getBasicRequestMessage(HttpServletRequest req) {
+        StringBuilder buf = new StringBuilder();
+
+        try {
+            buf.append(req.getRemoteAddr()).append("\t");
+            buf.append(req.getRequestURI());
+            buf.append(" ").append(req.getHeader("referer"));
+            buf.append(" ").append(this.getSessionDetails(req.getSession()));
+            if (req.getCookies() != null) {
+                for (Cookie cookie : req.getCookies()) {
+                    if (!StringUtils.equalsIgnoreCase("JSESSIONID", cookie.getName())) {
+                        continue;
+                    }
+                    buf.append(String.format("\t Cookie: %s=%s", cookie.getName(), cookie.getValue())).append(" ");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to generate message", e);
+        }
+        return buf.toString();
+    }
+
+    public String getBasicResponseMessage(HttpServletResponse rsp) {
+        StringBuilder buf = new StringBuilder();
+        try {
+            if (rsp.getHeaders("Set-Cookie") != null) {
+                for (String setCookie : rsp.getHeaders("Set-Cookie")) {
+//                    if (!setCookie.contains("JSESSIONID")) {
+//                        continue;
+//                    }
+                    buf.append("\t Set-Cookie:").append(setCookie).append(" ");
+                }
+            }
+            buf.append(" ").append(rsp.getStatus());
+        } catch (Exception e) {
+            log.error("Failed to generate message", e);
+        }
+        return buf.toString();
+    }
 
     public String getCurrentSessionMessage(HttpServletRequest req, HttpServletResponse rsp) {
         StringBuilder buf = new StringBuilder();
@@ -557,7 +613,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 buf.append(key).append("=").append(req.getHeader(key)).append("\r\n");
             }
 
-            if (rsp.getHeaderNames().size() > 0) {
+            if (!rsp.getHeaderNames().isEmpty()) {
                 buf.append("[ResponseHeader]").append("\r\n");
 
                 rsp.getHeaderNames().forEach(key -> {
@@ -611,17 +667,38 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
         try {
             if (ss.isValid()) {
-                return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time Used: %d, MaxInactiveInterval: %d, isNew: %b",
+                float timeUsed = (float) (ss.getLastAccessedTime() - ss.getCreationTime()) / 1000;
+                return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time Used: %f, MaxInactiveInterval: %d, isNew: %b",
                         ss.getId(),
                         getReadableDatetime(ss.getCreationTime()),
                         getReadableDatetime(ss.getLastAccessedTime()),
-                        System.currentTimeMillis() - ss.getLastAccessedTime(),
+                        timeUsed,
 //                        ss.getServletContext().getSessionTimeout(),
                         ss.getMaxInactiveInterval(),
                         ss.isNew());
             } else {
                 return String.format("SessionId: %s", ss.getId());
             }
+        } catch (Throwable e) {
+            return e.getMessage();
+        }
+    }
+
+    private String getSessionDetails(HttpSession hs) {
+        if (hs == null) {
+            return "null";
+        }
+
+        try {
+            float timeUsed = (float) (hs.getLastAccessedTime() - hs.getCreationTime()) / 1000;
+            return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time used: %f, MaxInactiveInterval: %d, isNew: %b",
+                    hs.getId(),
+                    getReadableDatetime(hs.getCreationTime()),
+                    getReadableDatetime(hs.getLastAccessedTime()),
+                    timeUsed,
+//                        ss.getServletContext().getSessionTimeout(),
+                    hs.getMaxInactiveInterval(),
+                    hs.isNew());
         } catch (Throwable e) {
             return e.getMessage();
         }

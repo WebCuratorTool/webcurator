@@ -32,13 +32,13 @@ import org.webcurator.domain.model.auth.User;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Date;
 
 
 /**
  * The handler for successful authentication requests.
- *
  */
 @Component
 public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
@@ -63,12 +63,12 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
         User wctUser = authDAO.getUserByName(userName);
 
         if (wctUser != null) {
-            log.debug("loaded WCT User object "+wctUser.getUsername()+" from database");
-            ((UsernamePasswordAuthenticationToken)auth).setDetails(wctUser);
+            log.debug("loaded WCT User object " + wctUser.getUsername() + " from database");
+            ((UsernamePasswordAuthenticationToken) auth).setDetails(wctUser);
             log.debug("pushing back upat into SecurityContext with populated WCT User");
 
             //  audit successful login event
-            auditor.audit(User.class.getName(), wctUser.getOid(), Auditor.ACTION_LOGIN_SUCCESS, "Successful Login for username: "+wctUser.getUsername());
+            auditor.audit(User.class.getName(), wctUser.getOid(), Auditor.ACTION_LOGIN_SUCCESS, "Successful Login for username: " + wctUser.getUsername());
 
             // set or re-set the page size cookie..
             // ..first get the value of the page size cookie
@@ -77,7 +77,11 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
             CookieUtils.setPageSize(response, currentPageSize);
 
             // set login for duration
-            String sessionId = request.getSession().getId();
+            HttpSession hs = request.getSession();
+            String sessionId = hs.getId();
+
+            log.info("Rotated session: " + sessionId + ", for: " + userName);
+
             logonDurationDAO.setLoggedIn(sessionId, new Date(), wctUser.getOid(), wctUser.getUsername(), wctUser.getNiceName());
             // Check previous records of duration
             logonDurationDAO.setProperLoggedoutForCurrentUser(wctUser.getOid(), sessionId);
@@ -85,27 +89,28 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
             // check to see if the user should change their password
             if (wctUser.isForcePasswordChange() && !wctUser.isExternalAuth()) {
                 response.sendRedirect(Constants.CNTRL_RESET_PWD);
-                auditor.audit(User.class.getName(),wctUser.getOid(),Auditor.ACTION_FORCE_PWD_CHANGE,"User has been forced to change password");
+                auditor.audit(User.class.getName(), wctUser.getOid(), Auditor.ACTION_FORCE_PWD_CHANGE, "User has been forced to change password");
             } else {
-                String mode=request.getHeader("Request-Mode");
-                if(mode!=null && mode.equalsIgnoreCase("embed")){
+                String mode = request.getHeader("Request-Mode");
+                if (mode != null && mode.equalsIgnoreCase("embed")) {
                     response.addHeader("Auth-Result", "pass");
-                }else{
+                } else {
                     // continue to redirect destination
                     super.onAuthenticationSuccess(request, response, auth);
                 }
             }
 
-        }  else {
+        } else {
 
             //audit successful login but unsucessful load of WCT User event
-            auditor.audit(User.class.getName(), Auditor.ACTION_LOGIN_FAILURE_NO_USER, "Un-successful login for username: "+userName+" as user doesn't exist in the WCT System.");
+            auditor.audit(User.class.getName(), Auditor.ACTION_LOGIN_FAILURE_NO_USER, "Un-successful login for username: " + userName + " as user doesn't exist in the WCT System.");
 
         }
     }
 
     /**
      * Spring setter.
+     *
      * @param authDAO set the authentication dao bean.
      */
     public void setAuthDAO(UserRoleDAO authDAO) {
@@ -114,6 +119,7 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
 
     /**
      * Spring setter
+     *
      * @param auditor set the auditor bean
      */
     public void setAuditor(Auditor auditor) {
@@ -122,6 +128,7 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
 
     /**
      * Spring setter.
+     *
      * @param logonDurationDAO set the logon duration dao bean.
      */
     public void setLogonDurationDAO(LogonDurationDAO logonDurationDAO) {

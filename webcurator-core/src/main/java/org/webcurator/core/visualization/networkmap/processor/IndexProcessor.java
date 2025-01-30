@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.Transaction;
+import org.apache.commons.lang.StringUtils;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
@@ -112,6 +113,19 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
+
+        //Filter out empty url nodes
+        List<String> emptyUrlKeys = new ArrayList<>();
+        this.urls.forEach((k, v) -> {
+            if (StringUtils.isEmpty(v.getTopDomain()) || StringUtils.isEmpty(v.getDomain()) || StringUtils.isEmpty(v.getUrl())) {
+                emptyUrlKeys.add(k);
+            }
+        });
+        emptyUrlKeys.forEach(k -> {
+            this.urls.remove(k);
+            log.warn("Ignored the unknown url: {}", k);
+        });
+        emptyUrlKeys.clear();
 
         //Statistic by domain
         NetworkMapDomain rootDomainNode = new NetworkMapDomain(NetworkMapDomain.DOMAIN_NAME_LEVEL_ROOT, 0);

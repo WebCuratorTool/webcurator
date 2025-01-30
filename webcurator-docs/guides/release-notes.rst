@@ -14,6 +14,50 @@ Curator Tool System Administrator Guide*, *Web Curator Tool Developer Guide*,
 accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
+
+3.2.1
+=====
+
+Patch release, August 2024:
+
+- Pywb Individual Collections feature
+
+  - Documentation added under :doc:`System Administrator Guide <system-administrator-guide>`.
+
+- Bug fixes
+
+  - Improved the performance of checking the state of screenshots and indexing.
+  - Added optional info logging for tracking user sessions.
+
+3.2.0
+=====
+
+Minor release, April 2024:
+
+- Harvest Screenshots feature
+
+  - Documentation added under :doc:`Harvest Screenshot Configuration Guide <harvest-screenshot-configuration-guide>`.
+
+- Minor enhancements
+  
+  - Rosetta DPS
+    
+    - Only primary seeds now inserted into mets.xml.
+    - Configuration added to allow customizing URL for custom deposit forms.
+  
+  - Harvest visualization UI performance
+  
+    - Removed validation of URLs when selected for pruning/recrawling.
+    - Progress timer optimized.
+    - Auto expanding disabled for tree view.
+    - Cleared the Inspect table filter after table contents reloaded.
+    - Max rows limitation removed for tables.
+
+- Bug fixes
+
+  - Target sessions lost when adding the parent group for a sub-group (fixes #65).
+  - Added readthedocs configuration file which is now required.
+
 3.1.4
 =====
 
