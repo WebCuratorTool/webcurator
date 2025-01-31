@@ -80,6 +80,13 @@ Harvest Authorisations
    api-harvest_authorisations_GET.rst
    api-harvest_authorisation_states_GET.rst
    
+Permissions
+===========
+.. toctree::
+   :maxdepth: 1
+   
+   api-permissions_GET.rst
+
 Profiles
 ========
 .. toctree::
