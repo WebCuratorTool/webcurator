@@ -7,6 +7,7 @@ import { useTargetHarvestsDTO } from '@/stores/target';
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 import type { TargetHarvest } from '@/types/target';
+import Button from 'primevue/button';
 
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
 
@@ -43,20 +44,15 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
 
 <template>
   <div>
-    <WctTabViewPanel v-if="editing">
-      <WctFormField label="Harvest now" class="ml-2">
-        <Checkbox
-          v-model="targetSchedule.harvestNow" 
-          :binary="true"
-        />
-      </WctFormField>
-      <WctFormField label="Allow harvest optimization" class="ml-2">
+    <div v-if="editing">
+      <Button label="Harvest now" />
+      <WctFormField label="Allow harvest optimization" class="mt-2">
         <Checkbox
           v-model="targetSchedule.harvsestOptimization" 
           :binary="true"
         />
       </WctFormField>
-    </WctTabViewPanel>
+    </div>
 
     <div class="flex justify-content-end">
       <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showViewHarvestModal(newHarverst, true)" />
