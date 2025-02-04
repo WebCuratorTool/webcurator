@@ -39,12 +39,15 @@ const nextStates = useNextStateStore();
     </div>
     <div class="col vertical-align-top">
       <WctFormField label="Owner">
-        <Dropdown v-if="editing" id="user" v-model="targetGeneral.selectedUser" :options="users.userList" placeholder="Select an User" checkmark
+        <Dropdown v-if="editing" id="user" v-model="targetGeneral.selectedUser" :options="users.userList" placeholder="Select a User" checkmark
           class="w-full md:w-18rem" :disabled="!editing">
-          <template>
-            <div class="flex align-items-center">
+          <template #value="slotProps">
+            <div v-if="slotProps.value" class="flex align-items-center">
               <div>{{ getPresentationUserName(targetGeneral.selectedUser) }}</div>
             </div>
+            <span v-else>
+              {{ slotProps.placeholder }}
+            </span>
           </template>
           <template #option="slotProps">
             <div class="flex align-items-center">
@@ -103,7 +106,7 @@ const nextStates = useNextStateStore();
       <WctFormField checkbox label="Use Automated QA">
         <Checkbox v-if="editing" v-model="targetGeneral.automatedQA" :binary="true"
           :disabled="!editing" />
-          <p v-else class="font-semibold">{{ targetGeneral.automatedQA ? 'Yes' : 'No' }}</p>
+        <p v-else class="font-semibold">{{ targetGeneral.automatedQA ? 'Yes' : 'No' }}</p>
       </WctFormField>
       <WctFormField checkbox label="Auto-prune">
         <Checkbox v-if="editing" v-model="targetGeneral.autoPrune" :binary="true"

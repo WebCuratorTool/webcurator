@@ -31,7 +31,7 @@ export const initNewTarget = () => {
     useTargetAccessDTO().initData();
 }
 
-export const setTarget = (target: Target) => {    
+export const setTarget = (target: Target) => {         
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);
@@ -41,7 +41,6 @@ export const setTarget = (target: Target) => {
 }
 
 export const formatTargetState = (state: number | any) => {
-    //console.log(state);
     const placeHolder = 'Select a state';
 
     if (typeof state === 'undefined') {
@@ -126,7 +125,7 @@ export const showTargetAction = (target: any, actionName: string) => {
 export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     const id = ref();
     const name = ref("");
-    const creationDate = ref(0);
+    const creationDate = ref();
     const description = ref("");
     const referenceNumber = ref("");
     const runOnApproval = ref(false);
@@ -143,7 +142,6 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     const initData = () => {
         id.value = undefined;
         name.value = "";
-        creationDate.value = 0;
         description.value = "";
         referenceNumber.value = "";
         runOnApproval.value = false;
@@ -163,7 +161,6 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
         return {
             id: id.value,
             name: name.value,
-            creationDate: Date.now(),
             description: description.value,
             referenceNumber: referenceNumber.value,
             runOnApproval: runOnApproval.value,

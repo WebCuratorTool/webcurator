@@ -161,23 +161,27 @@ public class HarvestAuthorisations {
             agent.put("id", authorisingAgent.getOid());
             agent.put("name", authorisingAgent.getName());
             authorisingAgents.add(agent);
+            Set<HashMap<String, Object>> permissions = new HashSet<>();
+            for (Permission p : site.getPermissions()) {
+                if (Objects.equals(p.getAuthorisingAgent().getOid(), authorisingAgent.getOid())) {
+                    HashMap<String, Object> permission = new HashMap<>();
+                    permission.put("id", p.getOid());
+                    permission.put("status", p.getStatus());
+                    permission.put("startDate", p.getStartDate());
+                    permission.put("endDate", p.getEndDate());
+                    List<String> urlPatterns = new ArrayList<>();
+                    for (UrlPattern u : p.getUrls()) {
+                        urlPatterns.add(u.getPattern());
+                    }
+                    permission.put("urlPatterns", urlPatterns);
+                    permissions.add(permission);
+                }
+            }
+            agent.put("permissions", permissions);
         }
         summary.put("authorisingAgents", authorisingAgents);
         summary.put("orderNo", site.getLibraryOrderNo());
-        Set<HashMap<String, Object>> permissions = new HashSet<>();
-        for (Permission p : site.getPermissions()) {
-            HashMap<String, Object> permission = new HashMap<>();
-            permission.put("status", p.getStatus());
-            permission.put("startDate", p.getStartDate());
-            permission.put("endDate", p.getEndDate());
-            List<String> urlPatterns = new ArrayList<>();
-            for (UrlPattern u : p.getUrls()) {
-                urlPatterns.add(u.getPattern());
-            }
-            permission.put("urlPatterns", urlPatterns);
-            permissions.add(permission);
-        }
-        summary.put("permissions", permissions);
+
         return summary;
     }
 

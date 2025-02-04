@@ -1,3 +1,4 @@
+import type { HarvestAuths } from '@/types/harvestAuth';
 interface Target {
     general: TargetGeneral,
     description: TargetDescription,
@@ -74,7 +75,7 @@ interface TargetSeed {
     id: number,
     seed: string,
     primary: boolean,
-    authorisations: []
+    authorisations: HarvestAuths
 }
 
 interface TargetSeeds extends Array<TargetSeed>{}
