@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useRouter } from 'vue-router';
-import { useConfirm } from "primevue/useconfirm";
-import { useToast } from "primevue/usetoast";
-import { type UseFetchApis, useFetch } from '@/utils/rest.api'
-import { formatDatetime } from '@/utils/helper'
-import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
-import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
-import { useTargetListDataStore } from '@/stores/targetList';
+import { formatTargetState, showTargetAction, stateList } from '@/stores/target'
+import { useTargetListDataStore } from '@/stores/targetList'
+import { useUserProfileStore, useUsersStore } from '@/stores/users'
+import { formatDatetime } from '@/utils/helper'
+import { type UseFetchApis, useFetch } from '@/utils/rest.api'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import { watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
-const confirm = useConfirm();
-const toast = useToast();
+const confirm = useConfirm()
+const toast = useToast()
 
 const rest: UseFetchApis = useFetch()
 const userProfile = useUserProfileStore()
@@ -41,11 +41,16 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
-          targetListData.search();
+          toast.add({
+            severity: 'info',
+            summary: 'Confirmed',
+            detail: `Target ${id} deleted`,
+            life: 3000
+          })
+          targetListData.search()
         })
         .catch((err: any) => {
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
+          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 })
         })
     }
   })
@@ -53,9 +58,8 @@ const deleteTarget = (id: number) => {
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
-  targetListData.resetFilter();
-});
-
+  targetListData.resetFilter()
+})
 </script>
 
 <template>
@@ -104,8 +108,13 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         </div>
 
         <div class="col-2">
-          <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button"
-            @click="targetListData.search()"></Button>
+          <Button
+            label="Search&nbsp;&nbsp;"
+            icon="pi pi-search"
+            iconPos="right"
+            id="search-button"
+            @click="targetListData.search()"
+          ></Button>
         </div>
       </div>
 
@@ -113,8 +122,14 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>Agency</InputGroupAddon>
-            <Dropdown id="agency" v-model="targetListData.filters.selectedAgency" :options="agencies.agencyListWithEmptyItem"
-              optionLabel="name" placeholder="Select an Agency" class="w-full md:w-18rem">
+            <Dropdown
+              id="agency"
+              v-model="targetListData.filters.selectedAgency"
+              :options="agencies.agencyListWithEmptyItem"
+              optionLabel="name"
+              placeholder="Select an Agency"
+              class="w-full md:w-18rem"
+            >
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ targetListData.filters.selectedAgency.name }}</div>
@@ -131,8 +146,14 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>User</InputGroupAddon>
-            <Dropdown id="user" v-model="targetListData.filters.selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
-              placeholder="Select an User" class="w-full md:w-18rem">
+            <Dropdown
+              id="user"
+              v-model="targetListData.filters.selectedUser"
+              :options="users.userListWithEmptyItem"
+              optionLabel="name"
+              placeholder="Select an User"
+              class="w-full md:w-18rem"
+            >
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ targetListData.filters.selectedUser.name }}</div>
@@ -150,17 +171,32 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>State</InputGroupAddon>
-            <MultiSelect v-model="targetListData.filters.selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
-              :maxSelectedLabels="3" class="w-full md:w-20rem" />
+            <MultiSelect
+              v-model="targetListData.filters.selectedState"
+              :options="stateList"
+              optionLabel="name"
+              placeholder="Select States"
+              :maxSelectedLabels="3"
+              class="w-full md:w-20rem"
+            />
           </InputGroup>
         </div>
 
         <div class="field">
-          <Button @click="targetListData.resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times"
-            class="wct-secondary-button" />
+          <Button
+            @click="targetListData.resetFilter"
+            label="&nbsp;&nbsp;Reset filter"
+            icon="pi pi-times"
+            class="wct-secondary-button"
+          />
         </div>
         <div class="field">
-          <Button @click="targetListData.filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" class="wct-secondary-button" />
+          <Button
+            @click="targetListData.filter"
+            label="&nbsp;&nbsp;Filter"
+            icon="pi pi-filter"
+            class="wct-secondary-button"
+          />
         </div>
       </div>
     </div>
@@ -168,10 +204,22 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
     <Divider type="dotted" />
 
     <!-- <div class="col-12 surface-section"> -->
-    <DataTable class="w-full" :value="targetListData.filteredTargetList" size="small" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 50, 100]" dataKey="oid"
-      :rowHover="true" filterDisplay="menu" :loading="targetListData.loadingTargetList"
-      :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']" resizableColumns
-      columnResizeMode="fit" showGridlines>
+    <DataTable
+      class="w-full"
+      :value="targetListData.filteredTargetList"
+      size="small"
+      :paginator="true"
+      :rows="10"
+      :rowsPerPageOptions="[10, 20, 50, 100]"
+      dataKey="oid"
+      :rowHover="true"
+      filterDisplay="menu"
+      :loading="targetListData.loadingTargetList"
+      :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+      resizableColumns
+      columnResizeMode="fit"
+      showGridlines
+    >
       <template #header>
         <!-- <div class="flex justify-content-between flex-column sm:flex-row">
           <h5>Results</h5> -->
@@ -194,7 +242,13 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         </template>
       </Column>
       <Column field="agency" header="Agency" sortable style="min-width: 5rem"></Column>
-      <Column field="owner" header="Owner" sortable filterField="owner" style="min-width: 6rem"></Column>
+      <Column
+        field="owner"
+        header="Owner"
+        sortable
+        filterField="owner"
+        style="min-width: 6rem"
+      ></Column>
       <Column field="state" header="Status" sortable style="min-width: 2rem">
         <template #body="{ data }">
           {{ formatTargetState(data.state) }}
@@ -210,8 +264,13 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
       </Column>
       <Column header="Action" field="id" style="max-width: 8rem">
         <template #body="{ data }">
-          <Button v-if="showTargetAction(data, 'copy')"  icon="pi pi-copy" text />
-          <Button v-if="showTargetAction(data, 'delete')" icon="pi pi-trash" @click="deleteTarget(data.id)" text />
+          <Button v-if="showTargetAction(data, 'copy')" icon="pi pi-copy" text />
+          <Button
+            v-if="showTargetAction(data, 'delete')"
+            icon="pi pi-trash"
+            @click="deleteTarget(data.id)"
+            text
+          />
         </template>
       </Column>
     </DataTable>

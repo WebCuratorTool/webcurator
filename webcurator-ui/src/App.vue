@@ -1,18 +1,23 @@
 <script setup lang="ts">
+import NavBar from '@/components/'
 import { RouterView } from 'vue-router'
-import NavBar from '@/components/NavBar.vue'
+import LoginDialog from './components/LoginDialog.vue'
+import { useLoginStore } from './utils/rest.api'
+const loginStore = useLoginStore()
 
 // import api from './restclient';
 </script>
 
 <template>
-  <div class="app">
-     <NavBar />
-     <div class="main-container">
+  <LoginDialog v-if="loginStore.visibleLoginWindow" id="login-dialog" />
+
+  <div v-show="!loginStore.visibleLoginWindow" class="app">
+    <NavBar />
+    <div class="main-container">
       <router-view />
-     </div>
-     
-     <DynamicDialog />
+    </div>
+
+    <DynamicDialog />
   </div>
 </template>
 
@@ -20,5 +25,9 @@ import NavBar from '@/components/NavBar.vue'
 .app {
   height: 100vh;
   width: 100%;
+}
+#login-dialog {
+  position: fixed;
+  z-index: 9999;
 }
 </style>
