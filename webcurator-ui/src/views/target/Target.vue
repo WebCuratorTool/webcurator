@@ -48,7 +48,7 @@ const fetchTargetDetails = () => {
     rest.get('targets/' + targetId).then((data: any) => {        
         isTargetAvailable.value = true;
         setTarget(data);
-        nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
+        nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
     }).catch((err: any) => {
         console.log(err.message);
         initData();
