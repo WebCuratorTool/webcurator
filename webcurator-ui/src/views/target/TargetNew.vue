@@ -55,14 +55,14 @@ const save = () => {
     })
     .finally(() => {
         editing.value = false
-        router.push('/targets/')
+        router.push('/wct/targets/')
     })
 }
 
 const setEditing = (isEditing: boolean) => {
     editing.value = isEditing
     if (!isEditing) {
-        router.push('/targets/')
+        router.push('/wct/targets/')
     }
 }
 

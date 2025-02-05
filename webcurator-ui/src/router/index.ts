@@ -5,7 +5,7 @@ export const routes={
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: '/',
+      path: '/wct',
       children: [
         {
           path: 'dashboard',

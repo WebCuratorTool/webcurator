@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NavBar from '@/components/'
+import NavBar from './components/NavBar.vue';
 import { RouterView } from 'vue-router'
 import LoginDialog from './components/LoginDialog.vue'
 import { useLoginStore } from './utils/rest.api'
