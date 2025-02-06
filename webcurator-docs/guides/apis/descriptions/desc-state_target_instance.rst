@@ -14,6 +14,8 @@
   8       Rejected
   9       Archived
  10       Archiving
+ 11       Stopping
+ 12       Patching 
 ========= ===============
 
 The list of possible state values for targets can be retrieved with API :doc:`/guides/apis/api-target_instance_states_GET`.

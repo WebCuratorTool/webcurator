@@ -4,20 +4,16 @@ Deletes a specific target. This is only possible if there are no attached target
 
 If the target must be set to 'Rejected' or 'Cancelled' then the API :doc:`/guides/apis/api-target_PUT` must be used.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets/{target-id}``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -43,7 +39,7 @@ Example
 .. code-block:: linux
 
   curl \
-  --location --request DELETE 'http://localhost/wct/api/v1/targets/{target-id}' \
+  --location --request DELETE 'http://localhost/wct/api/v1/targets/<target-id>' \
   --header 'Authorization: Bearer <token>' \
   --header 'Content-Type: application/json' \
   --data ''

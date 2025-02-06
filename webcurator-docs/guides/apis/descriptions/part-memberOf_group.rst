@@ -1,6 +1,5 @@
-------------------
 **part: memberOf**
-------------------
+^^^^^^^^^^^^^^^^^^
 A list of groups that this group belongs to. This contains the following information:
 
 ==== ====== ========

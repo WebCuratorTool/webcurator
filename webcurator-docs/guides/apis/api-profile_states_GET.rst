@@ -1,22 +1,18 @@
 Retrieve Profile states (GET)
-===========================================
+=============================
 
 Returns a list of all the states that a profile can have, including the description of each specific state.
-
-Version
--------
-1.0.0
 
 Request
 -------
 ``https://--WCT_base--/api/v1/profiles/states``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -49,7 +45,7 @@ Example
 .. code-block:: linux
 
   curl \
-  --location --request GET 'http://kb006561i.clients.wpakb.kb.nl:8080/wct/api/v1/profiles/states' \
+  --location --request GET 'http://localhost/wct/api/v1/profiles/states' \
   --header 'Content-Type: application/json' \
   --header 'Authorization: Bearer <token>' \
   --data ''

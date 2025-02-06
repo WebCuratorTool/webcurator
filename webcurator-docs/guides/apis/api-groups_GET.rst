@@ -3,31 +3,27 @@ Retrieve Groups (GET)
 
 Returns all groups with a subset of the available information based upon given filter.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/groups``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-query-method.rst
 
 ====== ====== ========
+**Parameters**
+----------------------
 filter String Optional
 offset Number Optional
 limit  Number Optional
 ====== ====== ========
 
-| **filter**
-| Name of field upon which the result set must be filtered. Only filterable fields maybe given, others are ignored. Filterable fields are:
-
+.. include:: /guides/apis/descriptions/desc-request-filter.rst
 * groupId [exact match only]
 * name [contains text]
 * agency [exact match only]
@@ -37,21 +33,15 @@ limit  Number Optional
 * nonDisplayOnly [Boolean]
 * state [List of integers, exact match only]
 
-| Multiple filter fields may be given, but each field only once. If a filter field is given multiple times this will result in an error.
-|
-| With each field (key) a value must be given which is used to filter. The filter only shows those results that match or contains the given value in the given field. All given characters are used, there are no wild cards.
-
 .. include:: /guides/apis/descriptions/desc-userId.rst
-
-.. include:: /guides/apis/descriptions/desc-groupType.rst
-
-.. include:: /guides/apis/descriptions/desc-request-offset.rst
-
-.. include:: /guides/apis/descriptions/desc-request-limit.rst
 
 .. include:: /guides/apis/descriptions/desc-type_group.rst
 
 .. include:: /guides/apis/descriptions/desc-state_group.rst
+
+.. include:: /guides/apis/descriptions/desc-request-offset.rst
+
+.. include:: /guides/apis/descriptions/desc-request-limit.rst
 
 Response
 --------
@@ -78,7 +68,7 @@ The following information is returned per found group:
 ============ ====== ========
 **Body**
 ----------------------------
-groupId      Number Required
+id           Number Required
 name         String Required
 type         String Required
 agency       String Required
@@ -106,6 +96,10 @@ Example
 -------
 .. code-block:: linux
 
-  TODO
+  curl \
+  --location --request GET 'http://localhost/wct/auth/v1/groups' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <token>' \
+  --data '{"limit": 5 }'
  
  

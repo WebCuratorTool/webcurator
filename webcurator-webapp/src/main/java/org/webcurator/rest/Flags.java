@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Handlers for the users endpoint
+ * Handlers for the flags endpoint
  */
 @RestController
 @RequestMapping(path = "/api/{version}/flags")

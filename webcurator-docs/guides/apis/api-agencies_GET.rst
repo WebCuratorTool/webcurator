@@ -3,27 +3,23 @@ Retrieve Agencies (GET)
 
 Returns a list of all the agencies.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/agencies``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
 --------
 200: OK
 
-====== ==== ==========
+======== ==== ========
 **Body**
 ----------------------
 agencies List Optional
@@ -57,7 +53,7 @@ Example
 .. code-block:: linux
 
   curl \
-  --location --request GET 'http://kb006561i.clients.wpakb.kb.nl:8080/wct/api/v1/agencies' \
+  --location --request GET 'http://localhost/wct/auth/v1/agencies' \
   --header 'Content-Type: application/json' \
   --header 'Authorization: Bearer <token>' \
   --data ''
