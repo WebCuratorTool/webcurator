@@ -30,6 +30,9 @@ targetId  Number Required
 url       String Optional
 ========= ====== ========
 
+Semantics of the filter: return all permissions having a URL pattern that matches the supplied URL and having the same agency as the owning user of the target (identified by the supplied target id).
+
+
 | **page**
 | Paging parameter, starts at 0 (also the default value). Pages always contain 10 results.
 
