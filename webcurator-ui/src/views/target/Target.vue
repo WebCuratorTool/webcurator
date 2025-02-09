@@ -14,9 +14,6 @@ import {
 } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
-import { useTargetListDataStore } from '@/stores/targetList';
-const targetListData = useTargetListDataStore();
-
 const route = useRoute()
 const targetId = route.params.id as string
 
