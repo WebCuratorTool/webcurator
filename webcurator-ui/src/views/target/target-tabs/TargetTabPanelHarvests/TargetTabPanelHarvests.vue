@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { formatDatetime } from '@/utils/helper'
 import { useTargetHarvestsDTO } from '@/stores/target';
 
-import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
-import type { TargetHarvest } from '@/types/target';
+import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
 import Button from 'primevue/button';
+
+const viewHarvestModal = useDialog();
 
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
 
@@ -27,9 +28,6 @@ defineProps<{
     editing: boolean
 }>()
 
-
-const viewHarvestModal = useDialog();
-
 const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
   viewHarvestModal.open(ViewHarvestModal, {
     props: { header: 'Schedule', modal: true, dismissableMask: true, style: { width: '50vw' } },
@@ -39,26 +37,28 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
     }
   });
 }
-
 </script>
 
 <template>
   <div>
-    <div v-if="editing">
+    <div v-if="editing" class="flex justify-content-end">
       <Button label="Harvest now" />
-      <WctFormField label="Allow harvest optimization" class="mt-2">
-        <Checkbox
-          v-model="targetSchedule.harvsestOptimization" 
-          :binary="true"
-        />
-      </WctFormField>
     </div>
 
-    <div class="flex justify-content-end">
+    <div class="flex justify-content-between mt-6">
+      <div class="flex align-items-center my-4">
+        <h4 class="mb-0">Schedule</h4>
+        <div v-if="editing" class="flex align-items-center ml-6">
+          <label class="mr-2">Allow Harvest Optimization</label>
+          <Checkbox
+            v-model="targetSchedule.harvsestOptimization" 
+            :binary="true"
+          />
+        </div>
+      </div>
       <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showViewHarvestModal(newHarverst, true)" />
     </div>
-
-    <WctTabViewPanel>
+    <WctTabViewPanel class="mt-2">
       <DataTable class="w-full" :rowHover="true" :value="targetSchedule.schedules">
         <Column field="cron" header="Schedule" />
         <Column field="owner" header="Owner" />
@@ -76,5 +76,9 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
         </Column>
       </DataTable>
     </WctTabViewPanel>
+
+    <TargetTabPanelHarvetsTargetInstances type="upcoming" header="Upcoming Target Instances" />
+
+    <TargetTabPanelHarvetsTargetInstances type="latest" header="Last 5 Target Instances" />
   </div>
 </template>
