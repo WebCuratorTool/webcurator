@@ -1,87 +1,77 @@
-
-<template>
-	<div>
-        <!-- <div class="text-center mb-5" style="padding: 0px 100px 5px 100px;">
-            <img src="@/assets/wct_logo.png" alt="Image" height="50" class="mb-3" />            
-        </div> -->
-
-        <div class="flex align-items-center gap-3 mb-3">
-            <label for="username" class="font-semibold w-6rem">Username</label>
-            <br/>
-            <InputText id="username" type="text" placeholder="Username" class="w-full mb-3" v-model="username"/>
-        </div>
-        <br/>
-        <div class="flex align-items-center gap-3 mb-3">
-            <label for="password" class="font-semibold w-6rem">Password</label>
-            <br/>
-            <InputText id="password" type="password" placeholder="Password" class="w-full mb-3" v-model="password"/>
-        </div>
-
-        <br/>
-        <Divider />
-        <br/>
-
-        <div class="flex justify-content-end gap-2">
-            <Button type="button" icon="pi pi-user" label="login"  class="w-full p-3 text-xl" @click="auth"></Button>
-        </div>
-	</div>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, inject } from "vue";
-import { useUserProfileStore } from "@/stores/users";
-// import { useToast } from 'primevue/usetoast';
-// const toast = useToast();
+import { useLoginStore } from '@/utils/rest.api'
 
-const dialogRef:any = inject("dialogRef");
-const username=ref(null);
-const password=ref(null);
+const loginStore = useLoginStore()
 
-const userProfile=useUserProfileStore();
+// const checked = ref(false);
 
-const auth = () => {
-    var url="/wct/auth/v1/token";
-    var credentials="username=" + username.value + "&password=" + password.value;
-    fetch(url, {
-        method: 'POST',
-        redirect: 'error',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: credentials
-    }).then((rsp)=>{
-        // console.log(rsp);
-        if(!rsp.ok){
-            let status = rsp.status;
-            let statusText = rsp.statusText;
-            if(!statusText || statusText.length===0){
-                if(status === 401){
-                    statusText = "Unknown username or password, please try again.";
-                }else{
-                    statusText = "Unknown error."
-                }
-            }
-            throw new Error(status + " : " + statusText);
-        }
-        return rsp.text();
-    })
-    .then((tokenValue)=>{
-        userProfile.setToken(String(username.value), tokenValue);
-        dialogRef.value.close(tokenValue);
-    }).catch((err)=>{
-        // console.log(err);
-        // toast.add({ severity: 'error', summary: 'Error Message', detail: err.message, life: 3000 });
-        alert(err.message);
-    });
-};
+const login = () => {
+  loginStore.authenticate()
+}
 </script>
 
+<template>
+  <div
+    class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden"
+  >
+    <div class="flex flex-column align-items-center justify-content-center">
+      <div style="width: 30rem; overflow: hidden">
+        <div class="text-center mb-5">
+          <img src="@/assets/new_logo_WCT.png" alt="Image" height="150" class="mb-3" />
+          <div class="text-600 font-medium mb-3">Sign in to continue</div>
+        </div>
+
+        <Message
+          v-if="!loginStore.feedback.ok"
+          severity="error"
+          icon="pi pi-exclamation-triangle"
+          :life="5000"
+        >
+          {{ loginStore.feedback.title + ':' + loginStore.feedback.detail }}
+        </Message>
+
+        <InputText
+          v-model="loginStore.username"
+          placeholder="username"
+          class="w-full"
+          autocomplete="off"
+          type="text"
+        />
+
+        <div style="height: 1rem" />
+        <InputText
+          v-model="loginStore.password"
+          placeholder="password"
+          id="password"
+          class="w-full"
+          autocomplete="off"
+          type="password"
+        />
+
+        <Button label="Sign In" class="mt-4 w-full" @click="login"></Button>
+
+        <Divider />
+
+        <div class="w-full text-center">
+          <span>version: 3.2.1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-    .p-inputtext{
-        width: 300px;
-    }
-    
-    .p-button{
-        width: 300px;
-    }
+.pi-eye {
+  transform: scale(1.6);
+  margin-right: 1rem;
+}
+
+.pi-eye-slash {
+  transform: scale(1.6);
+  margin-right: 1rem;
+}
+
+#password .p-inputtext {
+  width: 10rem;
+}
 </style>
