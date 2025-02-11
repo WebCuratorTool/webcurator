@@ -16,11 +16,12 @@ const ViewHarvestModal = defineAsyncComponent(() => import('./modals/TargetViewH
 
 const newHarverst = {
   cron: '',
-  startDate: null,
+  startDate: Date.now(),
   endDate: null,
-  type: 0,
+  type: -3,
   nextExecutionDate: null,
   lastProcessedDate: null,
+  dayOfMonth: 1,
   owner: ''
 }
 

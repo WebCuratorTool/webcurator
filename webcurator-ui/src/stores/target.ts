@@ -128,7 +128,7 @@ export const showTargetAction = (target: any, actionName: string) => {
 export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     const id = ref();
     const name = ref("");
-    const creationDate = ref(0);
+    const creationDate = ref();
     const description = ref("");
     const referenceNumber = ref("");
     const runOnApproval = ref(false);
@@ -165,7 +165,6 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
         return {
             id: id.value,
             name: name.value,
-            creationDate: Date.now(),
             description: description.value,
             referenceNumber: referenceNumber.value,
             runOnApproval: runOnApproval.value,
@@ -396,10 +395,14 @@ export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
 
     const setData = (data: TargetSchedule) => {
         targetSchedule.value = data;
-    }   
+    }
+    
+    const addSchedule = (schedule: any) => {
+        targetSchedule.value.schedules.push(schedule);
+    }
 
     const getData = () => targetSchedule.value;
     
-    return { targetSchedule, initData, setData, getData }
+    return { targetSchedule, initData, setData, getData, addSchedule }
 });
     

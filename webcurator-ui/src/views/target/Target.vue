@@ -9,7 +9,8 @@ import {
     useTargetGeneralDTO,
     useTargetGropusDTO,
     useTargetProfileDTO,
-    useTargetSeedsDTO, 
+    useTargetSeedsDTO,
+    useTargetHarvestsDTO, 
     useNextStateStore 
 } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
@@ -20,12 +21,12 @@ const targetId = route.params.id as string
 const rest: UseFetchApis = useFetch();
 const toast = useToast();
 
-
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
 const targetDescription = useTargetDescriptionDTO();
 const targetSeeds = useTargetSeedsDTO();
 const targetGroups = useTargetGropusDTO();
+const targetHarvests = useTargetHarvestsDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
@@ -60,7 +61,8 @@ const save = () => {
         profile: targetProfile.getData(),
         description: targetDescription.getData(),
         groups: targetGroups.getData(),
-        seeds: targetSeeds.getData()
+        seeds: targetSeeds.getData(),
+        schedule: targetHarvests.getData()
     }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)
