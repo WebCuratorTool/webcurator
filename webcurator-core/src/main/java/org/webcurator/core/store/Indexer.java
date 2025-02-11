@@ -3,6 +3,7 @@ package org.webcurator.core.store;
 import java.io.File;
 import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -169,7 +170,7 @@ public class Indexer {
         }
 
         public String getArg(String key) {
-            return props.getProperty(key);
+            return props.getProperty(key, "");
         }
     }
 
@@ -181,31 +182,48 @@ public class Indexer {
             CommandLine cl = new CommandLine(args);
 
             String host = cl.getArg("host");
-            int port = Integer.parseInt(cl.getArg("port"));
+            if (StringUtils.isEmpty(host)) {
+                System.out.println("Host is not specified, set the value to: localhost");
+                host = "localhost";
+            }
 
-            Long targetInstanceOid = Long.parseLong(cl.getArg("ti"));
-            int hrnum = Integer.parseInt(cl.getArg("hrnum"));
+            String port = cl.getArg("port");
+            if (StringUtils.isEmpty(port)) {
+                System.out.println("Port is not specified, set the value to: 8080");
+                port = "8080";
+            }
+            String baseUrl = String.format("http://%s:%s/wct", host, port);
 
 
-            File dir = new File(cl.getArg("baseDir"));
-
-            if (host == null || dir == null) {
-                if (host == null) System.out.println("Host must be specified");
-                if (dir == null) System.out.println("Directory must be specified");
+            String targetInstanceOid = cl.getArg("ti");
+            if (StringUtils.isEmpty(targetInstanceOid)) {
+                System.out.println("Target Instance ID must be specified");
                 syntax();
             }
+
+            String hrnum = cl.getArg("hrnum");
+            if (StringUtils.isEmpty(hrnum)) {
+                System.out.println("Harvest Result Number must be specified");
+                syntax();
+            }
+
+            String baseDir = cl.getArg("baseDir");
+            if (StringUtils.isEmpty(baseDir)) {
+                System.out.println("Directory must be specified");
+                syntax();
+            }
+
+            File dir = new File(baseDir);
             if (!dir.exists()) {
                 System.out.println("Directory does not exist");
                 syntax();
             }
 
             HarvestResultDTO dto = new HarvestResultDTO();
-            dto.setTargetInstanceOid(targetInstanceOid);
-            dto.setHarvestNumber(hrnum);
+            dto.setTargetInstanceOid(Long.parseLong(targetInstanceOid));
+            dto.setHarvestNumber(Integer.parseInt(hrnum));
             dto.setProvenanceNote("Manual Intervention");
             dto.setCreationDate(new Date());
-
-            String baseUrl = String.format("http://%s:%d/wct", host, port);
 
             BDBNetworkMapPool pool = new BDBNetworkMapPool(dir.getAbsolutePath(), "4.0.1");
 
@@ -228,7 +246,7 @@ public class Indexer {
 
     private static void syntax() {
         System.out.println("Syntax: ");
-        System.out.println(" -ti tiOid -hrnum 1 -host hostname -port portnumber -baseDir basedir");
+        System.out.println(" -host hostname -port portnumber -ti tiOid -hrnum 1 -baseDir basedir");
         System.exit(1);
     }
 
