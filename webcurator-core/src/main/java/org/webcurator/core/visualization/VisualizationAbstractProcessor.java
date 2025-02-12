@@ -3,6 +3,7 @@ package org.webcurator.core.visualization;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.ResourceAccessException;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
@@ -12,6 +13,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -77,7 +79,11 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
         this.statisticItems.clear();
 
-        this.initInternal();
+        try {
+            this.initInternal();
+        } catch (ConnectException | ResourceAccessException ex) {
+            log.error("Failed to init the task: {}", ex.getMessage());
+        }
     }
 
     abstract protected void initInternal() throws IOException;
@@ -95,6 +101,9 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             processInternal();
             this.close();
             return true;
+        } catch (ConnectException | ResourceAccessException e) {
+            log.error("Failed to process: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.error("Failed to process", e);
             return false;

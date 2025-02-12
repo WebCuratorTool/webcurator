@@ -1,6 +1,7 @@
 package org.webcurator.core.store;
 
 import java.io.File;
+import java.net.ConnectException;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
@@ -42,7 +44,7 @@ public class Indexer extends AbstractRestClient {
     }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void finaliseIndex(HarvestResultDTO dto) {
+    protected void finaliseIndex(HarvestResultDTO dto) throws ConnectException {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
                 .queryParam("targetInstanceId", dto.getTargetInstanceOid())
                 .queryParam("harvestNumber", dto.getHarvestNumber());
@@ -81,6 +83,7 @@ public class Indexer extends AbstractRestClient {
                         }
                     }
                     for (ProcessorHolder holder : toBeRemovedProcessors) {
+                        holder.getValue();
                         processors.remove(holder);
                     }
                     toBeRemovedProcessors.clear();
@@ -95,8 +98,8 @@ public class Indexer extends AbstractRestClient {
                 try {
                     finaliseIndex(dto);
                     log.info("Finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
-                } catch (Exception ex) {
-                    log.error("Failed to finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex);
+                } catch (ConnectException | ResourceAccessException ex) {
+                    log.error("Failed to finalize index: {} {}, {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex.getMessage());
                 }
 
                 runningIndexes.remove(dto.getOid());
