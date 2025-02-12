@@ -1,91 +1,29 @@
 package org.webcurator.core.store;
 
 import java.io.File;
+import java.net.URI;
 import java.util.*;
+import java.util.concurrent.*;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.RunnableIndex.Mode;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
-public class Indexer {
-    private static Log log = LogFactory.getLog(Indexer.class);
-    private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
+public class Indexer extends AbstractRestClient {
+    private static final Logger log = LoggerFactory.getLogger(Indexer.class);
+    private static final Map<Long, Thread> runningIndexes = new HashMap<>();
     public static final Object lock = new Object();
 
-    public static void addRunningIndex(RunnableIndex indexer, Long harvestResultOid) {
-        synchronized (lock) {
-            Map<Long, RunnableIndex> indexerRunningIndexes;
-
-            if (runningIndexes.containsKey(indexer.getName())) {
-                indexerRunningIndexes = runningIndexes.get(indexer.getName());
-            } else {
-                indexerRunningIndexes = new HashMap<Long, RunnableIndex>();
-                runningIndexes.put(indexer.getName(), indexerRunningIndexes);
-            }
-
-            indexerRunningIndexes.put(harvestResultOid, indexer);
-        }
-    }
-
-    public static void removeRunningIndex(String indexerName, Long harvestResultOid) {
-        synchronized (lock) {
-            Map<Long, RunnableIndex> indexerRunningIndexes;
-
-            if (runningIndexes.containsKey(indexerName)) {
-                indexerRunningIndexes = runningIndexes.get(indexerName);
-                if (indexerRunningIndexes.containsKey(harvestResultOid)) {
-                    indexerRunningIndexes.remove(harvestResultOid);
-                }
-            }
-        }
-    }
-
-    public static boolean lastRunningIndex(String callingIndexerName, Long harvestResultOid) {
-        synchronized (lock) {
-            Iterator<String> it = runningIndexes.keySet().iterator();
-            while (it.hasNext()) {
-                String indexerName = it.next();
-                if (!indexerName.equals(callingIndexerName) &&
-                        containsRunningIndex(indexerName, harvestResultOid)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
-
-    public static boolean containsRunningIndex(Long harvestResultOid) {
-        synchronized (lock) {
-            Iterator<String> it = runningIndexes.keySet().iterator();
-            while (it.hasNext()) {
-                String indexerName = it.next();
-                if (containsRunningIndex(indexerName, harvestResultOid)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    private static boolean containsRunningIndex(String indexerName, Long harvestResultOid) {
-        synchronized (lock) {
-            if (runningIndexes.containsKey(indexerName)) {
-                Map<Long, RunnableIndex> indexerRunningIndexes = runningIndexes.get(indexerName);
-                if (indexerRunningIndexes != null && indexerRunningIndexes.containsKey(harvestResultOid)) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
 
     private boolean doCreate = false;
     private List<RunnableIndex> indexers;
@@ -99,64 +37,165 @@ public class Indexer {
         this.doCreate = doCreate;
     }
 
+    public Indexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
+    }
+
+    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
+    protected void finaliseIndex(HarvestResultDTO dto) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
+                .queryParam("targetInstanceId", dto.getTargetInstanceOid())
+                .queryParam("harvestNumber", dto.getHarvestNumber());
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        URI uri = uriComponentsBuilder.build().toUri();
+        restTemplate.postForObject(uri, null, Void.class);
+        log.info("Finalised index: {}-{}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+    }
+
     public void runIndex(HarvestResultDTO dto, File directory) {
-        if (indexers == null || indexers.size() <= 0) {
+        if (indexers == null || indexers.isEmpty()) {
             log.error("No indexers are defined");
-        } else {
-            Iterator<RunnableIndex> it = indexers.iterator();
-            while (it.hasNext()) {
-                RunnableIndex indexer = it.next();
-                if (indexer.isEnabled()) {
+            return;
+        }
+
+        Runnable executor = new Runnable() {
+            @Override
+            public void run() {
+                List<ProcessorHolder> processors = new ArrayList<>();
+                ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
+                for (RunnableIndex indexer : indexers) {
+                    //Use a new indexer each time to make it thread safe
+                    RunnableIndex theCopy = indexer.getCopy();
+                    theCopy.initialise(dto, directory);
+                    theCopy.setMode(Mode.INDEX);
+                    Future<Boolean> future = thread_pool.submit(theCopy);
+                    ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
+                    processors.add(holder);
+                }
+
+                while (!processors.isEmpty()) {
+                    List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
+                    for (ProcessorHolder holder : processors) {
+                        if (holder.isDone()) {
+                            toBeRemovedProcessors.add(holder);
+                        }
+                    }
+                    for (ProcessorHolder holder : toBeRemovedProcessors) {
+                        processors.remove(holder);
+                    }
+                    toBeRemovedProcessors.clear();
                     try {
-                        //Use a new indexer each time to make it thread safe
-                        RunnableIndex theCopy = indexer.getCopy();
-                        theCopy.initialise(dto, directory);
-
-                        theCopy.setMode(Mode.INDEX);
-                        runIndex(dto.getOid(), theCopy);
-
-                    } catch (Exception e) {
-                        log.error("Unable to instantiate indexer: " + e.getMessage(), e);
+                        TimeUnit.SECONDS.sleep(10L);
+                    } catch (InterruptedException e) {
+                        log.error("Timer is interrupted");
                     }
                 }
+                log.info("All the indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+
+                try {
+                    finaliseIndex(dto);
+                    log.info("Finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                } catch (Exception ex) {
+                    log.error("Failed to finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex);
+                }
+
+                runningIndexes.remove(dto.getOid());
             }
-        }
+        };
+        Thread t = new Thread(executor);
+        runningIndexes.put(dto.getOid(), t);
+        t.start();
+        log.info("Indexing started: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
     }
 
     public void removeIndex(HarvestResultDTO dto, File directory) {
-        if (indexers == null || indexers.size() <= 0) {
+        if (indexers == null || indexers.isEmpty()) {
             log.error("No indexers are defined");
-        } else {
-            Iterator<RunnableIndex> it = indexers.iterator();
-            while (it.hasNext()) {
-                RunnableIndex indexer = it.next();
-                if (indexer.isEnabled()) {
+            return;
+        }
+
+        Runnable executor = new Runnable() {
+            @Override
+            public void run() {
+                List<ProcessorHolder> processors = new ArrayList<>();
+                ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
+                for (RunnableIndex indexer : indexers) {
+                    //Use a new indexer each time to make it thread safe
+                    RunnableIndex theCopy = indexer.getCopy();
+                    theCopy.initialise(dto, directory);
+                    theCopy.setMode(Mode.REMOVE);
+                    Future<Boolean> future = thread_pool.submit(theCopy);
+                    ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
+                    processors.add(holder);
+                }
+
+                while (!processors.isEmpty()) {
+                    List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
+                    for (ProcessorHolder holder : processors) {
+                        if (holder.isDone()) {
+                            toBeRemovedProcessors.add(holder);
+                        }
+                    }
+                    for (ProcessorHolder holder : toBeRemovedProcessors) {
+                        boolean ret = holder.getValue();
+                        log.info("{}, result={}, {} {}", holder.processor.getName(), ret, dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                        processors.remove(holder);
+                    }
+                    toBeRemovedProcessors.clear();
                     try {
-                        //Use a new indexer each time to make it thread safe
-                        RunnableIndex theCopy = indexer.getCopy();
-                        theCopy.initialise(dto, directory);
-
-                        theCopy.setMode(Mode.REMOVE);
-                        runIndex(dto.getOid(), theCopy);
-
-                    } catch (Exception e) {
-                        log.error("Unable to instantiate indexer: " + e.getMessage(), e);
+                        TimeUnit.SECONDS.sleep(10L);
+                    } catch (InterruptedException e) {
+                        log.error("Timer is interrupted");
                     }
                 }
+                log.info("All the indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+
+                runningIndexes.remove(dto.getOid());
             }
-        }
+        };
+        Thread t = new Thread(executor);
+        runningIndexes.put(dto.getOid(), t);
+        t.start();
+        log.info("Remove indexing started: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
     }
 
     public Boolean checkIndexing(Long hrOid) {
-        return containsRunningIndex(hrOid);
+        return runningIndexes.containsKey(hrOid);
     }
 
-    private void runIndex(Long hrOid, RunnableIndex indexer) {
-        //don't allow the same HR to be indexed concurrently on the same type of indexer multiple times
-        if (!containsRunningIndex(indexer.getName(), hrOid)) {
-            addRunningIndex(indexer, hrOid);
+    public static class ProcessorHolder {
+        public long startTime = System.currentTimeMillis();
+        public HarvestResultDTO dto;
+        public RunnableIndex processor;
+        public Future<Boolean> future;
 
-            new Thread(indexer).start();
+        public ProcessorHolder(HarvestResultDTO dto, RunnableIndex processor, Future<Boolean> future) {
+            this.dto = dto;
+            this.processor = processor;
+            this.future = future;
+        }
+
+        public long getRunningDuration() {
+            return System.currentTimeMillis() - startTime;
+        }
+
+        public boolean isDone() {
+            boolean done = future.isDone();
+            if (done) {
+                log.info("{}, is done, {} {}, time used: {}", processor.getName(), dto.getTargetInstanceOid(), dto.getHarvestNumber(), getRunningDuration());
+            } else {
+                log.debug("{}, is running, {} {}, time used: {}", processor.getName(), dto.getTargetInstanceOid(), dto.getHarvestNumber(), getRunningDuration());
+            }
+            return done;
+        }
+
+        public boolean getValue() {
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                log.error("{}, failed to get value: {} {}", processor.getName(), dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex);
+                return false;
+            }
         }
     }
 
@@ -228,7 +267,7 @@ public class Indexer {
             BDBNetworkMapPool pool = new BDBNetworkMapPool(dir.getAbsolutePath(), "4.0.1");
 
             Indexer indexer = new Indexer(true);
-            WCTIndexer wctIndexer = new WCTIndexer(baseUrl, new RestTemplateBuilder());
+            WCTIndexer wctIndexer = new WCTIndexer();
             wctIndexer.setDoCreate(true);
             wctIndexer.setEnabled(true);
             wctIndexer.setPool(pool);
@@ -236,10 +275,8 @@ public class Indexer {
             indexers.add(wctIndexer);
             indexer.setIndexers(indexers);
             indexer.runIndex(dto, dir);
-            boolean retContains = Indexer.containsRunningIndex(45L);
-            System.out.println("Contains: " + retContains);
         } catch (Exception ex) {
-            log.error(ex);
+            log.error("Failed to execute indexing", ex);
             syntax();
         }
     }

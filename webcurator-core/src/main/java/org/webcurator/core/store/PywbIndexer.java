@@ -23,10 +23,6 @@ public class PywbIndexer extends IndexerBase {
         super();
     }
 
-    public PywbIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
-    }
-
     public PywbIndexer(PywbIndexer original) {
         super(original);
         this.result = original.result;

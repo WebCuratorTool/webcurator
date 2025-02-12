@@ -7,7 +7,6 @@ import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
@@ -26,8 +25,8 @@ public class WCTIndexer extends IndexerBase {
     private BDBNetworkMapPool pool;
     private VisualizationProcessorManager visProcessorManager;
 
-    public WCTIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
+    public WCTIndexer() {
+        super();
     }
 
     protected WCTIndexer(WCTIndexer original) {
@@ -39,7 +38,6 @@ public class WCTIndexer extends IndexerBase {
         this.pool = original.pool;
         this.visProcessorManager = original.visProcessorManager;
     }
-
 
     @Override
     public Long begin() {
@@ -64,6 +62,7 @@ public class WCTIndexer extends IndexerBase {
                 return;
             }
             ret = retFuture.get();
+            log.info("Visualization indexing is finished: {}", directory);
         } catch (DigitalAssetStoreException e) {
             log.error("Failed to create directory: {}", directory, e);
             return;

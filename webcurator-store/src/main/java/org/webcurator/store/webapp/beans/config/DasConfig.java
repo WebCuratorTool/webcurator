@@ -486,7 +486,7 @@ public class DasConfig implements WebMvcConfigurer {
     @SuppressWarnings("unchecked")
     @Bean
     public Indexer indexer() {
-        Indexer bean = new Indexer();
+        Indexer bean = new Indexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         ListFactoryBean runnableIndexers = runnableIndexers();
 
         try {
@@ -518,9 +518,8 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public WaybackIndexer waybackIndexer() {
-        WaybackIndexer bean = new WaybackIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        WaybackIndexer bean = new WaybackIndexer();
         bean.setEnabled(waybackIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
         bean.setTimeout(waybackIndexerTimeout);
         bean.setUseSymLinks(waybackIndexerUseSymLinks);
@@ -533,7 +532,7 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public CDXIndexer cdxIndexer() {
-        CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        CDXIndexer bean = new CDXIndexer();
         bean.setEnabled(cdxIndexerEnabled);
         bean.setFormat(cdxIndexerFormat);
         bean.setUseSurt(cdxIndexerUseSurt);
@@ -542,7 +541,7 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public PywbIndexer pywbIndexer() {
-        PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        PywbIndexer bean = new PywbIndexer();
         bean.setEnabled(pywbIndexerEnabled);
         bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
@@ -553,7 +552,7 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public WCTIndexer wctIndexer() {
-        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        WCTIndexer bean = new WCTIndexer();
         bean.setEnabled(true);
         bean.setPool(bdbDatabasePool());
         bean.setVisProcessorManager(visualizationProcessorQueue());

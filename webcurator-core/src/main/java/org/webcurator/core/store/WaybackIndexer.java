@@ -2,7 +2,6 @@ package org.webcurator.core.store;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
@@ -42,11 +41,6 @@ public class WaybackIndexer extends IndexerBase {
     public WaybackIndexer(){
         super();
     }
-
-    public WaybackIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
-    }
-
     protected WaybackIndexer(WaybackIndexer original) {
         super(original);
         waybackInputFolder = original.waybackInputFolder;
