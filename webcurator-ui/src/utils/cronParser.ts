@@ -2,13 +2,13 @@ import { Cron } from "croner";
 import { formatTime } from "./helper";
 
 export const days = [
-    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
-    "Saturday"
+    "Saturday",
+    "Sunday"
 ];
 
 export const dates = [
@@ -76,7 +76,7 @@ export const parseCron = (cronString: string) => {
     return cron;
 }
 
-export const createCronExpression = (cronSettings: {dayOfMonth: string, months: string, dayOfWeek: string, time: number}) => {
+export const createCronExpression = (cronSettings: {dayOfMonth: string, months: string, dayOfWeek: string, time: any}) => {
     console.log(cronSettings);
     const cron = {
         minute: "",
@@ -96,13 +96,6 @@ export const createCronExpression = (cronSettings: {dayOfMonth: string, months: 
 
     cron.hour = time[0];
     cron.minute = time[1];
-
-    // Get the day of month or set to '?' if not specified
-    if (cronSettings.dayOfMonth) {
-        cron.dayOfMonth = cronSettings.dayOfMonth === "Last" ? "L" : cronSettings.dayOfMonth;
-    } else {
-        cron.dayOfMonth = "?";
-    }
     
     // Get the month or set to '*' if not specified
     if (cronSettings.months) {
@@ -130,6 +123,15 @@ export const createCronExpression = (cronSettings: {dayOfMonth: string, months: 
         cron.dayOfWeek = cronSettings.dayOfWeek.slice(0, 3).toUpperCase();
     } else {
         cron.dayOfWeek = "?";
+    }
+
+    // Get the day of month or set to '?' if not specified
+    if (cronSettings.dayOfMonth) {
+        cron.dayOfMonth = cronSettings.dayOfMonth === "Last" ? "L" : cronSettings.dayOfMonth;
+    } else {
+        if (cron.dayOfWeek === "?") {
+            cron.dayOfMonth = "*";
+        } else cron.dayOfMonth = "?";
     }
 
     console.log(`${cron.minute} ${cron.hour} ${cron.dayOfMonth} ${cron.month} ${cron.dayOfWeek} *`);

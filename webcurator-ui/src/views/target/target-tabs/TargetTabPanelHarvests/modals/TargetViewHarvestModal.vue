@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject, onMounted, ref, watch } from 'vue';
+import { inject, ref, watch } from 'vue';
 import { formatDate, formatTime } from '@/utils/helper'
 import { days, dates, parseCron, getCronMonths, getNextScheduledTimes, getMonthGroups, createCronExpression } from '@/utils/cronParser';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
@@ -25,7 +25,15 @@ const scheduleTypes = ref();
 const loading = ref(true);
 const months = ref('');
 const monthGroups = ref<string[]>([]);
-const newCronObject = ref({});
+const newCronObject = ref({
+  time: null,
+  dayOfMonth: '',
+  month: '',
+  months: '',
+  weekDays: '',
+  year: '',
+  dayOfWeek: ''
+});
 
 const fetch = () => {
   rest.get('targets/schedule-types').then((data: any) => {
@@ -37,30 +45,47 @@ const fetch = () => {
   })
 }
 
-onMounted(() => {
-  targetSchedule.value = dialogRef.value.data.targetSchedule;
-  editing.value = dialogRef.value.data.editingHarvest;
-  startDate.value = formatDate(dialogRef.value.data.targetSchedule.startDate);
-  endDate.value = dialogRef.value.data.targetSchedule.endDate != null ? formatDate(dialogRef.value.data.targetSchedule.endDate) : '';
-  time.value = dialogRef.value.data.targetSchedule.nextExecutionDate != null ? formatTime(dialogRef.value.data.targetSchedule.nextExecutionDate) : '';
-  cronFields.value = dialogRef.value.data.targetSchedule.cron != '' ? parseCron(dialogRef.value.data.targetSchedule.cron) : {};
+targetSchedule.value = dialogRef.value.data.targetSchedule;
+editing.value = dialogRef.value.data.editingHarvest;
+startDate.value = formatDate(dialogRef.value.data.targetSchedule.startDate);
+endDate.value = dialogRef.value.data.targetSchedule.endDate != null ? formatDate(dialogRef.value.data.targetSchedule.endDate) : '';
+time.value = dialogRef.value.data.targetSchedule.nextExecutionDate != null ? formatTime(dialogRef.value.data.targetSchedule.nextExecutionDate) : '';
+cronFields.value = dialogRef.value.data.targetSchedule.cron != '' ? parseCron(dialogRef.value.data.targetSchedule.cron) : { dayOfMonth: '' };
 
-  if (editing.value) {
-    newCronObject.value.time = time.value != '' ? time.value : formatTime(Date.now());
-    newCronObject.value.dayOfMonth = cronFields.value.dayOfMonth != '' ? cronFields.value.dayOfMonth : '';
-    newCronObject.value.month = cronFields.value.month != '' ? cronFields.value.month : '';
-    newCronObject.value.months = cronFields.value.months != '' ? cronFields.value.months : '';
-    newCronObject.value.weekDays = cronFields.value.weekDays != '' ? cronFields.value.weekDays : '';
-    newCronObject.value.year = cronFields.value.year != '' ? cronFields.value.year : '';
-  }
-})
+if (editing.value) {
+  newCronObject.value.time = time.value != '' ? time.value : formatTime(Date.now());
+  newCronObject.value.dayOfMonth = cronFields.value.dayOfMonth != '' ? cronFields.value.dayOfMonth : '1';
+  newCronObject.value.month = cronFields.value.month;
+  newCronObject.value.months = cronFields.value.months;
+  newCronObject.value.weekDays = cronFields.value.weekDays;
+  newCronObject.value.year = cronFields.value.year;
+  newCronObject.value.dayOfWeek = (
+    days.find((d) => d.slice(0, 3).toUpperCase() === cronFields.value.dayOfWeek)
+  ) || 'Monday';
+}
 
 const shouldShowMonths = () => {
- return ['quarterly', 'bimonthly', 'annually', 'half-yearly'].includes(scheduleType.value.toLowerCase());
+  return ['quarterly', 'bimonthly', 'annually', 'half-yearly'].includes(scheduleType.value.toLowerCase());
 }
 
 const shouldShowDayOfMonth = () => {
- return ['monthly', 'bimonthly', 'quarterly', 'annually', 'half-yearly'].includes(scheduleType.value.toLowerCase());
+  const shouldShowDayOfMonth = ['monthly', 'bimonthly', 'quarterly', 'annually', 'half-yearly'].includes(scheduleType.value.toLowerCase());
+  if (shouldShowDayOfMonth && newCronObject.value.dayOfMonth == '') {
+    newCronObject.value.dayOfMonth = '1';
+  } else if (!shouldShowDayOfMonth) {
+    newCronObject.value.dayOfMonth = '';
+  }
+  return shouldShowDayOfMonth;
+}
+
+const shouldShowDayOfWeek = () => {
+  const shouldShowDayOfWeek = scheduleType.value.toLowerCase() == 'weekly' || scheduleType.value.toLowerCase() == 'custom';
+  if (shouldShowDayOfWeek && newCronObject.value.dayOfWeek == '') {
+    newCronObject.value.dayOfWeek = 'Monday';
+  } else if (!shouldShowDayOfWeek) {
+    newCronObject.value.dayOfWeek = '';
+  }
+  return shouldShowDayOfWeek;
 }
 
 const fetchMonthGroups = () => {
@@ -81,14 +106,17 @@ const closeDialog = () => {
 }
 
 const save = () => {
-  console.log(newCronObject.value.time);
+  if (Object.prototype.toString.call(startDate.value) != '[object Date]') {
+    startDate.value = new Date(startDate.value);
+  }
+
   const cronExpression = createCronExpression(newCronObject.value);
   const scheduleKey = Object.keys(scheduleTypes.value).find((key) => scheduleTypes.value[key] == scheduleType.value);
   targetHarvests.addSchedule(
     {
       cron: cronExpression,
       startDate: startDate.value,
-      endDate: endDate.value,
+      endDate: endDate.value != '' ? endDate.value : null,
       type: scheduleKey,
       nextExecutionDate: getNextScheduledTimes(cronExpression, 1)[0],
       owner: targetGeneral.selectedUser.code
@@ -127,7 +155,7 @@ fetch();
     </WctFormField>
 
     <!-- Day of Week -->
-    <WctFormField v-if="scheduleType == 'Weekly'" label="Day">
+    <WctFormField v-if="shouldShowDayOfWeek()" label="Day">
       <Dropdown v-if="editing"
         v-model="newCronObject.dayOfWeek"
         :options="days"
@@ -168,10 +196,10 @@ fetch();
       <Button label="Cancel" text class="ml-2" @click="closeDialog"/>
     </div>
 
-    <div v-if="scheduleType == 'Custom'">
+    <!-- <div v-if="scheduleType == 'Custom'">
       <p v-for="(time, index) in getNextScheduledTimes(targetSchedule.cron, 10)" class="font-semibold" :key="index">
         {{ time }}
       </p>
-    </div>
+    </div> -->
   </div>
 </template>

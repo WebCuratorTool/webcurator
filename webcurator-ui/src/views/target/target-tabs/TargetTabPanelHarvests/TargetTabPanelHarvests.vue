@@ -21,7 +21,7 @@ const newHarverst = {
   type: -3,
   nextExecutionDate: null,
   lastProcessedDate: null,
-  dayOfMonth: 1,
+  dayOfMonth: '1',
   owner: ''
 }
 
