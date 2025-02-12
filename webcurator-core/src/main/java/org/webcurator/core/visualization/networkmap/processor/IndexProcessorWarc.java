@@ -11,16 +11,11 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
-import org.springframework.context.ApplicationContext;
 import org.webcurator.common.util.Utils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 
-import java.io.File;
 import java.io.IOException;
 
 @SuppressWarnings("all")
