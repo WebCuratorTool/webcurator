@@ -20,8 +20,6 @@ import static org.webcurator.core.archive.Constants.LOG_FILE;
 import static org.webcurator.core.archive.Constants.REPORT_FILE;
 import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
-import it.unipi.di.util.ExternalSort;
-
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -72,19 +70,9 @@ import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
-import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+//import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import static org.webcurator.core.archive.Constants.*;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -123,7 +111,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * The Indexer
      */
     @Autowired
-    private Indexer indexer = null;
+    private Indexer indexer;
     /**
      * The DAS File Mover
      */
@@ -943,10 +931,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
-        VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         try {
-            visualizationProcessorManager.startTask(processor);
-        } catch (IOException e) {
+            String sourceDir = this.baseDir + File.separator + harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber();
+            indexer.runIndex(harvestResult, new File(sourceDir));
+
+//            VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+//            visualizationProcessorManager.startTask(processor);
+        } catch (Exception e) {
             log.error(e.getMessage());
             throw new DigitalAssetStoreException(e);
         }

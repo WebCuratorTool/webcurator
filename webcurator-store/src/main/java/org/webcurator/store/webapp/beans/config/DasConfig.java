@@ -507,10 +507,10 @@ public class DasConfig implements WebMvcConfigurer {
         ListFactoryBean bean = new ListFactoryBean();
 
         List<RunnableIndex> sourceList = new ArrayList<>();
-//        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
         sourceList.add(cdxIndexer());
         sourceList.add(pywbIndexer());
+        sourceList.add(wctIndexer());
 
         bean.setSourceList(sourceList);
         return bean;
@@ -548,6 +548,15 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
         bean.setIndividualCollectionMode(individualCollectionMode);
         bean.setUseSymLinkForArchive(useSymLinkForArchive);
+        return bean;
+    }
+
+    @Bean
+    public WCTIndexer wctIndexer() {
+        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        bean.setEnabled(true);
+        bean.setPool(bdbDatabasePool());
+        bean.setVisProcessorManager(visualizationProcessorQueue());
         return bean;
     }
 

@@ -99,11 +99,15 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             log.error("Failed to process", e);
             return false;
         } finally {
-            this.progressBar.clear();
+            if (this.progressBar != null) {
+                this.progressBar.clear();
+            }
             if (this.status == HarvestResult.STATUS_RUNNING) {
                 this.status = HarvestResult.STATUS_FINISHED;
             }
-            processorManager.finalise(this);
+            if (processorManager != null) {
+                processorManager.finalise(this);
+            }
 
             this.finished = true;
         }
@@ -244,7 +248,9 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void updateHarvestResultStatus() {
-        wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+        if (wctClient != null) {
+            wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+        }
     }
 
     public HarvestResultDTO getHarvestResultDTO() {
