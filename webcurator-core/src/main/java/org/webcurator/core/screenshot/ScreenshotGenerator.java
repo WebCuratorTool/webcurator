@@ -122,7 +122,7 @@ public class ScreenshotGenerator {
                     }
                 }
             } catch (IOException | URISyntaxException e) {
-                log.error("Failed to connect to: {}", pywbUrl, e);
+                log.error("Failed to connect to: {} {}", pywbUrl, e.getMessage());
                 return false;
             } finally {
                 if (conn != null) {

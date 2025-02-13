@@ -1150,31 +1150,37 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
             return;
         }
 
-        //Create the screenshot after indexed for original harvests
         if (enableScreenshots && harvestNumber == Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST)) {
-            ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-            identifiers.setTiOid(targetInstanceId);
-            identifiers.setHarvestNumber(harvestNumber);
-            identifiers.setScreenshotType(ScreenshotType.harvested);
-            for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-                identifiers.getSeeds().add(seedHistoryDTO);
-            }
-            Boolean screenshotsTaken = Boolean.TRUE;
-            try {
-                screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-            } catch (DigitalAssetStoreException e) {
-                log.error("Failed to create screenshot:", e);
-                screenshotsTaken = Boolean.FALSE;
-            }
+            //Create the screenshot after indexed for original harvests
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                    identifiers.setTiOid(targetInstanceId);
+                    identifiers.setHarvestNumber(harvestNumber);
+                    identifiers.setScreenshotType(ScreenshotType.harvested);
+                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                        identifiers.getSeeds().add(seedHistoryDTO);
+                    }
+                    Boolean screenshotsTaken = Boolean.TRUE;
+                    try {
+                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                    } catch (DigitalAssetStoreException e) {
+                        log.error("Failed to create screenshot:", e);
+                        screenshotsTaken = Boolean.FALSE;
+                    }
 
-            if (!screenshotsTaken) {
-                log.info("There was a problem generating the screenshots.");
-                harvestAgentManager.abort(ti);
-                return;
-            }
+                    if (!screenshotsTaken) {
+                        log.info("There was a problem generating the screenshots.");
+                        harvestAgentManager.abort(ti);
+                        return;
+                    }
+                }
+            };
+            Thread t = new Thread(r);
+            t.start();
         }
-
         finaliseIndex(ti, hr);
     }
 

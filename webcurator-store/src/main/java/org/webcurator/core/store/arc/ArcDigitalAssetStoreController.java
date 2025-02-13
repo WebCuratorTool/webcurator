@@ -205,10 +205,4 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     public ModifyResult initialPruneAndImport(@RequestBody ModifyApplyCommand cmd) {
         return arcDigitalAssetStoreService.initialPruneAndImport(cmd);
     }
-
-    @Override
-    @RequestMapping(path = DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION, method = RequestMethod.POST)
-    public void operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
-        arcDigitalAssetStoreService.operateHarvestResultModification(stage, command, targetInstanceId, harvestNumber);
-    }
 }

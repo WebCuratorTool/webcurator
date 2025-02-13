@@ -1,6 +1,6 @@
 package org.webcurator.core.store.springboot;
 
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,9 +11,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListenerService;
-import org.webcurator.core.store.arc.ArcDigitalAssetStoreService;
-import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.domain.model.core.HarvestResultDTO;
+//import org.webcurator.core.store.arc.ArcDigitalAssetStoreService;
+//import org.webcurator.core.visualization.VisualizationProgressView;
+//import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.util.Arrays;
 
@@ -30,8 +30,8 @@ import java.util.Arrays;
                 classes = {HarvestAgentListenerService.class, WctCoordinator.class})
 )
 public class WebcuratorStoreApplication {
-    @Autowired
-    private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
+//    @Autowired
+//    private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
     public static void main(String[] args) {
         try {
@@ -53,13 +53,13 @@ public class WebcuratorStoreApplication {
                 System.out.println(beanName);
             }
 
-            HarvestResultDTO hr = new HarvestResultDTO();
-            hr.setOid(1L);
-            hr.setHarvestNumber(1);
-            hr.setTargetInstanceOid(1000365177L);
-            hr.setProgressView(new VisualizationProgressView());
-            arcDigitalAssetStoreService.initiateIndexing(hr);
-            System.out.println("Launched an indexing job");
+//            HarvestResultDTO hr = new HarvestResultDTO();
+//            hr.setOid(1L);
+//            hr.setHarvestNumber(1);
+//            hr.setTargetInstanceOid(12L);
+//            hr.setProgressView(new VisualizationProgressView());
+//            arcDigitalAssetStoreService.initiateIndexing(hr);
+//            System.out.println("Launched an indexing job");
         };
     }
 }

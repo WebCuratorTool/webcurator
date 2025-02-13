@@ -1061,8 +1061,19 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         ModifyResult result = new ModifyResult();
         VisualizationAbstractProcessor processor = new ModifyProcessorWarc(cmd);
         try {
-            visualizationProcessorManager.startTask(processor);
-        } catch (IOException e) {
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        visualizationProcessorManager.executeTask(processor);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            };
+            Thread t = new Thread(runnable);
+            t.start();
+        } catch (Exception e) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
             log.error(e.getLocalizedMessage());
@@ -1072,20 +1083,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
         result.setRespMsg("Modification task is accepted");
         return result;
-    }
-
-    @Override
-    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
-        log.info("stage: {}, command: {}, targetInstanceId: {}, harvestResultNumber:{} ", stage, command, targetInstanceId, harvestNumber);
-        if (command.equalsIgnoreCase("pause")) {
-            visualizationProcessorManager.pauseTask(stage, targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("resume")) {
-            visualizationProcessorManager.resumeTask(stage, targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("terminate")) {
-            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("delete")) {
-            visualizationProcessorManager.deleteTask(stage, targetInstanceId, harvestNumber);
-        }
     }
 
     public File getDownloadFileURL(String fileName, File downloadedFile) throws IOException {

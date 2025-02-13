@@ -538,7 +538,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 if(attr!=null) {
                     userName=attr.getAuthentication().getName();
                 }
-                log.info("Created session: {}, for: {}", getSessionDetails(ss), userName);
+                log.debug("Created session: {}, for: {}", getSessionDetails(ss), userName);
             }
 
             @Override
@@ -553,7 +553,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 if(attr!=null) {
                     userName=attr.getAuthentication().getName();
                 }
-                log.info("Destroyed session: {}, for: {}", getSessionDetails(ss), userName);
+                log.debug("Destroyed session: {}, for: {}", getSessionDetails(ss), userName);
             }
         };
     }

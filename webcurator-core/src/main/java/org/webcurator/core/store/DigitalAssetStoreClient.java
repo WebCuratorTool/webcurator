@@ -238,19 +238,6 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         return result;
     }
 
-    @Override
-    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION))
-                .queryParam("stage", stage)
-                .queryParam("command", command)
-                .queryParam("targetInstanceId", targetInstanceId)
-                .queryParam("harvestNumber", harvestNumber);
-
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, Void.class);
-    }
-
     public String getFileUploadMode() {
         return fileUploadMode;
     }

@@ -2,8 +2,6 @@ package org.webcurator.core.store;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,34 +51,22 @@ public class WCTIndexer extends IndexerBase {
             return;
         }
         IndexProcessor indexer = null;
-        boolean ret;
         try {
             indexer = new IndexProcessorWarc(this.pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
-            Future<Boolean> retFuture = visProcessorManager.startTask(indexer);
-            if (retFuture == null) {
-                log.error("Failed to start the task for WCT indexing, {}", directory);
-                return;
+            if (visProcessorManager.executeTask(indexer)) {
+                log.info("Indexing is finished: {}", directory);
+            } else {
+                log.error("Failed to index, {}", directory);
             }
-            ret = retFuture.get();
-            log.info("Visualization indexing is finished: {}", directory);
         } catch (DigitalAssetStoreException e) {
             log.error("Failed to create directory: {}", directory, e);
-            return;
         } catch (IOException e) {
             log.error("Failed to start the vis indexing, {}", directory, e);
-            return;
-        } catch (ExecutionException e) {
-            log.error("Failed to execute the vis indexing, {}", directory, e);
-            return;
-        } catch (InterruptedException e) {
-            log.error("The vis indexing was interrupted, {}", directory, e);
-            return;
         } finally {
             if (indexer != null) {
                 indexer.clear();
             }
         }
-        log.info("Completed wct indexing for job: {}-{}, {}", getResult().getTargetInstanceOid(), getResult().getHarvestNumber(), ret);
     }
 
     @Override

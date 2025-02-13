@@ -36,8 +36,19 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         VisualizationAbstractProcessor processor;
         try {
             processor = new IndexProcessorWarc(pool, job, harvestResultNumber);
-            visualizationProcessorManager.startTask(processor);
-        } catch (DigitalAssetStoreException | IOException e) {
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        visualizationProcessorManager.executeTask(processor);
+                    } catch (IOException e) {
+                        log.error("Failed to index: {} {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+                    }
+                }
+            };
+            Thread t = new Thread(r);
+            t.start();
+        } catch (Exception e) {
             return NetworkMapResult.getInitialExtractorFailedResult();
         }
         return NetworkMapResult.getSuccessResult();
