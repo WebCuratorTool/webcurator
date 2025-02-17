@@ -28,7 +28,6 @@ public class Indexer extends AbstractRestClient {
     private boolean doCreate = false;
     private List<RunnableIndex> indexers;
 
-
     public Indexer() {
         this(false);
     }
@@ -37,7 +36,6 @@ public class Indexer extends AbstractRestClient {
         super();
         this.doCreate = doCreate;
     }
-
 
     public Indexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
         super(baseUrl, restTemplateBuilder);
@@ -169,14 +167,22 @@ public class Indexer extends AbstractRestClient {
                     }
                     log.info("All the removing indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
                 } finally {
-                    runningIndexes.remove(dto.getOid());
+                    synchronized (lock) {
+                        runningIndexes.remove(dto.getOid());
+                    }
                 }
             }
         };
-        Thread t = new Thread(executor);
-        runningIndexes.put(dto.getOid(), t);
-        t.start();
-        log.info("Remove indexing started: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+        synchronized (lock) {
+            if (runningIndexes.containsKey(dto.getOid())) {
+                log.warn("Indexer of this harvest result is running. Will ignore this index remove request: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                return;
+            }
+            Thread t = new Thread(executor);
+            runningIndexes.put(dto.getOid(), t);
+            t.start();
+            log.info("Remove indexing started: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+        }
     }
 
     public Boolean checkIndexing(Long hrOid) {
