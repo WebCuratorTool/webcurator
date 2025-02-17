@@ -56,9 +56,7 @@ public class VisualizationProcessorManager {
     public void finalise(VisualizationAbstractProcessor processor) {
         //Remove existing process firstly to avoid deadlock
         if (processor.getProcessorStage().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            if (processor.getStatus() == HarvestResult.STATUS_FINISHED) {
-                wctCoordinatorClient.notifyModificationComplete(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
-            }
+            wctCoordinatorClient.notifyModificationComplete(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
             //Move the current metadata to history fold to avoid duplicated execution
             PatchUtil.modifier.moveJob2History(visualizationDirectoryManager.getBaseDir(), processor.getTargetInstanceId(), processor.getHarvestResultNumber());
         } else if (processor.getProcessorStage().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
