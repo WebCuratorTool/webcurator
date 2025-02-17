@@ -1137,7 +1137,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
     }
 
-    public void finaliseIndex(long targetInstanceId, int harvestNumber) {
+    public void finaliseIndex(long targetInstanceId, int harvestNumber, boolean indexResult) {
         TargetInstance ti = targetInstanceDao.load(targetInstanceId);
         if (ti == null) {
             log.error("Not able to load TargetInstance: {}", targetInstanceId);
@@ -1181,16 +1181,19 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
             Thread t = new Thread(r);
             t.start();
         }
-        finaliseIndex(ti, hr);
+        finaliseIndex(ti, hr, indexResult);
     }
 
-    private void finaliseIndex(TargetInstance ti, HarvestResult hr) {
+    private void finaliseIndex(TargetInstance ti, HarvestResult hr, boolean indexResult) {
         harvestResultManager.removeHarvestResult(ti.getOid(), hr.getHarvestNumber());
 
-        hr.setState(HarvestResult.STATE_UNASSESSED);
-        targetInstanceDao.save(hr);
-        harvestQaManager.triggerAutoQA(hr);
+        if (indexResult) {
+            hr.setState(HarvestResult.STATE_UNASSESSED);
+            targetInstanceDao.save(hr);
+            harvestQaManager.triggerAutoQA(hr);
+        }
 
+        //Reset the STATE of TI to HARVESTED if the indexing is finished, even it's failed
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             ti.setState(TargetInstance.STATE_HARVESTED);
             targetInstanceDao.save(ti);
@@ -1198,7 +1201,9 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
 
         // run the QA recommendation service to derive the Quality Indicators
-        harvestQaManager.initialiseQaRecommentationService(hr.getOid());
+        if (indexResult) {
+            harvestQaManager.initialiseQaRecommentationService(hr.getOid());
+        }
     }
 
     public void runQaRecommentationService(TargetInstance ti) {
@@ -1851,7 +1856,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
             if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
                 dasModificationComplete(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
             } else if (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
-                finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
+                finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), true);
             }
         }
 
@@ -1863,7 +1868,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
 //        harvestResultManager.addHarvestResult(hrDTO);
         harvestResultManager.updateHarvestResultStatus(hrDTO);
         if (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
-            finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
+            finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), true);
         } else if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
             initiateIndexing(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
         }

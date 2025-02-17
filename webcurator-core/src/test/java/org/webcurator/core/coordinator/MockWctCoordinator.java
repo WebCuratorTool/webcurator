@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("all")
-public class MockWctCoordinator extends WctCoordinator{
+public class MockWctCoordinator extends WctCoordinator {
     private static Log log = LogFactory.getLog(MockWctCoordinator.class);
     private LogReader logReader = null;
     private boolean queuePaused = false;
@@ -265,7 +265,7 @@ public class MockWctCoordinator extends WctCoordinator{
     }
 
     @Override
-    public void finaliseIndex(long targetInstanceId, int harvestNumber) {
+    public void finaliseIndex(long targetInstanceId, int harvestNumber, boolean indexResult) {
 
     }
 

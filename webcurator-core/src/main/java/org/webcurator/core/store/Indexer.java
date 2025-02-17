@@ -44,65 +44,72 @@ public class Indexer extends AbstractRestClient {
     }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void finaliseIndex(HarvestResultDTO dto) throws ConnectException {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
-                .queryParam("targetInstanceId", dto.getTargetInstanceOid())
-                .queryParam("harvestNumber", dto.getHarvestNumber());
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        URI uri = uriComponentsBuilder.build().toUri();
-        restTemplate.postForObject(uri, null, Void.class);
-        log.info("Finalised index: {}-{}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+    protected void finaliseIndex(HarvestResultDTO dto, boolean indexResult) {
+        try {
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
+                    .queryParam("targetInstanceId", dto.getTargetInstanceOid())
+                    .queryParam("harvestNumber", dto.getHarvestNumber())
+                    .queryParam("indexResult", indexResult);
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            URI uri = uriComponentsBuilder.build().toUri();
+            restTemplate.postForObject(uri, null, Void.class);
+            log.info("Finalised index: {}-{} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), indexResult);
+        } catch (ResourceAccessException ex) {
+            log.error("Failed to finalize index: {} {}, {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex.getMessage());
+        } catch (Exception ex) {
+            log.error("Failed to finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex);
+        }
     }
 
     public void runIndex(HarvestResultDTO dto, File directory) {
         if (indexers == null || indexers.isEmpty()) {
-            log.error("No indexers are defined");
+            log.error("No indexing indexers are defined");
             return;
         }
 
         Runnable executor = new Runnable() {
             @Override
             public void run() {
-                List<ProcessorHolder> processors = new ArrayList<>();
-                ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
-                for (RunnableIndex indexer : indexers) {
-                    //Use a new indexer each time to make it thread safe
-                    RunnableIndex theCopy = indexer.getCopy();
-                    theCopy.initialise(dto, directory);
-                    theCopy.setMode(Mode.INDEX);
-                    Future<Boolean> future = thread_pool.submit(theCopy);
-                    ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
-                    processors.add(holder);
-                }
-
-                while (!processors.isEmpty()) {
-                    List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
-                    for (ProcessorHolder holder : processors) {
-                        if (holder.isDone()) {
-                            toBeRemovedProcessors.add(holder);
-                        }
-                    }
-                    for (ProcessorHolder holder : toBeRemovedProcessors) {
-                        holder.getValue();
-                        processors.remove(holder);
-                    }
-                    toBeRemovedProcessors.clear();
-                    try {
-                        TimeUnit.SECONDS.sleep(10L);
-                    } catch (InterruptedException e) {
-                        log.error("Timer is interrupted");
-                    }
-                }
-                log.info("All the indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                boolean indexResult = false;
 
                 try {
-                    finaliseIndex(dto);
-                    log.info("Finalize index: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
-                } catch (ConnectException | ResourceAccessException ex) {
-                    log.error("Failed to finalize index: {} {}, {}", dto.getTargetInstanceOid(), dto.getHarvestNumber(), ex.getMessage());
-                }
+                    List<ProcessorHolder> processors = new ArrayList<>();
+                    ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
+                    for (RunnableIndex indexer : indexers) {
+                        //Use a new indexer each time to make it thread safe
+                        RunnableIndex theCopy = indexer.getCopy();
+                        theCopy.initialise(dto, directory);
+                        theCopy.setMode(Mode.INDEX);
+                        Future<Boolean> future = thread_pool.submit(theCopy);
+                        ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
+                        processors.add(holder);
+                    }
 
-                runningIndexes.remove(dto.getOid());
+                    boolean totalResult = true;
+                    while (!processors.isEmpty()) {
+                        List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
+                        for (ProcessorHolder holder : processors) {
+                            if (holder.isDone()) {
+                                toBeRemovedProcessors.add(holder);
+                            }
+                        }
+                        for (ProcessorHolder holder : toBeRemovedProcessors) {
+                            totalResult = totalResult && holder.getValue();
+                            processors.remove(holder);
+                        }
+                        toBeRemovedProcessors.clear();
+                        try {
+                            TimeUnit.SECONDS.sleep(10L);
+                        } catch (InterruptedException e) {
+                            log.error("Indexing timer is interrupted");
+                        }
+                    }
+                    indexResult = totalResult;
+                    log.info("All the indexing indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                } finally {
+                    runningIndexes.remove(dto.getOid());
+                    finaliseIndex(dto, indexResult);
+                }
             }
         };
         Thread t = new Thread(executor);
@@ -113,47 +120,49 @@ public class Indexer extends AbstractRestClient {
 
     public void removeIndex(HarvestResultDTO dto, File directory) {
         if (indexers == null || indexers.isEmpty()) {
-            log.error("No indexers are defined");
+            log.error("No removing indexers are defined");
             return;
         }
 
         Runnable executor = new Runnable() {
             @Override
             public void run() {
-                List<ProcessorHolder> processors = new ArrayList<>();
-                ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
-                for (RunnableIndex indexer : indexers) {
-                    //Use a new indexer each time to make it thread safe
-                    RunnableIndex theCopy = indexer.getCopy();
-                    theCopy.initialise(dto, directory);
-                    theCopy.setMode(Mode.REMOVE);
-                    Future<Boolean> future = thread_pool.submit(theCopy);
-                    ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
-                    processors.add(holder);
-                }
+                try {
+                    List<ProcessorHolder> processors = new ArrayList<>();
+                    ExecutorService thread_pool = Executors.newFixedThreadPool(indexers.size());
+                    for (RunnableIndex indexer : indexers) {
+                        //Use a new indexer each time to make it thread safe
+                        RunnableIndex theCopy = indexer.getCopy();
+                        theCopy.initialise(dto, directory);
+                        theCopy.setMode(Mode.REMOVE);
+                        Future<Boolean> future = thread_pool.submit(theCopy);
+                        ProcessorHolder holder = new ProcessorHolder(dto, theCopy, future);
+                        processors.add(holder);
+                    }
 
-                while (!processors.isEmpty()) {
-                    List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
-                    for (ProcessorHolder holder : processors) {
-                        if (holder.isDone()) {
-                            toBeRemovedProcessors.add(holder);
+                    while (!processors.isEmpty()) {
+                        List<ProcessorHolder> toBeRemovedProcessors = new ArrayList<>();
+                        for (ProcessorHolder holder : processors) {
+                            if (holder.isDone()) {
+                                toBeRemovedProcessors.add(holder);
+                            }
+                        }
+                        for (ProcessorHolder holder : toBeRemovedProcessors) {
+                            boolean ret = holder.getValue();
+                            log.info("{}, result={}, {} {}", holder.processor.getName(), ret, dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                            processors.remove(holder);
+                        }
+                        toBeRemovedProcessors.clear();
+                        try {
+                            TimeUnit.SECONDS.sleep(10L);
+                        } catch (InterruptedException e) {
+                            log.error("Removing timer is interrupted");
                         }
                     }
-                    for (ProcessorHolder holder : toBeRemovedProcessors) {
-                        boolean ret = holder.getValue();
-                        log.info("{}, result={}, {} {}", holder.processor.getName(), ret, dto.getTargetInstanceOid(), dto.getHarvestNumber());
-                        processors.remove(holder);
-                    }
-                    toBeRemovedProcessors.clear();
-                    try {
-                        TimeUnit.SECONDS.sleep(10L);
-                    } catch (InterruptedException e) {
-                        log.error("Timer is interrupted");
-                    }
+                    log.info("All the removing indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                } finally {
+                    runningIndexes.remove(dto.getOid());
                 }
-                log.info("All the indexers are done: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
-
-                runningIndexes.remove(dto.getOid());
             }
         };
         Thread t = new Thread(executor);
