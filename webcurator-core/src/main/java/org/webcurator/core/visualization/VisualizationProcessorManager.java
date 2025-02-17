@@ -29,7 +29,7 @@ public class VisualizationProcessorManager {
     private void initTask(VisualizationAbstractProcessor processor) throws IOException {
         //Execute processor with thread pool
         NetworkMapService networkMapClient = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(NetworkMapClient.class);
-        processor.init(this, visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
+        processor.init(visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
     }
 
     public boolean executeTask(VisualizationAbstractProcessor processor) throws IOException {
@@ -47,6 +47,7 @@ public class VisualizationProcessorManager {
             log.error("Process failed: {}-{}, {}, {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber(), processor.getProcessorStage(), processor.getStatus());
             return false;
         } finally {
+            this.finalise(processor);
             queued_processors.remove(processor.getKey());
             log.info("Process finished: {}-{}, {}, {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber(), processor.getProcessorStage(), processor.getStatus());
         }

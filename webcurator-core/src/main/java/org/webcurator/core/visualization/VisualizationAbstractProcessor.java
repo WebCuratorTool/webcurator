@@ -34,7 +34,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
     protected VisualizationProgressBar progressBar;
-    protected VisualizationProcessorManager processorManager;
     protected String flag; //MOD or IDX
     protected String reportTitle;
     protected FileWriter logWriter;
@@ -51,9 +50,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init(VisualizationProcessorManager processorManager, VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
+    public void init( VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
         this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.processorManager = processorManager;
         this.baseDir = directoryManager.getBaseDir();
         this.fileDir = directoryManager.getUploadDir(targetInstanceId);
         this.logsDir = directoryManager.getBaseLogDir(targetInstanceId);
@@ -114,10 +112,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             if (this.status == HarvestResult.STATUS_RUNNING) {
                 this.status = HarvestResult.STATUS_FINISHED;
             }
-            if (processorManager != null) {
-                processorManager.finalise(this);
-            }
-
             this.finished = true;
         }
     }
