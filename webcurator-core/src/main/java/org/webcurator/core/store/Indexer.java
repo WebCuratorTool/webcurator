@@ -1,7 +1,6 @@
 package org.webcurator.core.store;
 
 import java.io.File;
-import java.net.ConnectException;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;

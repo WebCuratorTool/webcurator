@@ -934,11 +934,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             String sourceDir = this.baseDir + File.separator + harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber();
             indexer.runIndex(harvestResult, new File(sourceDir));
-
-//            VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
-//            visualizationProcessorManager.startTask(processor);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Failed to initial index: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), e);
             throw new DigitalAssetStoreException(e);
         }
     }

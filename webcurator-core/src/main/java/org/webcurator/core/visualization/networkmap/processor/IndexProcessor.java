@@ -296,6 +296,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
             }
 
+            log.info("Finished url extracting of all the harvest files: {} {}", this.targetInstanceId, this.harvestResultNumber);
+
             this.statAndSave();
 
             this.writeReport();

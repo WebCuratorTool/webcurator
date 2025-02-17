@@ -161,6 +161,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void writeLog(String content) {
+        log.debug(content);
+
         if (logWriter == null) {
             return;
         }

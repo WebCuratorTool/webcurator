@@ -105,7 +105,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @Override
     @PostMapping(path = DigitalAssetStorePaths.INITIATE_INDEXING)
     public void initiateIndexing(@RequestBody HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
-        log.debug("Initial indexing");
+        log.info("Received initial  index for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         arcDigitalAssetStoreService.initiateIndexing(harvestResult);
     }
 
