@@ -205,4 +205,18 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     public ModifyResult initialPruneAndImport(@RequestBody ModifyApplyCommand cmd) {
         return arcDigitalAssetStoreService.initialPruneAndImport(cmd);
     }
+
+    @Override
+    @RequestMapping(path = DigitalAssetStorePaths.ABORT_INDEXING, method = RequestMethod.POST)
+    public void abortIndexing(@RequestBody HarvestResultDTO harvestResult) {
+        log.info("Received abort index for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        arcDigitalAssetStoreService.abortIndexing(harvestResult);
+    }
+
+    @Override
+    @RequestMapping(path = DigitalAssetStorePaths.ABORT_PRUNE_IMPORT, method = RequestMethod.POST)
+    public void abortPruneAndImport(@RequestBody HarvestResultDTO harvestResult) {
+        log.info("Received abort modification for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        arcDigitalAssetStoreService.abortPruneAndImport(harvestResult);
+    }
 }

@@ -17,6 +17,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
@@ -33,24 +34,23 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
-        VisualizationAbstractProcessor processor;
+        final VisualizationAbstractProcessor processor;
         try {
             processor = new IndexProcessorWarc(pool, job, harvestResultNumber);
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        visualizationProcessorManager.executeTask(processor);
-                    } catch (IOException e) {
-                        log.error("Failed to index: {} {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber());
-                    }
-                }
-            };
-            Thread t = new Thread(r);
-            t.start();
-        } catch (Exception e) {
+        } catch (DigitalAssetStoreException e) {
             return NetworkMapResult.getInitialExtractorFailedResult();
         }
+
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                visualizationProcessorManager.executeTask(processor);
+            } catch (IOException e) {
+                log.error("Failed to execute visualization index: {}", e.getMessage());
+                return false;
+            }
+            return true;
+        });
+
         return NetworkMapResult.getSuccessResult();
     }
 

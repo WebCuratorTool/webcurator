@@ -19,8 +19,6 @@ import java.util.regex.Pattern;
 public class CDXIndexer extends IndexerBase {
     private static Log log = LogFactory.getLog(CDXIndexer.class);
 
-    private HarvestResultDTO result;
-    private File directory;
     private boolean enabled = false;
     private String format = CdxFormat.CDX11.legend();
     private boolean useSurt = false;
@@ -130,16 +128,6 @@ public class CDXIndexer extends IndexerBase {
         return getClass().getCanonicalName();
     }
 
-    @Override
-    public void initialise(HarvestResultDTO result, File directory) {
-        this.result = result;
-        this.directory = directory;
-    }
-
-    @Override
-    protected HarvestResultDTO getResult() {
-        return result;
-    }
 
     @Override
     public RunnableIndex getCopy() {
@@ -153,6 +141,11 @@ public class CDXIndexer extends IndexerBase {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void close() {
+        this.isRunning = false;
     }
 
     public String getFormat() {

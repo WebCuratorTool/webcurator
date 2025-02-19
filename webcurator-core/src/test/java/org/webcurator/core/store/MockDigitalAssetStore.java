@@ -69,6 +69,16 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
         return new ModifyResult();
     }
 
+    @Override
+    public void abortIndexing(HarvestResultDTO dto) {
+
+    }
+
+    @Override
+    public void abortPruneAndImport(HarvestResultDTO dto) {
+
+    }
+
     public void save(String targetInstanceName, List<Path> paths)
             throws DigitalAssetStoreException {
         // TODO Auto-generated method stub

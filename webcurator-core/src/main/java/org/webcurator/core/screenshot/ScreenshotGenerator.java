@@ -230,7 +230,7 @@ public class ScreenshotGenerator {
 
             if (threadFailed[0]) return false;
         } catch (Exception e) {
-            log.error("Unable to process command " + command, e);
+            log.error("Unable to process command, {}", command, e);
             if (processThread != null && !processThread.isInterrupted()) {
 //                processThread.stop();
                 processThread.interrupt();
@@ -328,13 +328,18 @@ public class ScreenshotGenerator {
 
     public boolean checkIndexState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
         File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
-        List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractorFromCDX.getSeedWithTimestamps(identifiers.getSeeds(), directory);
-        if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
-            log.error("Failed to append timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
+        try {
+            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractorFromCDX.getSeedWithTimestamps(identifiers.getSeeds(), directory);
+            if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
+                log.error("Failed to append timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
+                return false;
+            }
+            identifiers.setSeeds(seedWithTimestamp);
+            return this.isIndexReady(identifiers);
+        } catch (DigitalAssetStoreException ex) {
+            log.error("Failed to extract timestamp from CDX files: {}", ex.getMessage());
             return false;
         }
-        identifiers.setSeeds(seedWithTimestamp);
-        return this.isIndexReady(identifiers);
     }
 
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {

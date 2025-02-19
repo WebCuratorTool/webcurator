@@ -65,6 +65,8 @@ public class RepoNetworkNodeUrl extends RepoNetworkNodeBasic {
     }
 
     public void close() {
-        this.store.close();
+        if (this.store != null) {
+            this.store.close();
+        }
     }
 }

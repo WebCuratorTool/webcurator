@@ -238,6 +238,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         return result;
     }
 
+
     public String getFileUploadMode() {
         return fileUploadMode;
     }
@@ -257,5 +258,27 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     public void setHarvestBaseUrl(String harvestBaseUrl) {
         this.harvestBaseUrl = harvestBaseUrl;
+    }
+
+    @Override
+    public void abortIndexing(HarvestResultDTO dto) {
+        HttpEntity<String> request = this.createHttpRequestEntity(dto);
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.ABORT_INDEXING));
+
+        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
+    }
+
+    @Override
+    public void abortPruneAndImport(HarvestResultDTO dto) {
+        HttpEntity<String> request = this.createHttpRequestEntity(dto);
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.ABORT_PRUNE_IMPORT));
+
+        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 }

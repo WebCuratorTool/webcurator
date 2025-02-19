@@ -18,10 +18,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
-public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
+public abstract class VisualizationAbstractProcessor {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
     protected WctCoordinatorClient wctClient;
     protected NetworkMapService networkMapClient;
@@ -50,7 +49,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init( VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
+    public void init(VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
         this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
         this.baseDir = directoryManager.getBaseDir();
         this.fileDir = directoryManager.getUploadDir(targetInstanceId);
@@ -95,7 +94,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     public boolean process() {
         try {
             this.status = HarvestResult.STATUS_RUNNING;
-            updateHarvestResultStatus();
+//            updateHarvestResultStatus();
             processInternal();
             this.close();
             return true;
@@ -190,7 +189,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.state = HarvestResult.STATE_ABORTED;
         this.status = HarvestResult.STATUS_TERMINATED;
         terminateInternal();
-        updateHarvestResultStatus();
+//        updateHarvestResultStatus();
     }
 
     abstract protected void terminateInternal();
@@ -252,11 +251,11 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.status = status;
     }
 
-    public void updateHarvestResultStatus() {
-        if (wctClient != null) {
-            wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
-        }
-    }
+//    public void updateHarvestResultStatus() {
+//        if (wctClient != null) {
+//            wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+//        }
+//    }
 
     public HarvestResultDTO getHarvestResultDTO() {
         HarvestResultDTO hrDTO = new HarvestResultDTO();
@@ -265,11 +264,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         hrDTO.setState(this.state);
         hrDTO.setStatus(this.status);
         return hrDTO;
-    }
-
-    @Override
-    public Boolean call() {
-        return process();
     }
 
     public void close() {

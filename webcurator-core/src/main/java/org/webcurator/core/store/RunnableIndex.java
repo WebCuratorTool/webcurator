@@ -2,11 +2,11 @@ package org.webcurator.core.store;
 
 import java.io.File;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
-public interface RunnableIndex extends Callable<Boolean> {
-
+public interface RunnableIndex {
 	public enum Mode {INDEX, REMOVE};
 	String getName();
 	RunnableIndex getCopy();
@@ -17,4 +17,9 @@ public interface RunnableIndex extends Callable<Boolean> {
 //	void markComplete(Long harvestResultOid);
 	void removeIndex(Long harvestResultOid);
 	boolean isEnabled();
+	CompletableFuture<Boolean> submitAsync();
+	void close();
+	boolean cancel();
+	boolean isDone();
+	boolean getValue();
 }

@@ -168,4 +168,8 @@ public interface DigitalAssetStore {
      * @return the command is accepted or not
      */
     ModifyResult initialPruneAndImport(ModifyApplyCommand cmd);
+
+    void abortIndexing(HarvestResultDTO dto);
+
+    void abortPruneAndImport(HarvestResultDTO dto);
 }

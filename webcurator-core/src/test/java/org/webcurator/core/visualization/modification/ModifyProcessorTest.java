@@ -38,7 +38,7 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
 
         ModifyApplyCommand cmd = getApplyCommand();
         warcProcessor = new ModifyProcessorWarc(cmd);
-        warcProcessor.init( this.directoryManager, this.wctClient, this.networkMapClient);
+        warcProcessor.init(this.directoryManager, this.wctClient, this.networkMapClient);
     }
 
     @Test

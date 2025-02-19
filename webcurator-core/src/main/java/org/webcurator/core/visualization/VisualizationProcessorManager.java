@@ -42,7 +42,7 @@ public class VisualizationProcessorManager {
 
         queued_processors.put(processor.getKey(), processor);
         try {
-            return processor.call();
+            return processor.process();
         } catch (Exception ex) {
             log.error("Process failed: {}-{}, {}, {}", processor.getTargetInstanceId(), processor.getHarvestResultNumber(), processor.getProcessorStage(), processor.getStatus());
             return false;
@@ -85,6 +85,15 @@ public class VisualizationProcessorManager {
 
     public VisualizationAbstractProcessor getProcessor(String key) {
         return queued_processors.get(key);
+    }
+
+    public void terminateProcessor(long targetInstanceId, int harvestResultNumber) {
+        String key = getKey(targetInstanceId, harvestResultNumber);
+        VisualizationAbstractProcessor processor = getProcessor(key);
+        if (processor != null) {
+            processor.setState(HarvestResult.STATE_ABORTED);
+            processor.setStatus(HarvestResult.STATUS_TERMINATED);
+        }
     }
 
     /* There is no concurrency processors with the same targetInstanceId and harvestResultNumber

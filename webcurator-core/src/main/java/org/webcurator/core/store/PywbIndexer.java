@@ -2,7 +2,6 @@ package org.webcurator.core.store;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.ProcessBuilderUtils;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -11,8 +10,6 @@ import java.io.File;
 
 public class PywbIndexer extends IndexerBase {
     private static final Logger log = LoggerFactory.getLogger(PywbIndexer.class);
-    private HarvestResultDTO result;
-    private File directory;
     private boolean enabled;
     private String pywbManagerColl;
     private File pywbManagerStoreDir;
@@ -35,11 +32,6 @@ public class PywbIndexer extends IndexerBase {
     }
 
     @Override
-    protected HarvestResultDTO getResult() {
-        return this.result;
-    }
-
-    @Override
     public String getName() {
         return getClass().getCanonicalName();
     }
@@ -47,12 +39,6 @@ public class PywbIndexer extends IndexerBase {
     @Override
     public RunnableIndex getCopy() {
         return new PywbIndexer(this);
-    }
-
-    @Override
-    public void initialise(HarvestResultDTO result, File directory) {
-        this.result = result;
-        this.directory = directory;
     }
 
     @Override
@@ -143,6 +129,10 @@ public class PywbIndexer extends IndexerBase {
 
             //Added all warc files to the PYWB
             for (File warc : warcFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 int ret = ProcessBuilderUtils.wbManagerAddWarcFile(pywbManagerStoreDir, collName, warc.getAbsolutePath());
                 if (ret != 0) {
                     log.error("Failed to add file: {} to collection: {}", warc.getAbsolutePath(), collName);
@@ -197,6 +187,11 @@ public class PywbIndexer extends IndexerBase {
     @Override
     public boolean isEnabled() {
         return this.enabled;
+    }
+
+    @Override
+    public void close() {
+        this.isRunning = false;
     }
 
     public void setEnabled(boolean enabled) {

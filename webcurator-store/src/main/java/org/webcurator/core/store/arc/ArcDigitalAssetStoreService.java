@@ -1082,6 +1082,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return result;
     }
 
+    @Override
+    public void abortIndexing(HarvestResultDTO dto) {
+        this.indexer.abortIndex(dto);
+    }
+
+    @Override
+    public void abortPruneAndImport(HarvestResultDTO dto) {
+        this.visualizationProcessorManager.terminateProcessor(dto.getTargetInstanceOid(), dto.getHarvestNumber());
+    }
+
     public File getDownloadFileURL(String fileName, File downloadedFile) throws IOException {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
                 .queryParam("fileName", fileName);

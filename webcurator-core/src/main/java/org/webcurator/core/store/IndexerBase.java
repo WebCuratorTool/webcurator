@@ -1,6 +1,8 @@
 package org.webcurator.core.store;
 
 import java.io.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 import org.slf4j.Logger;
@@ -10,9 +12,12 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public abstract class IndexerBase implements RunnableIndex {
     private static final Logger log = LoggerFactory.getLogger(IndexerBase.class);
-
     private boolean defaultIndexer = false;
     private Mode mode = Mode.INDEX;
+    private CompletableFuture<Boolean> future;
+    protected boolean isRunning = true;
+    protected HarvestResultDTO result;
+    protected File directory;
 
     public class ARCFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
@@ -23,6 +28,12 @@ public abstract class IndexerBase implements RunnableIndex {
         }
     }
 
+    @Override
+    public void initialise(HarvestResultDTO result, File directory) {
+        this.result = result;
+        this.directory = directory;
+    }
+
     public IndexerBase() {
         super();
     }
@@ -31,7 +42,9 @@ public abstract class IndexerBase implements RunnableIndex {
         this.defaultIndexer = original.defaultIndexer;
     }
 
-    protected abstract HarvestResultDTO getResult();
+    public HarvestResultDTO getResult() {
+        return result;
+    }
 
     @Override
     public void setMode(Mode mode) {
@@ -39,17 +52,53 @@ public abstract class IndexerBase implements RunnableIndex {
     }
 
     @Override
-    public Boolean call() {
-        Long harvestResultOid = begin();
-        try {
-            if (mode == Mode.REMOVE) {
-                removeIndex(harvestResultOid);
-            } else {
-                indexFiles(harvestResultOid);
+    public CompletableFuture<Boolean> submitAsync() {
+        this.future = CompletableFuture.supplyAsync(() -> {
+            Long harvestResultOid = begin();
+            try {
+                if (mode == Mode.REMOVE) {
+                    removeIndex(harvestResultOid);
+                } else {
+                    indexFiles(harvestResultOid);
+                }
+                return true;
+            } catch (Exception ex) {
+                log.error("Failed to index or remove index: {}", harvestResultOid, ex);
+                return false;
             }
-            return true;
-        } catch (Exception ex) {
-            log.error("Failed to index or remove index: {}", harvestResultOid, ex);
+        });
+        return this.future;
+    }
+
+    @Override
+    public boolean cancel() {
+        this.isRunning = false;
+        this.close();
+        if (!this.future.isCancelled()) {
+            boolean ret = this.future.cancel(true);
+            log.info("The indexer: {} is canceled with status: {}", this.getName(), ret);
+            return ret;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isDone() {
+        boolean done = future.isDone();
+        if (done) {
+            log.info("{}, is done, {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber());
+        } else {
+            log.debug("{}, is running, {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber());
+        }
+        return done;
+    }
+
+    @Override
+    public boolean getValue() {
+        try {
+            return this.future.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            log.error("{}, failed to get value: {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber(), ex);
             return false;
         }
     }

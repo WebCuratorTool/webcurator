@@ -21,6 +21,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -452,45 +453,40 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         final TargetInstance ti = aTargetInstance;
 
         if (enableScreenshots) {
-            Runnable screenshotHandler = new Runnable() {
-                @Override
-                public void run() {
-                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-                    identifiers.setTiOid(targetInstanceId);
-                    identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
-                    identifiers.setScreenshotType(ScreenshotType.live);
-                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-                        seedHistoryDTO.setTimestamp(timestamp);
-                        identifiers.getSeeds().add(seedHistoryDTO);
-                    }
-                    Boolean screenshotsTaken = Boolean.TRUE;
-                    try {
-                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-                    } catch (DigitalAssetStoreException e) {
-                        log.error("Failed to create screenshot:", e);
-                        screenshotsTaken = Boolean.FALSE;
-                    }
-
-                    if (!screenshotsTaken) {
-                        log.info("There was a problem generating the screenshots.");
-                        harvestAgentManager.abort(ti);
-                        return;
-                    }
-
-                    // Initiate harvest on the remote harvest agent
-                    harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
-
-                    log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
+            CompletableFuture.supplyAsync(() -> {
+                ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                identifiers.setTiOid(targetInstanceId);
+                identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
+                identifiers.setScreenshotType(ScreenshotType.live);
+                String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                    SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                    seedHistoryDTO.setTimestamp(timestamp);
+                    identifiers.getSeeds().add(seedHistoryDTO);
                 }
-            };
-            Thread t = new Thread(screenshotHandler);
-            t.start();
+                Boolean screenshotsTaken = Boolean.TRUE;
+                try {
+                    screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                } catch (DigitalAssetStoreException e) {
+                    log.error("Failed to create screenshot:", e);
+                    screenshotsTaken = Boolean.FALSE;
+                }
+
+                if (!screenshotsTaken) {
+                    log.info("There was a problem generating the screenshots.");
+                    harvestAgentManager.abort(ti);
+                    return false;
+                }
+
+                // Initiate harvest on the remote harvest agent
+                harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
+                log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
+
+                return true;
+            });
         } else {
             // Initiate harvest on the remote harvest agent
             harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
-
             log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
         }
     }
@@ -703,6 +699,38 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
         }
         harvestAgentManager.abort(aTargetInstance);
+    }
+
+    public boolean abortPatchingHarvestResult(TargetInstance ti, HarvestResult hr) {
+        if (ti == null || hr == null) {
+            throw new WCTRuntimeException("A null target instance or harvest result was provided to the harvest command.");
+        }
+
+        try {
+            //Try to abort the patching crawling
+            String jobName = PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
+            harvestAgentManager.abortPatching(jobName);
+
+            HarvestResultDTO dto = new HarvestResultDTO();
+            dto.setTargetInstanceOid(ti.getOid());
+            dto.setHarvestNumber(hr.getHarvestNumber());
+            dto.setOid(hr.getOid());
+
+            //Try to abort the modification
+            this.digitalAssetStoreFactory.getDAS().abortIndexing(dto);
+
+            //Try to abort the indexing
+            this.digitalAssetStoreFactory.getDAS().abortPruneAndImport(dto);
+        } finally {
+            ti = targetInstanceDao.load(ti.getOid());
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceDao.save(ti);
+
+            hr = ti.getHarvestResult(hr.getHarvestNumber());
+            hr.setState(HarvestResult.STATE_ABORTED);
+            targetInstanceManager.save(hr);
+        }
+        return true;
     }
 
     public void stop(TargetInstance aTargetInstance) {
@@ -1152,35 +1180,32 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
 
         if (enableScreenshots && harvestNumber == Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST)) {
             //Create the screenshot after indexed for original harvests
-            Runnable r = new Runnable() {
-                @Override
-                public void run() {
-                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-                    identifiers.setTiOid(targetInstanceId);
-                    identifiers.setHarvestNumber(harvestNumber);
-                    identifiers.setScreenshotType(ScreenshotType.harvested);
-                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-                        identifiers.getSeeds().add(seedHistoryDTO);
-                    }
-                    Boolean screenshotsTaken = Boolean.TRUE;
-                    try {
-                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-                    } catch (DigitalAssetStoreException e) {
-                        log.error("Failed to create screenshot:", e);
-                        screenshotsTaken = Boolean.FALSE;
-                    }
-
-                    if (!screenshotsTaken) {
-                        log.info("There was a problem generating the screenshots.");
-                        harvestAgentManager.abort(ti);
-                        return;
-                    }
+            CompletableFuture.supplyAsync(() -> {
+                ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                identifiers.setTiOid(targetInstanceId);
+                identifiers.setHarvestNumber(harvestNumber);
+                identifiers.setScreenshotType(ScreenshotType.harvested);
+                for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                    SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                    identifiers.getSeeds().add(seedHistoryDTO);
                 }
-            };
-            Thread t = new Thread(r);
-            t.start();
+                Boolean screenshotsTaken = Boolean.TRUE;
+                try {
+                    screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                } catch (DigitalAssetStoreException e) {
+                    log.error("Failed to create screenshot:", e);
+                    screenshotsTaken = Boolean.FALSE;
+                }
+
+                if (!screenshotsTaken) {
+                    log.info("There was a problem generating the screenshots.");
+                    harvestAgentManager.abort(ti);
+                    return false;
+                }
+                return true;
+            });
         }
+
         finaliseIndex(ti, hr, indexResult);
     }
 
@@ -1618,73 +1643,64 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
 
         if (enableScreenshots && recreateLive) {
-            Runnable screenshotHandler = new Runnable() {
-                @Override
-                public void run() {
-                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-                    identifiers.setTiOid(ti.getOid());
-                    identifiers.setHarvestNumber(hr.getHarvestNumber());
-                    identifiers.setScreenshotType(ScreenshotType.live);
-                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-                        seedHistoryDTO.setTimestamp(timestamp);
-                        identifiers.getSeeds().add(seedHistoryDTO);
-                    }
-                    Boolean screenshotsTaken = Boolean.TRUE;
-                    try {
-                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-                    } catch (DigitalAssetStoreException e) {
-                        log.error("Failed to create screenshot:", e);
-                        screenshotsTaken = Boolean.FALSE;
-                    }
-
-                    if (!screenshotsTaken) {
-                        log.info("There was a problem generating the screenshots.");
-                        return;
-                    }
+            CompletableFuture.supplyAsync(() -> {
+                ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                identifiers.setTiOid(ti.getOid());
+                identifiers.setHarvestNumber(hr.getHarvestNumber());
+                identifiers.setScreenshotType(ScreenshotType.live);
+                String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                    SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                    seedHistoryDTO.setTimestamp(timestamp);
+                    identifiers.getSeeds().add(seedHistoryDTO);
                 }
-            };
-            Thread t = new Thread(screenshotHandler);
-            t.start();
+                Boolean screenshotsTaken = Boolean.TRUE;
+                try {
+                    screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                } catch (DigitalAssetStoreException e) {
+                    log.error("Failed to create screenshot:", e);
+                    screenshotsTaken = Boolean.FALSE;
+                }
+
+                if (!screenshotsTaken) {
+                    log.info("There was a problem generating the screenshots.");
+                    return false;
+                }
+                return true;
+            });
         }
 
         if (recreateIndex) {
             if (hr.getState() != HarvestResult.STATE_UNASSESSED) {
                 return "Only the havests at the [UNASSESSED] state can be reindexed";
             }
-
             this.initiateIndexing(ti, hr);
         } else if (enableScreenshots && recreateHarvested) {
-            Runnable screenshotHandler = new Runnable() {
-                @Override
-                public void run() {
-                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-                    identifiers.setTiOid(ti.getOid());
-                    identifiers.setHarvestNumber(hr.getHarvestNumber());
-                    identifiers.setScreenshotType(ScreenshotType.harvested);
-                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-                        seedHistoryDTO.setTimestamp(timestamp);
-                        identifiers.getSeeds().add(seedHistoryDTO);
-                    }
-                    Boolean screenshotsTaken = Boolean.TRUE;
-                    try {
-                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-                    } catch (DigitalAssetStoreException e) {
-                        log.error("Failed to create screenshot:", e);
-                        screenshotsTaken = Boolean.FALSE;
-                    }
-
-                    if (!screenshotsTaken) {
-                        log.info("There was a problem generating the screenshots.");
-                        return;
-                    }
+            CompletableFuture.supplyAsync(() -> {
+                ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                identifiers.setTiOid(ti.getOid());
+                identifiers.setHarvestNumber(hr.getHarvestNumber());
+                identifiers.setScreenshotType(ScreenshotType.harvested);
+                String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                    SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                    seedHistoryDTO.setTimestamp(timestamp);
+                    identifiers.getSeeds().add(seedHistoryDTO);
                 }
-            };
-            Thread t = new Thread(screenshotHandler);
-            t.start();
+                Boolean screenshotsTaken = Boolean.TRUE;
+                try {
+                    screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                } catch (DigitalAssetStoreException e) {
+                    log.error("Failed to create screenshot:", e);
+                    screenshotsTaken = Boolean.FALSE;
+                }
+
+                if (!screenshotsTaken) {
+                    log.info("There was a problem generating the screenshots.");
+                    return false;
+                }
+                return true;
+            });
         }
 
         return "The request is accepted.";
