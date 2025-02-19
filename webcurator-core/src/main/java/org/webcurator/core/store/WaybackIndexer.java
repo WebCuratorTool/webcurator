@@ -71,6 +71,10 @@ public class WaybackIndexer extends IndexerBase {
             log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
         } else {
             for (MonitoredFile f : indexFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 if (f.getStatus() == FileStatus.INITIAL) {
                     f.copyToInput();
                 }

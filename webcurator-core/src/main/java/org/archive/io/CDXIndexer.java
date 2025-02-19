@@ -53,6 +53,10 @@ public class CDXIndexer extends IndexerBase {
             cdxWriter.write(" CDX " + format);
             cdxWriter.newLine();
             while (record != null) {
+                if (!this.isRunning) {
+                    break;
+                }
+                
                 try {
                     if ((record instanceof WarcResponse || record instanceof WarcResource) &&
                             ((WarcCaptureRecord) record).payload().isPresent()) {
@@ -105,6 +109,10 @@ public class CDXIndexer extends IndexerBase {
             log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
         } else {
             for (File f : fileList) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 try {
                     log.info("Indexing " + f.getName());
                     writeCDXIndex(f);

@@ -165,6 +165,9 @@ public class PywbIndexer extends IndexerBase {
                 return;
             }
             for (File warc : warcFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
                 File archivedWarc = new File(pywbManagerStoreDir, "archive" + File.separator + warc.getName());
                 if (archivedWarc.exists()) {
                     boolean ret = archivedWarc.delete();
