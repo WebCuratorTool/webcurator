@@ -3,16 +3,14 @@ package org.webcurator.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.UrlPattern;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.PermissionDTO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +46,6 @@ public class Permissions {
            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
        }
 
-       // May need to refactor the permission map into its own DTO later
        List<HashMap<String, Object>> permissions = new ArrayList<>();
        for (Permission p : (List<Permission>)pagination.getList()) {
            HashMap<String, Object> permission = new HashMap<>();
@@ -73,6 +70,15 @@ public class Permissions {
 
     }
 
+    @GetMapping(path = "/{id}")
+    public ResponseEntity get(@PathVariable Long id) {
+        Permission permission = targetManager.loadPermission(id);
+        if (permission == null) {
+            return ResponseEntity.notFound().build();
+        }
+        PermissionDTO permissionDTO = new PermissionDTO(permission);
+        return ResponseEntity.ok().body(permissionDTO);
+    }
 
     /**
      * POJO that the framework maps the JSON query data into

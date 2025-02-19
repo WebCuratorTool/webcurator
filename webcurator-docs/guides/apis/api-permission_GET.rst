@@ -19,14 +19,13 @@ Response
 ======================== ======= ========
 **Body**
 -----------------------------------------
-id                       Number  Required ---> is this the siteId or the permissionId?
+id                       Number  Required 
 startDate                Date    Required
 endDate                  Date    Required
-status                   Integer Required ---> what's the relation between status and approved?
+status                   Integer Required
 urlPatterns              List    Required
 harvestAuthorisationId   Number  Required
 accessStatus             String  Required
-approved                 Boolean Required
 copyrightStatement       String  Optional
 copyrightUrl             String  Optional
 authResponse             String  Optional
@@ -40,6 +39,9 @@ exclusions               List    Required
 
 | **authorisingAgent** 
 | Object containing the id and the name of the authorising agent. 
+
+| **exclusions**
+| List of objects that each have a URL and reason field.
 
 Errors
 ------
