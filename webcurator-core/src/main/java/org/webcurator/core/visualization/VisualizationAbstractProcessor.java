@@ -142,6 +142,8 @@ public abstract class VisualizationAbstractProcessor {
     }
 
     protected void tryBlock() {
+        //Do nothing
+        /*
         if (!running) {
             try {
                 log.info("Going to wait");
@@ -151,6 +153,7 @@ public abstract class VisualizationAbstractProcessor {
                 log.info("Failed to block", e);
             }
         }
+         */
     }
 
     public void writeLog(String content) {
