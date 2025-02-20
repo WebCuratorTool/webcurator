@@ -163,16 +163,7 @@
 					    	&nbsp;
 				    		</c:when>
 
-				    		<c:when test="${instance.state eq 'Patching' && hr.state eq 3}"> <!-- Indexing -->
-                            <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-                                <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
-                                &nbsp;|&nbsp;
-                                <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
-                            </authority:hasPrivilege>
-                            &nbsp;
-                            </c:when>
-
-                            <c:when test="${instance.state eq 'Patching' && ( hr.state eq 5 || hr.state eq 6)}"> <!-- Indexing -->
+                            <c:when test="${instance.state eq 'Patching' && (hr.state eq 3 || hr.state eq 5 || hr.state eq 6)}"> <!-- Indexing -->
                             <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
                                 <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
                             </authority:hasPrivilege>

@@ -77,12 +77,8 @@ public class Indexer extends AbstractRestClient {
         IndexerExecutor processor = new IndexerExecutor(indexers, Mode.INDEX, dto, directory);
         synchronized (lock) {
             if (runningIndexes.containsKey(dto.getOid())) {
-                log.warn("Indexer is running. Will cancel the previous one: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
-                IndexerExecutor oldProcessor = runningIndexes.get(dto.getOid());
-                if (oldProcessor != null) {
-                    oldProcessor.close();
-                }
-                log.info("Indexer is canceled: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                log.warn("Indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                return;
             }
             runningIndexes.put(dto.getOid(), processor);
         }
@@ -106,12 +102,8 @@ public class Indexer extends AbstractRestClient {
         IndexerExecutor processor = new IndexerExecutor(indexers, Mode.REMOVE, dto, directory);
         synchronized (lock) {
             if (runningIndexes.containsKey(dto.getOid())) {
-                log.warn("Removing indexer is running. Will cancel the previous one: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
-                IndexerExecutor oldProcessor = runningIndexes.get(dto.getOid());
-                if (oldProcessor != null) {
-                    oldProcessor.close();
-                }
-                log.info("Removing indexer is canceled: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                log.warn("Removing indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                return;
             }
             runningIndexes.put(dto.getOid(), processor);
         }

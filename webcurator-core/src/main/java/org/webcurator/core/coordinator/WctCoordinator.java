@@ -707,6 +707,14 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
 
         try {
+            ti = targetInstanceDao.load(ti.getOid());
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceDao.save(ti);
+
+            hr = ti.getHarvestResult(hr.getHarvestNumber());
+            hr.setState(HarvestResult.STATE_ABORTED);
+            targetInstanceManager.save(hr);
+        } finally {
             //Try to abort the patching crawling
             String jobName = PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
             harvestAgentManager.abortPatching(jobName);
@@ -721,14 +729,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
 
             //Try to abort the indexing
             this.digitalAssetStoreFactory.getDAS().abortPruneAndImport(dto);
-        } finally {
-            ti = targetInstanceDao.load(ti.getOid());
-            ti.setState(TargetInstance.STATE_HARVESTED);
-            targetInstanceDao.save(ti);
-
-            hr = ti.getHarvestResult(hr.getHarvestNumber());
-            hr.setState(HarvestResult.STATE_ABORTED);
-            targetInstanceManager.save(hr);
         }
         return true;
     }
@@ -1721,6 +1721,11 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
     }
 
     private void initiateIndexing(TargetInstance ti, HarvestResult hr) {
+        if (hr.getState() == HarvestResult.STATE_ABORTED) {
+            log.info("Skip the initial indexing for aborted harvest result: {}-{}", ti.getOid(), hr.getHarvestNumber());
+            return;
+        }
+
         try {
             hr.setState(HarvestResult.STATE_INDEXING);
             targetInstanceDao.save(hr);
