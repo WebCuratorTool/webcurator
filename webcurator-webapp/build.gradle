@@ -78,9 +78,6 @@ dependencies {
     }
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
 
-    implementation 'org.webjars:webjars-locator:0.30'
-    implementation 'org.webcurator:webcurator-ui:3.3.+'
-
     // NOTE: This is a workaround so that gradle brings in the tests jar.
     testImplementation(group: 'org.webcurator', name: 'webcurator-core', version: '3.3.+', classifier: 'tests') {
         // Use Spring boot logging.
@@ -136,5 +133,69 @@ processResources {
     }
 }
 
+
+tasks.register('cleanUI', Delete) {
+    group = "BuildUI"
+    description = "Remove the dist folder"
+    delete '../webcurator-ui/dist'
+    followSymlinks = true
+    doLast {
+        println 'UI cleaning done!'
+    }
+}
+
+tasks.register('installUI', Exec) {
+    group = "BuildUI"
+    description = "Install the dependencies for UI"
+    workingDir '../webcurator-ui'
+    commandLine 'npm', 'install'
+    doLast {
+        println 'UI installation done!'
+    }
+}
+
+tasks.register('buildUI', Exec) {
+    group = "BuildUI"
+    description = "Run npm install and build-only"
+    dependsOn tasks.installUI
+    workingDir '../webcurator-ui'
+    commandLine 'npm', 'run', 'build-only'
+    doLast {
+        println 'UI building done!'
+    }
+}
+
+
+tasks.register('copyUI', Copy) {
+    group = "BuildUI"
+    description = "Copy the files from dist folder to webapp folder"
+    dependsOn tasks.buildUI
+    from '../webcurator-ui/dist'
+    into './src/main/webapp/'
+    doLast {
+        println 'UI copying done!'
+        println 'All UI tasks done!'
+    }
+}
+
+bootWar {
+    dependsOn tasks.copyUI
+}
+
+war {
+    dependsOn tasks.copyUI
+}
+
+bootRun {
+    dependsOn tasks.copyUI
+}
+
+clean {
+    dependsOn tasks.cleanUI
+}
+
+build {
+    dependsOn tasks.copyUI
+}
 
 

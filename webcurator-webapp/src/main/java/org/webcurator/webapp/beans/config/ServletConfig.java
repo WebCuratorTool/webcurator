@@ -136,10 +136,10 @@ public class ServletConfig {
         return bean;
     }
 
-//    @Bean
-//    public FixedLocaleResolver localeResolver() {
-//        return new FixedLocaleResolver();
-//    }
+    @Bean
+    public FixedLocaleResolver localeResolver() {
+        return new FixedLocaleResolver();
+    }
 
     @Bean
     public CommonsMultipartResolver multipartResolver() {

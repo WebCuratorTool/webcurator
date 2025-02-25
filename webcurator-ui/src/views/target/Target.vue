@@ -38,19 +38,19 @@ const initData = () => {
 }
 
 const fetchTargetDetails = () => {
-  isTargetAvailable.value = false;
-  loading.value = true;
+    isTargetAvailable.value = false;
+    loading.value = true;
 
-  rest.get('targets/' + targetId).then((data: any) => {        
-    isTargetAvailable.value = true;
-    setTarget(data);
-    // nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
-  }).catch((err: any) => {
-    console.log(err.message);
-    initData();
-  }).finally(() => {
-    loading.value = false;
-  });
+    rest.get('targets/' + targetId).then((data: any) => {        
+        isTargetAvailable.value = true;
+        setTarget(data);
+        nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
+    }).catch((err: any) => {
+        console.log(err.message);
+        initData();
+    }).finally(() => {
+        loading.value = false;
+    });
 }
 
 const save = () => {
