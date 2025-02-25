@@ -76,6 +76,10 @@ export const parseCron = (cronString: string) => {
     return cron;
 }
 
+export const createCustomCronExpression = (cronSettings: {dayOfMonth: string, month: string, dayOfWeek: string, minute: string, hour: string, year: string}) => {
+    return `${cronSettings.minute} ${cronSettings.hour} ${cronSettings.dayOfMonth} ${cronSettings.month} ${cronSettings.dayOfWeek} ${cronSettings.year}`;
+}
+
 export const createCronExpression = (cronSettings: {dayOfMonth: string, months: string, dayOfWeek: string, time: any}) => {
     console.log(cronSettings);
     const cron = {
@@ -134,7 +138,6 @@ export const createCronExpression = (cronSettings: {dayOfMonth: string, months: 
         } else cron.dayOfMonth = "?";
     }
 
-    console.log(`${cron.minute} ${cron.hour} ${cron.dayOfMonth} ${cron.month} ${cron.dayOfWeek} *`);
     return `${cron.minute} ${cron.hour} ${cron.dayOfMonth} ${cron.month} ${cron.dayOfWeek} *`;
 }
 

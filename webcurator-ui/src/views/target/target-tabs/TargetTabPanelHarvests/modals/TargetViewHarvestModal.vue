@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { inject, ref, watch } from 'vue';
 import { formatDate, formatTime } from '@/utils/helper'
-import { days, dates, parseCron, getCronMonths, getNextScheduledTimes, getMonthGroups, createCronExpression } from '@/utils/cronParser';
+import { days, dates, parseCron, getCronMonths, getNextScheduledTimes, getMonthGroups, createCronExpression, createCustomCronExpression } from '@/utils/cronParser';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import Loading from '@/components/Loading.vue';
 import WctFormField from '@/components/WctFormField.vue'
@@ -107,10 +107,20 @@ const closeDialog = () => {
 
 const save = () => {
   if (Object.prototype.toString.call(startDate.value) != '[object Date]') {
+    const dateComponents = startDate.value.split('/');
+    startDate.value = new Date(`${dateComponents[2]}-${dateComponents[1]}-${dateComponents[0]}`);
+
     startDate.value = new Date(startDate.value);
   }
 
-  const cronExpression = createCronExpression(newCronObject.value);
+  let cronExpression;
+
+  if (scheduleType.value == 'Custom') {
+    cronExpression = createCustomCronExpression(cronFields.value);
+  } else {
+    cronExpression = createCronExpression(newCronObject.value);
+  }
+
   const scheduleKey = Object.keys(scheduleTypes.value).find((key) => scheduleTypes.value[key] == scheduleType.value);
   targetHarvests.addSchedule(
     {
@@ -154,42 +164,77 @@ fetch();
       <p v-else class="font-semibold">{{ scheduleType }}</p> 
     </WctFormField>
 
-    <!-- Day of Week -->
-    <WctFormField v-if="shouldShowDayOfWeek()" label="Day">
-      <Dropdown v-if="editing"
-        v-model="newCronObject.dayOfWeek"
-        :options="days"
-      />
-      <p v-else class="font-semibold">{{ cronFields.dayOfWeek }}</p>
-    </WctFormField>
+    <div v-if="scheduleType != 'Custom'">
+      <!-- Day of Week -->
+      <WctFormField v-if="shouldShowDayOfWeek()" label="Day">
+        <Dropdown v-if="editing"
+          v-model="newCronObject.dayOfWeek"
+          :options="days"
+        />
+        <p v-else class="font-semibold">{{ cronFields.dayOfWeek }}</p>
+      </WctFormField>
 
-    <!-- Time -->
-    <WctFormField v-if="scheduleType != 'Custom' && scheduleType != 'Every Monday at 9:00pm'" label="Time">
-      <Calendar v-if="editing" v-model="newCronObject.time" timeOnly />
-      <p v-else class="font-semibold">{{ formatTime(targetSchedule.nextExecutionDate) }}</p>
-    </WctFormField>
+      <!-- Time -->
+      <WctFormField v-if="scheduleType != 'Custom' && scheduleType != 'Every Monday at 9:00pm'" label="Time">
+        <Calendar v-if="editing" v-model="newCronObject.time" timeOnly />
+        <p v-else class="font-semibold">{{ formatTime(targetSchedule.nextExecutionDate) }}</p>
+      </WctFormField>
 
-    <!-- Day of Month -->
-    <WctFormField v-if="!editing && !isNaN(cronFields.dayOfMonth)" label="Day of Month">
-      <p class="font-semibold">{{ cronFields.dayOfMonth }}</p>
-    </WctFormField>
-    <WctFormField v-if="editing && shouldShowDayOfMonth()" label="Day of Month">
-      <Dropdown
-        v-model="newCronObject.dayOfMonth"
-        :options="dates"
-      />
-    </WctFormField>
+      <!-- Day of Month -->
+      <WctFormField v-if="!editing && !isNaN(cronFields.dayOfMonth)" label="Day of Month">
+        <p class="font-semibold">{{ cronFields.dayOfMonth }}</p>
+      </WctFormField>
+      <WctFormField v-if="editing && shouldShowDayOfMonth()" label="Day of Month">
+        <Dropdown
+          v-model="newCronObject.dayOfMonth"
+          :options="dates"
+        />
+      </WctFormField>
 
-    <!-- Month -->
-    <WctFormField v-if="editing && shouldShowMonths()" label="Month">
-      <Dropdown v-if="editing"
-        v-model="newCronObject.months"
-        :options="monthGroups"
-      />
-    </WctFormField>
-    <WctFormField v-if="!editing && !cronFields.month.includes('*') && !cronFields.month.includes('?')" label="Month">
-      <p class="font-semibold">{{ getCronMonths(targetSchedule.cron) }}</p>
-    </WctFormField>
+      <!-- Month -->
+      <WctFormField v-if="editing && shouldShowMonths()" label="Month">
+        <Dropdown v-if="editing"
+          v-model="newCronObject.months"
+          :options="monthGroups"
+        />
+      </WctFormField>
+      <WctFormField v-if="!editing && !cronFields.month.includes('*') && !cronFields.month.includes('?')" label="Month">
+        <p class="font-semibold">{{ getCronMonths(targetSchedule.cron) }}</p>
+      </WctFormField>
+    </div>
+
+    <div v-if="scheduleType == 'Custom'">
+      <WctFormField label="Minutes">
+        <InputText v-if="editing" v-model="cronFields.minute" />
+        <p v-else class="font-semibold">{{ cronFields.minute }}</p>
+      </WctFormField>
+
+      <WctFormField label="Hours">
+        <InputText v-if="editing" v-model="cronFields.hour" />
+        <p v-else class="font-semibold">{{ cronFields.hour }}</p>
+      </WctFormField>
+
+      <WctFormField label="Days of Week">
+        <InputText v-if="editing" v-model="cronFields.dayOfWeek" />
+        <p v-else class="font-semibold">{{ cronFields.dayOfWeek }}</p>  
+      </WctFormField>
+
+      <WctFormField label=" Days of Month">
+        <InputText v-if="editing" v-model="cronFields.dayOfMonth" />
+        <p v-else class="font-semibold">{{ cronFields.dayOfMonth }}</p>   
+      </WctFormField>
+
+      <WctFormField label="Months">
+        <InputText v-if="editing" v-model="cronFields.month" />
+        <p v-else class="font-semibold">{{ cronFields.month }}</p>   
+      </WctFormField>
+
+      <WctFormField label="Years">
+        <InputText v-if="editing" v-model="cronFields.year" />
+        <p v-else class="font-semibold">{{ cronFields.year }}</p>   
+      </WctFormField>
+    </div>
+  
 
     <div v-if="editing">
       <Button label="Save" @click="save"/>
