@@ -2,20 +2,16 @@ Delete Group (DELETE)
 ======================
 Deletes a specific group.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/groups/{group-id}``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -40,4 +36,5 @@ Example
 -------
 .. code-block:: linux
 
-  TODO
+	curl --location --request DELETE 'http://localhost/wct/api/v1/groups/<group-id>' \
+	--header 'Authorization: Bearer <token>'

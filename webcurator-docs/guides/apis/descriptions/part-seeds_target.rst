@@ -1,6 +1,5 @@
----------------
 **part: seeds**
----------------
+^^^^^^^^^^^^^^^
 A list of seeds that belong to a target containing the following information:
 
 ============== ======= ========

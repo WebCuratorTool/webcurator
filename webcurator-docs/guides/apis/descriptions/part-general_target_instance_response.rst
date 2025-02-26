@@ -1,6 +1,5 @@
------------------
 **part: general**
------------------
+^^^^^^^^^^^^^^^^^
 A list of general properties that belong to a target instance. This contains the following information:
 
 =================== ======= ========

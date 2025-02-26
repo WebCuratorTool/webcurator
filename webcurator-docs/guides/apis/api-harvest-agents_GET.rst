@@ -3,20 +3,16 @@ Retrieve Harvest Agents (GET)
 
 Returns a list of all the harvest agents.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/harvest-agents``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -56,5 +52,8 @@ Example
 -------
 .. code-block:: linux
 
-  <TODO>
- 
+  curl \
+  --location --request GET 'http://localhost/wct/api/v1/harvest-agents' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <token>' \
+  --data ''
