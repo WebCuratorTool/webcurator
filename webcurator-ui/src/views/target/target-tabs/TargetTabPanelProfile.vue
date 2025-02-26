@@ -8,7 +8,7 @@ import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import Loading from '@/components/Loading.vue'
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
-import type { Profile, Profiles } from "@/types/profile";
+import type { Profile } from "@/types/profile";
 
 const rest: UseFetchApis = useFetch();
 
