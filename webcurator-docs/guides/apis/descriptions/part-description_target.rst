@@ -1,6 +1,5 @@
----------------------
 **part: description**
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 A list of description properties that belong to a target or group and are used for Dublin Core generation on archiving. This contains the following information:
 
 ============ ======= ========

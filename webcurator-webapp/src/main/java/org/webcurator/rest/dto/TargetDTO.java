@@ -9,7 +9,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 //import java.util.TimeZone;
 
@@ -492,9 +491,11 @@ public class TargetDTO {
                 authorisation.setId(p.getSite().getOid());
                 authorisation.setName(p.getSite().getTitle());
                 authorisation.setAgent(p.getAuthorisingAgent().getName());
+                authorisation.setPermissionId(p.getOid());
                 authorisation.setStartDate(p.getStartDate());
                 authorisation.setEndDate(p.getEndDate());
-                if (!authorisations.contains(authorisation)) {
+                if (authorisations.stream()
+                        .noneMatch(existing -> existing.getPermissionId() == authorisation.getPermissionId())) {
                     authorisations.add(authorisation);
                 }
             }
@@ -536,6 +537,7 @@ public class TargetDTO {
             long id;
             String name;
             String agent;
+            long permissionId;
             Date startDate;
             Date endDate;
 
@@ -555,6 +557,14 @@ public class TargetDTO {
 
             public void setAgent(String agent) {
                 this.agent = agent;
+            }
+
+            public long getPermissionId() {
+                return permissionId;
+            }
+
+            public void setPermissionId(long permissionId) {
+                this.permissionId = permissionId;
             }
 
             public Date getStartDate() {

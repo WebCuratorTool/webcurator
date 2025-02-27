@@ -9,23 +9,19 @@ be added to the HTTP header of each call:
 
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/auth/v1/token``
 
 Header
-------
+^^^^^^
 There are no specific header fields for this API.
 
 Body
-----
+^^^^
 
 ======== ====== ========
-**Body**
+**Parameters**
 ------------------------
 username String Required
 password String Required

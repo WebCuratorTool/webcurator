@@ -2,23 +2,19 @@ Patch Target Instance Harvest(PUT)
 ==================================
 Start harvest of a target instance immediately and patch a specific harvest with the results.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/target-instances/{target-instance-id}/patch-harvest``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 
 ================ ====== ========
-**Body**
+**Parameters**
 --------------------------------
 harvestAgentName String Required
 HarvestResultId	 Number Required

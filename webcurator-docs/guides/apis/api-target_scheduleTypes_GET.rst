@@ -3,20 +3,16 @@ Retrieve Target schedule types (GET)
 
 Returns a list of all the schedule types that a target can have, including the description of each specific schedule type.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets/schedule-types``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
