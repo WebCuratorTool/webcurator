@@ -10,6 +10,7 @@ import Button from 'primevue/button';
 
 const viewHarvestModal = useDialog();
 
+const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
 
 const ViewHarvestModal = defineAsyncComponent(() => import('./modals/TargetViewHarvestModal.vue'));
@@ -38,6 +39,7 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
     }
   });
 }
+
 </script>
 
 <template>
@@ -72,7 +74,7 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
           <template #body="{ data }">
             <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Harvest'" text @click="showViewHarvestModal(data, false)" />
             <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Harvest'" text @click="showViewHarvestModal(data, true)" />
-            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Harvest'" text />
+            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Harvest'" text @click="targetHarvests.removeSchedule(data.id)" />
           </template>
         </Column>
       </DataTable>

@@ -399,8 +399,12 @@ export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
         targetSchedule.value.schedules.push(schedule);
     }
 
+    const removeSchedule = (scheduleId: number) => {
+        targetSchedule.value.schedules = targetSchedule.value.schedules.filter(s => s.id != scheduleId);
+    }
+
     const getData = () => targetSchedule.value;
     
-    return { targetSchedule, initData, setData, getData, addSchedule }
+    return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule }
 });
     
