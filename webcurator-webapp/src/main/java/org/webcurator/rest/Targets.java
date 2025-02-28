@@ -19,6 +19,8 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.simple.SimpleSeed;
+import org.webcurator.domain.model.simple.SimpleTarget;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
@@ -686,11 +688,11 @@ public class Targets {
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
+        Pagination pagination = targetDAO.searchSummary(pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (Target t : (List<Target>) pagination.getList()) {
+        for (SimpleTarget t : (List<SimpleTarget>) pagination.getList()) {
             targetSummaries.add(getTargetSummary(t));
         }
         return new SearchResult(pagination.getTotal(), targetSummaries);
@@ -699,7 +701,7 @@ public class Targets {
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(Target t) {
+    private HashMap<String, Object> getTargetSummary(SimpleTarget t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
         targetSummary.put("creationDate", t.getCreationDate());
@@ -708,7 +710,7 @@ public class Targets {
         targetSummary.put("owner", t.getOwner().getUsername());
         targetSummary.put("state", t.getState());
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        for (Seed s : t.getSeeds()) {
+        for (SimpleSeed s : t.getSeeds()) {
             HashMap<String, Object> seed = new HashMap<>();
             seed.put("seed", s.getSeed());
             seed.put("primary", s.isPrimary());
