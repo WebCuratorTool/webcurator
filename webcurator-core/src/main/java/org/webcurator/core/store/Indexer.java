@@ -77,7 +77,7 @@ public class Indexer extends AbstractRestClient {
         IndexerExecutor processor = new IndexerExecutor(indexers, Mode.INDEX, dto, directory);
         synchronized (lock) {
             if (runningIndexes.containsKey(dto.getOid())) {
-                log.warn("Indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                log.error("Indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
                 return;
             }
             runningIndexes.put(dto.getOid(), processor);
@@ -85,6 +85,13 @@ public class Indexer extends AbstractRestClient {
 
         CompletableFuture<Boolean> future = processor.process();
         future.thenAccept(ret -> {
+//            //TODO: TO be deleted
+//            try {
+//                log.info("Indexing finished, will take a nap");
+//                TimeUnit.SECONDS.sleep(600);
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
             finaliseIndex(dto, ret);
         }).whenComplete((ret, ex) -> {
             synchronized (lock) {
@@ -102,7 +109,7 @@ public class Indexer extends AbstractRestClient {
         IndexerExecutor processor = new IndexerExecutor(indexers, Mode.REMOVE, dto, directory);
         synchronized (lock) {
             if (runningIndexes.containsKey(dto.getOid())) {
-                log.warn("Removing indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
+                log.error("Removing indexer is running. The request will be skipped: {} {}", dto.getTargetInstanceOid(), dto.getHarvestNumber());
                 return;
             }
             runningIndexes.put(dto.getOid(), processor);

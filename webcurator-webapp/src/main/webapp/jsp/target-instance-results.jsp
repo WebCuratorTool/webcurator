@@ -146,7 +146,7 @@
 				    <td class="annotationsLiteRow">
 				    <c:if test="${editMode && hr.state != 4}">
 				    	<c:choose>
-				    		<c:when test="${instance.state ne 'Patching' && hr.state eq 3}"> <!-- Indexing -->
+				    		<c:when test="${hr.harvestNumber eq 1 && hr.state eq 3}"> <!-- Indexing -->
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
 					    		<c:choose>
@@ -156,23 +156,31 @@
 											<c:forEach items="${reasons}" var="o">
 												<option value="<c:out value="${o.oid}"/>"><c:out value="${o.name}"/></option>
 											</c:forEach>
-										</select>&nbsp;    			
+										</select>&nbsp;
 						    		</c:when>
 					    		</c:choose>
 					    	</authority:hasPrivilege>
 					    	&nbsp;
 				    		</c:when>
 
-				    		<c:when test="${instance.state eq 'Patching' && hr.state eq 3}"> <!-- Indexing -->
+				    		<c:when test="${hr.harvestNumber ne 1 && hr.state eq 3}"> <!-- Indexing -->
                             <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
                                 <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
-                                &nbsp;|&nbsp;
-                                <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
+                                <c:choose>
+                                	<c:when test="${instance.state eq 'Harvested'}">
+                                        &nbsp;|&nbsp;
+                                        <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
+                                    </c:when>
+                                    <c:when test="${instance.state eq 'Patching' && wct:xHoursElapsed(6,hr.creationDate)}">
+                                        &nbsp;|&nbsp;
+                                        <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
+                                    </c:when>
+                                </c:choose>
                             </authority:hasPrivilege>
                             &nbsp;
                             </c:when>
 
-                            <c:when test="${instance.state eq 'Patching' && ( hr.state eq 5 || hr.state eq 6)}"> <!-- Indexing -->
+                            <c:when test="${hr.harvestNumber ne 1 && ( hr.state eq 5 || hr.state eq 6)}"> <!-- Re-crawling or modifying -->
                             <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
                                 <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
                             </authority:hasPrivilege>
