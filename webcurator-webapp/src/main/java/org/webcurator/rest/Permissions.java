@@ -27,7 +27,10 @@ public class Permissions {
     TargetManager2 targetManager;
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = true) SearchParams searchParams) {
+    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+       if (searchParams == null) {
+           return ResponseEntity.badRequest().body(Utils.errorMessage("Expected a filter parameter with 'targetId' field"));
+       }
        Filter filter = searchParams.getFilter();
        if (filter == null || filter.targetId == null) {
           return ResponseEntity.badRequest().body(Utils.errorMessage("Expected a filter parameter with 'targetId' field"));
