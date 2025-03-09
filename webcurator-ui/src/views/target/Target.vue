@@ -66,9 +66,11 @@ const save = () => {
     }    
 
   rest.put('targets/' + targetGeneral.id, dataReq)
-  .then(() => {
-    showSuccessMessage()
-    editing.value = false
+  .then((response: any) => {
+    if (response == 200) {
+      showSuccessMessage();
+      editing.value = false
+    }
   })
   .catch((err: any) => {
     showErrorMessage(err.message)
@@ -89,7 +91,6 @@ const showErrorMessage = (message: string) => {
 const showSuccessMessage = () => {
   toast.add({ severity: 'success', summary: 'Target succesfully saved', life: 3000 });
 };
-
 fetchTargetDetails();
 
 </script>

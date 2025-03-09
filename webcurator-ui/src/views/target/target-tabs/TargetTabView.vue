@@ -50,9 +50,9 @@ const navigateBack = () => {
       </Toolbar>
 
       <div class="w-full">
-        <span class="title">Target</span>
+        <span class="title">{{ targetGeneral.name }}</span>
         <div v-if="isTargetAvailable" class="subtitle-container p-overlay-badge">
-          <span class="sub-title">{{ targetGeneral.id }} - {{ formatDatetime(targetGeneral.creationDate) }}</span>
+          <span class="sub-title">{{ formatDatetime(targetGeneral.creationDate) }}</span>
           <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{
             formatTargetState(targetGeneral.selectedState) }}</span>
         </div>

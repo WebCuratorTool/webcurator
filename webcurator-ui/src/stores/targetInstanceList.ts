@@ -10,16 +10,11 @@ export const useTargetInstanceListSearchStore = defineStore('TargetInstanceListS
 })
 
 export const useTargetInstanceListStore = defineStore('TargetInstanceList', () => {
-    // const targetInstanceList = ref([]);
-    // const searchTerms = useTargetInstanceListSearchStore();
     const loadingTargetInstanceList = ref(false);
     const rest: UseFetchApis = useFetch();
-    
+  
     const search = async (searchTerms: any) => { 
         let targetInstanceList: never[] = [];
-        // const searchConditions = {
-        //     targetId: searchTerms.targetId,
-        //   }
 
           const searchParams = {
             filter: searchTerms,
@@ -39,10 +34,9 @@ export const useTargetInstanceListStore = defineStore('TargetInstanceList', () =
               loadingTargetInstanceList.value = false
               console.log(targetInstanceList, searchTerms)
               return targetInstanceList;
-
             });
             
     }
 
-    return {  search, loadingTargetInstanceList }
+    return { search, loadingTargetInstanceList }
 });

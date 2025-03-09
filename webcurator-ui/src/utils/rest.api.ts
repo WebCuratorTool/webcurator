@@ -212,7 +212,7 @@ export function useFetch() {
           const contentLength = parseInt(rsp.headers.get('content-length') || '-1')
 
           if (contentType.length === 0 && contentLength <= 0) {
-            ret = null
+            ret = rsp.status;
           } else if (contentType.startsWith('application/json')) {
             ret = await rsp.json()
           } else if (

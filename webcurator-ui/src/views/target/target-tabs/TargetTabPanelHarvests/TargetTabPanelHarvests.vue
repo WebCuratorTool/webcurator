@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, onMounted, ref } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { formatDatetime } from '@/utils/helper'
 import { useTargetHarvestsDTO } from '@/stores/target';
+import { useTargetInstanceStateStore } from '@/stores/targetInstance';
 
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
@@ -12,6 +13,8 @@ const viewHarvestModal = useDialog();
 
 const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
+
+const targetInstanceStates = ref<{ [key: string]: string }>({});
 
 const ViewHarvestModal = defineAsyncComponent(() => import('./modals/TargetViewHarvestModal.vue'));
 
@@ -27,7 +30,7 @@ const newHarverst = {
 }
 
 defineProps<{
-    editing: boolean
+  editing: boolean
 }>()
 
 const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
@@ -39,6 +42,11 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
     }
   });
 }
+
+onMounted(async () => {
+  const states = await useTargetInstanceStateStore().fetch();
+  targetInstanceStates.value = states;
+})
 
 </script>
 
@@ -62,7 +70,7 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
       <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showViewHarvestModal(newHarverst, true)" />
     </div>
     <WctTabViewPanel class="mt-2">
-      <DataTable class="w-full" :rowHover="true" :value="targetSchedule.schedules">
+      <DataTable v-if="targetSchedule.schedules && targetSchedule.schedules.length" class="w-full" :rowHover="true" :value="targetSchedule.schedules">
         <Column field="cron" header="Schedule" />
         <Column field="owner" header="Owner" />
         <Column field="nextExecutionDate" header="Next Scheduled Time" dataType="date">
@@ -72,16 +80,19 @@ const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
         </Column>
         <Column header="Action">
           <template #body="{ data }">
-            <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Harvest'" text @click="showViewHarvestModal(data, false)" />
-            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Harvest'" text @click="showViewHarvestModal(data, true)" />
-            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Harvest'" text @click="targetHarvests.removeSchedule(data.id)" />
+            <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Schedule'" text @click="showViewHarvestModal(data, false)" />
+            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Schedule'" text @click="showViewHarvestModal(data, true)" />
+            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Schedule'" text @click="targetHarvests.removeSchedule(data.id)" />
           </template>
         </Column>
       </DataTable>
+      <div v-else class="text-center">
+      <p class="text-500">No schedules have been created for this target</p>
+    </div>
     </WctTabViewPanel>
 
-    <TargetTabPanelHarvetsTargetInstances type="upcoming" header="Upcoming Target Instances" />
+    <TargetTabPanelHarvetsTargetInstances type="upcoming" header="Upcoming Target Instances" :targetInstanceStates=targetInstanceStates />
 
-    <TargetTabPanelHarvetsTargetInstances type="latest" header="Last 5 Target Instances" />
+    <TargetTabPanelHarvetsTargetInstances type="latest" header="Last 5 Target Instances" :targetInstanceStates=targetInstanceStates />
   </div>
 </template>

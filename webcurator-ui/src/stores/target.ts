@@ -363,7 +363,7 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     }
 
     const addGroup = (group: any)=>{
-        targetGroups.value.push(group);
+        targetGroups.value.push({ id: group.id, name: group.name });
     }
 
     return { targetGroups, initData, setData, getData, removeGroup, addGroup}
