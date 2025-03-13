@@ -81,7 +81,6 @@ export const createCustomCronExpression = (cronSettings: {dayOfMonth: string, mo
 }
 
 export const createCronExpression = (cronSettings: {dayOfMonth: string, months: string, dayOfWeek: string, time: any}) => {
-    console.log(cronSettings);
     const cron = {
         minute: "",
         hour: "",
@@ -93,7 +92,7 @@ export const createCronExpression = (cronSettings: {dayOfMonth: string, months: 
     let time;
 
     // Get the hour and minute from the time
-    // It may be a date object if selected by the time picket, otherwise it's a number
+    // It may be a date object if selected by the time picker, otherwise it's a number
     if (Object.prototype.toString.call(cronSettings.time) === '[object Date]') {
         time = formatTime(cronSettings.time).split(":");
     } else time = cronSettings.time.toString().split(":");
@@ -173,11 +172,11 @@ export const quartzToUnix = (quartzExpression: string): string => {
     return `${parts.minute} ${parts.hour} ${unixDom} ${parts.month} ${unixDow}`;
 }
 
-export const getNextScheduledTimes = (cronString: string, nextRuns: number): Date[] => {    
+export const getNextScheduledTimes = (cronString: string, nextRuns: number, startDate: Date): Date[] => {    
     const unixExpression = quartzToUnix(cronString);
     
     const cron = new Cron(unixExpression);
-    const nextTimes = cron.nextRuns(nextRuns);
+    const nextTimes = cron.nextRuns(nextRuns, startDate);
 
     return nextTimes;
 };
