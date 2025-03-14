@@ -10,7 +10,7 @@ public class RepoAccessProperty {
     private static final String STORE_NAME = "access-property";
 
     protected long SINGLE_INSTANCE_ID = 0;
-    protected EntityStore store;
+    protected EntityStore store = null;
 
     private final PrimaryIndex<Long, NetworkMapAccessPropertyEntity> primaryIndexById;
 
@@ -33,6 +33,8 @@ public class RepoAccessProperty {
     }
 
     public void close() {
-        this.store.close();
+        if (this.store != null) {
+            this.store.close();
+        }
     }
 }

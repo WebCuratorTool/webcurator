@@ -132,6 +132,8 @@ public class TargetInstanceCommand {
     public static final String ACTION_START_PATCHING = "startPatching";
     /** The name of the patching view. */
     public static final String ACTION_VIEW_PATCHING = "viewPatching";
+    public static final String ACTION_ABORT_HARVEST_RESULT = "abort-harvest-result";
+
 
     /** Name of the multi-archive action for target instances **/
     public static final String ACTION_MULTI_ARCHIVE = "multi-archive";

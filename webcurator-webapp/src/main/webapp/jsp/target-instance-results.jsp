@@ -29,7 +29,16 @@
 	}
 	return false;
   }
-  
+
+  function clickAbort(hrOid) {
+      if( confirm('<spring:message code="ui.label.targetinstance.results.confirmAbort" javaScriptEscape="true"/>')) {
+          document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_ABORT_HARVEST_RESULT%>';
+      document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+      document.forms['tabForm'].submit();
+    }
+    return false;
+   }
+
   function clickReject(hrOid) {
     if( confirm('<spring:message code="ui.label.targetinstance.results.confirmReject" javaScriptEscape="true"/>')) {
   	  document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_REJECT%>'; 
@@ -137,7 +146,7 @@
 				    <td class="annotationsLiteRow">
 				    <c:if test="${editMode && hr.state != 4}">
 				    	<c:choose>
-				    		<c:when test="${instance.state ne 'Patching' && hr.state eq 3}"> <!-- Indexing -->
+				    		<c:when test="${hr.harvestNumber eq 1 && hr.state eq 3}"> <!-- Indexing -->
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
 					    		<c:choose>
@@ -147,12 +156,36 @@
 											<c:forEach items="${reasons}" var="o">
 												<option value="<c:out value="${o.oid}"/>"><c:out value="${o.name}"/></option>
 											</c:forEach>
-										</select>&nbsp;    			
+										</select>&nbsp;
 						    		</c:when>
 					    		</c:choose>
 					    	</authority:hasPrivilege>
 					    	&nbsp;
 				    		</c:when>
+
+				    		<c:when test="${hr.harvestNumber ne 1 && hr.state eq 3}"> <!-- Indexing -->
+                            <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
+                                <c:choose>
+                                	<c:when test="${instance.state eq 'Harvested'}">
+                                        &nbsp;|&nbsp;
+                                        <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
+                                    </c:when>
+                                    <c:when test="${instance.state eq 'Patching' && wct:xHoursElapsed(6,hr.creationDate)}">
+                                        &nbsp;|&nbsp;
+                                        <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
+                                    </c:when>
+                                </c:choose>
+                            </authority:hasPrivilege>
+                            &nbsp;
+                            </c:when>
+
+                            <c:when test="${hr.harvestNumber ne 1 && ( hr.state eq 5 || hr.state eq 6)}"> <!-- Re-crawling or modifying -->
+                            <authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <a href="#" onclick="javascript: return clickAbort(<c:out value="${hr.oid}"/>);">Abort</a>
+                            </authority:hasPrivilege>
+                            &nbsp;
+                            </c:when>
 				    		
 				    		<c:when test="${(instance.state eq 'Harvested' || instance.state eq 'Patching') && hr.state != 3 && hr.state != 5 && hr.state != 6}">
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
@@ -213,7 +246,7 @@
 				    </c:if>
 				    <c:if test="${hr.harvestNumber ne 1}">
                         <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
-                        <c:if test="${hr.state!=3 && hr.state!=5 && hr.state!=6}">
+                        <c:if test="${editMode && hr.state!=4}">
                                 &nbsp;|&nbsp;
                         </c:if>
                         <a href="curator/target/harvest-result-summary.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Summary</a>

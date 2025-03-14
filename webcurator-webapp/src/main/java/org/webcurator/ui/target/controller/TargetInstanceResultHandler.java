@@ -289,6 +289,38 @@ public class TargetInstanceResultHandler extends TabHandler {
             tmav.getTabStatus().setCurrentTab(currentTab);
 
             return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ABORT_HARVEST_RESULT)) {
+            Boolean abortSuccessful = null;
+
+            TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+
+            //Make sure any new HarvestResults are loaded
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
+
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                if (hr.getOid().equals(cmd.getHarvestResultId())) {
+                    abortSuccessful = wctCoordinator.abortPatchingHarvestResult(ti, hr);
+                    break;
+                }
+            }
+
+            if (abortSuccessful != null && !abortSuccessful) {
+                String[] codes = {"result.reindex.fail"};
+                Object[] args = new Object[0];
+                if (bindingResult == null) {
+                    bindingResult = new BindException(cmd, "command");
+                }
+                bindingResult.addError(new ObjectError("command", codes, args, "Failed to abort the running harvest result."));
+            }
+
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
+
+            return tmav;
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_VIEW_PATCHING)) {
             HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
             TargetInstance ti = hr.getTargetInstance();
@@ -368,11 +400,11 @@ public class TargetInstanceResultHandler extends TabHandler {
                     String customDepositFormSubmitURL = response.getUrlForCustomDepositFormSubmit();
 
                     // Will be needed to access the Rosetta interface
-                    DigitalAssetStoreClient dasClient =(DigitalAssetStoreClient) getDASClient();
+                    DigitalAssetStoreClient dasClient = (DigitalAssetStoreClient) getDASClient();
 
                     req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
                     req.getSession().setAttribute("dasHost", dasClient.getHost());
-                    req.getSession().setAttribute("customDepositFormSubmitURL",customDepositFormSubmitURL);
+                    req.getSession().setAttribute("customDepositFormSubmitURL", customDepositFormSubmitURL);
                     req.getSession().setAttribute("coreBaseUrl", getInTrayManager().getWctBaseUrl());
 
                     if (customDepositFormURL != null) {

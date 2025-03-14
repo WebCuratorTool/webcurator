@@ -134,6 +134,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
             importFromPatchHarvest(f);
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
             item.setCurLength(item.getMaxLength());
+            log.info("Patched: {}", f.getName());
         }
 
         //Process file import
@@ -152,11 +153,14 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
             copyArchiveRecords(f);
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
             item.setCurLength(item.getMaxLength());
+            log.info("Patched: {}", f.getName());
         }
 
         writeReport();
 
         clear();
+
+        log.info("Modification ended: {}", this.getKey());
     }
 
     private void clear() {

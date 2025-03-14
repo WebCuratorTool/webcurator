@@ -105,7 +105,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @Override
     @PostMapping(path = DigitalAssetStorePaths.INITIATE_INDEXING)
     public void initiateIndexing(@RequestBody HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
-        log.debug("Initial indexing");
+        log.info("Received initial  index for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         arcDigitalAssetStoreService.initiateIndexing(harvestResult);
     }
 
@@ -207,8 +207,16 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @Override
-    @RequestMapping(path = DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION, method = RequestMethod.POST)
-    public void operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
-        arcDigitalAssetStoreService.operateHarvestResultModification(stage, command, targetInstanceId, harvestNumber);
+    @RequestMapping(path = DigitalAssetStorePaths.ABORT_INDEXING, method = RequestMethod.POST)
+    public void abortIndexing(@RequestBody HarvestResultDTO harvestResult) {
+        log.info("Received abort index for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        arcDigitalAssetStoreService.abortIndexing(harvestResult);
+    }
+
+    @Override
+    @RequestMapping(path = DigitalAssetStorePaths.ABORT_PRUNE_IMPORT, method = RequestMethod.POST)
+    public void abortPruneAndImport(@RequestBody HarvestResultDTO harvestResult) {
+        log.info("Received abort modification for: {} {}", harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        arcDigitalAssetStoreService.abortPruneAndImport(harvestResult);
     }
 }
