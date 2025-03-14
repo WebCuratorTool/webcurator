@@ -507,9 +507,22 @@ public class DasConfig implements WebMvcConfigurer {
         ListFactoryBean bean = new ListFactoryBean();
 
         List<RunnableIndex> sourceList = new ArrayList<>();
-        sourceList.add(waybackIndexer());
-        sourceList.add(cdxIndexer());
-        sourceList.add(pywbIndexer());
+        if (waybackIndexerEnabled) {
+            LOGGER.info("Enabled Wayback Indexer.");
+            sourceList.add(waybackIndexer());
+        }
+
+        if (cdxIndexerEnabled) {
+            LOGGER.info("Enabled CDX Indexer.");
+            sourceList.add(cdxIndexer());
+        }
+
+        if (pywbIndexerEnabled) {
+            LOGGER.info("Enabled PYWB Indexer.");
+            sourceList.add(pywbIndexer());
+        }
+
+        LOGGER.info("Enabled WCT Indexer.");
         sourceList.add(wctIndexer());
 
         bean.setSourceList(sourceList);
