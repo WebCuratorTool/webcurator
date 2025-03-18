@@ -151,7 +151,7 @@ watch(() => props.editing, async(newEditing) => {
 </template>
 
 <style>
-table { 
+.target-seed-parent-table { 
   border-collapse: collapse; 
 }
 

@@ -4,6 +4,7 @@ import { formatDatetime } from '@/utils/helper';
 import { useRoute } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
+import Loading from '@/components/Loading.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 
 const rest: UseFetchApis = useFetch();
@@ -56,25 +57,28 @@ fetchTargetInstances();
 </script>
 
 <template>
-  <h4 class="mt-4">{{ header }}</h4>
-  <WctTabViewPanel>
-    <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value=targetInstances :loading=loading>
-      <Column field="id" header="Id" dataType="numeric" style="min-width: 2rem" />
-      <Column field="name" header="Name" />
-      <Column field="state" header="State">
-        <template #body="{ data }"> 
-          {{ targetInstanceStates[data.state] }}
-        </template>
-      </Column>
-      <Column field="harvestDate" header="Harvest Date">
-        <template #body="{ data }">
-          {{ data.harvestDate ? formatDatetime(data.harvestDate) : '' }}
-        </template>
-      </Column>
-      <Column field="owner" header="Owner" />
-    </DataTable>
-    <div v-else class="text-center">
-      <p class="text-500">{{ emptyMessage }}</p>
-    </div>
-  </WctTabViewPanel>
+  <Loading v-if="loading" />
+  <div v-else>
+    <h4 class="mt-4">{{ header }}</h4>
+    <WctTabViewPanel>
+      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value=targetInstances :loading=loading>
+        <Column field="id" header="Id" dataType="numeric" style="min-width: 2rem" />
+        <Column field="name" header="Name" />
+        <Column field="state" header="State">
+          <template #body="{ data }"> 
+            {{ targetInstanceStates[data.state] }}
+          </template>
+        </Column>
+        <Column field="harvestDate" header="Harvest Date">
+          <template #body="{ data }">
+            {{ data.harvestDate ? formatDatetime(data.harvestDate) : '' }}
+          </template>
+        </Column>
+        <Column field="owner" header="Owner" />
+      </DataTable>
+      <div v-else class="text-center">
+        <p class="text-500">{{ emptyMessage }}</p>
+      </div>
+    </WctTabViewPanel>
+  </div>
 </template>
