@@ -11,7 +11,7 @@ schedules           List    Optional
 =================== ======= ========
 
 | **schedules**
-| A list of schedules that belong to a target containing the following information:
+| A list of schedules that belong to a target. If, upon updating a target, an existing schedule is not supplied, it will be deleted. Supplied schedules that do not match an existing schedule will be added. Each schedule contains the following fields:
 
 ================= ======= ========
 **schedules**
@@ -27,7 +27,7 @@ lastExecutionDate Date    Optional
 ================= ======= ========
 
 | **id**
-.. include:: /guides/apis/descriptions/desc-systemGenerated.rst
+This field is system-generated and may not be given at creation time.
 
 .. include:: /guides/apis/descriptions/desc-cron.rst
 
