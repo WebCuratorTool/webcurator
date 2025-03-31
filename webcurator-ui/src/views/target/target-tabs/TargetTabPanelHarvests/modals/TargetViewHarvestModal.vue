@@ -52,13 +52,14 @@ editing.value = dialogRef.value.data.editingHarvest;
 startDate.value = formatDate(dialogRef.value.data.targetSchedule.startDate);
 endDate.value = dialogRef.value.data.targetSchedule.endDate != null ? formatDate(dialogRef.value.data.targetSchedule.endDate) : '';
 time.value = dialogRef.value.data.targetSchedule.nextExecutionDate != null ? formatTime(dialogRef.value.data.targetSchedule.nextExecutionDate) : '';
-cronFields.value = dialogRef.value.data.targetSchedule.cron != '' ? parseCron(dialogRef.value.data.targetSchedule.cron) : { dayOfMonth: '' };
+cronFields.value = dialogRef.value.data.targetSchedule.cron != '' ? parseCron(dialogRef.value.data.targetSchedule.cron) : { dayOfMonth: '', month: '' };
 
+// Init a new cron object if in editing mode
 if (editing.value) {
   newCronObject.value.time = time.value != '' ? time.value : formatTime(Date.now());
-  newCronObject.value.dayOfMonth = cronFields.value.dayOfMonth != '' ? cronFields.value.dayOfMonth : '1';
+  newCronObject.value.dayOfMonth = cronFields.value.dayOfMonth != '' ? cronFields.value.dayOfMonth == 'L' ? 'Last' : cronFields.value.dayOfMonth : '1';
   newCronObject.value.month = cronFields.value.month;
-  newCronObject.value.months = cronFields.value.months;
+  newCronObject.value.months = cronFields.value.month != '' ? getCronMonths(targetSchedule.value.cron) : '';
   newCronObject.value.weekDays = cronFields.value.weekDays;
   newCronObject.value.year = cronFields.value.year;
   newCronObject.value.dayOfWeek = (
@@ -82,8 +83,8 @@ const shouldShowDayOfMonth = () => {
 
 const shouldShowDayOfWeek = () => {
   const shouldShowDayOfWeek = scheduleType.value.toLowerCase() == 'weekly' || scheduleType.value.toLowerCase() == 'custom';
-  if (shouldShowDayOfWeek && newCronObject.value.dayOfWeek == '') {
-    newCronObject.value.dayOfWeek = 'Monday';
+  if (shouldShowDayOfWeek && newCronObject.value.dayOfMonth == '') {
+    newCronObject.value.dayOfMonth = '1';
   } else if (!shouldShowDayOfWeek) {
     newCronObject.value.dayOfWeek = '';
   }
@@ -111,14 +112,6 @@ const getNextCustomTimes = () => {
     const cronString = createCustomCronExpression(cronFields.value);
     customScheduledTimes.value = getNextScheduledTimes(cronString, 10, startDate.value);
   }
-}
-
-watch(scheduleType, () => {
-  fetchMonthGroups();
-});
-
-const closeDialog = () => {
-  dialogRef.value.close();
 }
 
 const save = () => {
@@ -150,6 +143,14 @@ const save = () => {
   )
   closeDialog();
 }
+
+const closeDialog = () => {
+  dialogRef.value.close();
+}
+
+watch(scheduleType, () => {
+  fetchMonthGroups();
+});
 
 fetch();
 
@@ -239,7 +240,7 @@ fetch();
           <p v-else class="font-semibold">{{ cronFields.dayOfWeek }}</p>  
         </WctFormField>
   
-        <WctFormField label=" Days of Month">
+        <WctFormField label="Days of Month">
           <InputText v-if="editing" v-model="cronFields.dayOfMonth" />
           <p v-else class="font-semibold">{{ cronFields.dayOfMonth }}</p>   
         </WctFormField>
@@ -261,10 +262,10 @@ fetch();
       </div>
     </div>
 
-    <div v-if="scheduleType == 'Custom'">
+    <div v-if="scheduleType == 'Custom' && editing">
       <p>Next 10 scheduled times</p>
       <Button label="Test" outlined @click="getNextCustomTimes"/>
-        <div v-if="customScheduledTimes.length">
+        <div v-if="customScheduledTimes.length" class="pt-4">
           <p v-for="(time, index) in customScheduledTimes" class="font-semibold" :key="index">
             {{ time.toLocaleString() }}
           </p>
