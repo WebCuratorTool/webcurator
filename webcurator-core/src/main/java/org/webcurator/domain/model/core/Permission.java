@@ -131,7 +131,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Whether this permission is approved.
      */
-    //TODO Check what this means.
+    // FIXME This field is redundant and is not being used
     @Column(name = "PE_APPROVED_YN")
     private boolean approved;
     /**

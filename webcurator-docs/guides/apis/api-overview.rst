@@ -86,6 +86,7 @@ Permissions
    :maxdepth: 1
    
    api-permissions_GET.rst
+   api-permission_GET.rst
 
 Profiles
 ========

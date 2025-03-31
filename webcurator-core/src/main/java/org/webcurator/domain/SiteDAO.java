@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Disjunction;
@@ -341,9 +342,13 @@ public class SiteDAO extends HibernateDaoSupport {
 
 	@Transactional
 	public Permission loadPermission(long permOid) {
-		Permission perm = (Permission) currentSession().load(Permission.class, permOid);
-		Hibernate.initialize(perm.getUrls());
-		return perm;
+		try {
+			Permission perm = (Permission) currentSession().load(Permission.class, permOid);
+			Hibernate.initialize(perm.getUrls());
+			return perm;
+		} catch (ObjectNotFoundException e) {
+			return null;
+		}
 	}	
 
 	/**
