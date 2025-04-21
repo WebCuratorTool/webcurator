@@ -9,6 +9,7 @@ import { useTargetSeedsDTO } from '@/stores/target';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 
 const AddHarvestAuthModal = defineAsyncComponent(() => import('./modals/TargetAddHarvestAuthModal.vue'));
+const ViewPermissionModal = defineAsyncComponent(() => import('./modals/TargetViewPermissionModal.vue'));
 
 const toast = useToast();
 
@@ -25,6 +26,7 @@ const previousSeed = ref({});
 const selectedAuthorisationOption = ref('Auto');
 
 const addSeedsModal = useDialog();
+const viewPermissionModal = useDialog();
 
 const addSeed = () => {
   if (newSeed.value.seed != '') {
@@ -55,6 +57,13 @@ const showAddHarvestAuth = (seed: any) => {
   addSeedsModal.open(AddHarvestAuthModal, {
     props: { header: `Add Harvest Auth to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
     data: { seed: seed }
+  })
+}
+
+const showViewPermission = (permissionId: number) => {
+  viewPermissionModal.open(ViewPermissionModal, { 
+    props: { modal: true, dismissableMask: true, closable: false, style: { width: '50vw' } },
+    data: { permissionId: permissionId }
   })
 }
 
@@ -122,7 +131,7 @@ watch(() => props.editing, async(newEditing) => {
                   <td style="width: 17.5%; padding: .5rem;">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
                   <td style="width: 5%; padding: .5rem;">
                     <div class="flex">
-                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text />
+                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)"/>
                       <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removeHarvestAuth(data, authorisation)" />
                     </div>
                   </td>
@@ -148,7 +157,7 @@ watch(() => props.editing, async(newEditing) => {
 </template>
 
 <style>
-table { 
+.target-seed-parent-table { 
   border-collapse: collapse; 
 }
 
