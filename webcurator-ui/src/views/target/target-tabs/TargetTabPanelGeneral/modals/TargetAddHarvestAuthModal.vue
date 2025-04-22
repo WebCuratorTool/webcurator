@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from 'vue';
+import { inject, onMounted, reactive, ref } from 'vue';
+import type { DataTableRowClickEvent } from 'primevue/datatable';
+import { usePermissionStore, usePermissionStatusStore } from '@/stores/permissions';
+import type { Permission } from '@/types/permission';
 import { formatDate } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+
+import Loading from '@/components/Loading.vue';
 
 const dialogRef: any = inject('dialogRef');
 
@@ -16,6 +21,7 @@ interface HarvestAuth {
 
 const returnedHarvestAuths = ref<HarvestAuth[]>([]);
 const loading = ref(false);
+const loadingPermission = ref(false);
 
 const harvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '', urlPatterns: [] }[]>([]);
 const filteredHarvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '',  urlPatterns: []  }[]>([]);
@@ -23,6 +29,9 @@ const filteredHarvestAuths = ref<{ id: number, name: string, agent: '', permissi
 const searchTerm = ref('');
 
 const seed = ref();
+let expandedPermission = reactive<Permission>({} as Permission);
+const expandedRows = ref<any[]>([]);
+const permissionStatuses = ref();
 
 const prepareData = (data: HarvestAuth[]) => {
   data.forEach((harvestAuth: HarvestAuth) => {
@@ -44,6 +53,24 @@ const prepareData = (data: HarvestAuth[]) => {
   });
   filteredHarvestAuths.value = harvestAuths.value;
 };
+
+const setExpandedRow = async (event: DataTableRowClickEvent) => {
+  loadingPermission.value = true;
+  const isExpanded = (expandedRows.value as any[]).find((p) => p.id === event.data.id)
+
+  if (isExpanded?.id) {
+    expandedRows.value = [event.data] as any
+    const fetchedPermission: any = await usePermissionStore().fetch(event.data.permissionId);
+    
+    expandedPermission = fetchedPermission;
+
+  } else {
+    expandedRows.value = []; 
+    expandedPermission = ({} as Permission);
+  }
+
+  loadingPermission.value = false;
+}
 
 const fetch = () => {
   const searchParams = {
@@ -82,8 +109,10 @@ const search = () => {
 const isAuthAdded = (authPermissionId: number) => 
   seed.value.authorisations.some((a: { permissionId: number }) => a.permissionId === authPermissionId);
 
-onMounted(() => {
+onMounted(async () => {
   seed.value = dialogRef.value.data.seed;
+  const statuses = await usePermissionStatusStore().fetch();
+  permissionStatuses.value = statuses;
 });
 
 fetch();
@@ -105,31 +134,41 @@ fetch();
     </div>
     <Button v-if="seed" class="p-0" :label="`Search for ${seed.seed}`" text iconPos="right" @click="searchTerm = seed.seed; search()" />
 
-    <DataTable class="w-full mt-4" :value="filteredHarvestAuths" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
+    <DataTable
+      v-model:expandedRows="expandedRows"
+      class="w-full mt-4" 
+      :value="filteredHarvestAuths" 
+      size="small" 
+      paginator :rows="10" 
+      scrollHeight="100%" 
+      :loading="loading" 
+      pt:wrapper:class="h-26rem"
+      @rowExpand="setExpandedRow"
+    >
       <Column expander style="width: 5rem" />
       <Column field="name" header="Name" />
       <Column field="agent" header="Authorising Agent" />
       <Column  header="URL Patterns">
-        <template #body="{ data }">
-          <div v-for="(urlPattern, index) in data.urlPatterns" :key="index">
+        <template #body="slotProps">
+          <div v-for="(urlPattern, index) in slotProps.data.urlPatterns" :key="index">
             {{ urlPattern }}
           </div>
         </template>
       </Column>
       <Column field="startDate" header="Start Date">
-        <template #body="{ data }">
-          {{ data.startDate && formatDate(data.startDate) }}
+        <template #body="slotProps">
+          {{  slotProps.data.startDate && formatDate(slotProps.data.startDate) }}
         </template>
       </Column>
       <Column field="endDate" header="End Date">
-        <template #body="{ data }">
-          {{ data.endDate && formatDate(data.endDate) }}
+        <template #body="slotProps">
+          {{ slotProps.data.endDate && formatDate(slotProps.data.endDate) }}
         </template>
       </Column>
       <Column>
-        <template #body="{ data }">
+        <template #body="slotProps">
           <div class="flex justify-content-center">
-            <div v-if="isAuthAdded(data.permissionId)" class="flex align-items-center">
+            <div v-if="isAuthAdded(slotProps.data.permissionId)" class="flex align-items-center">
               <i class="pi pi-check" />
               <Button icon="pi pi-trash" text v-tooltip.bottom="'Remove from Seed'" @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== data.permissionId)" />
             </div>
@@ -141,18 +180,56 @@ fetch();
               v-tooltip.bottom="'Add to Seed'"
               @click="
                 seed.authorisations.push({
-                  id: data.id,
-                  name: data.name,
-                  agent: data.agent,
-                  permissionId: data.permissionId,
-                  startDate: data.startDate,
-                  endDate: data.endDate,
+                  id: slotProps.data.id,
+                  name: slotProps.data.name,
+                  agent: slotProps.data.agent,
+                  permissionId: slotProps.data.permissionId,
+                  startDate: slotProps.data.startDate,
+                  endDate: slotProps.data.endDate,
                 })
               "
             />
           </div>
         </template>
       </Column>
+
+      <!-- Exapnded row is rendered here -->
+      <template #expansion>
+        <Loading v-if="loadingPermission" />
+        <div v-else class="p-4">
+          <div class="grid">
+            <p class="col-4 p-2 font-semibold">Status:</p>
+            <p class="col-8 p-2">{{ permissionStatuses[expandedPermission.status] }}</p>
+          </div>
+          <div class="grid">
+            <p class="col-4 p-2 font-semibold">Auth Agency Response:</p>
+            <p class="col-8 p-2">{{ permissionStatuses[expandedPermission.authResponse] }}</p>
+          </div>
+          <div class="grid">
+            <p class="col-4 p-2 font-semibold">Quick Pick:</p>
+            <p class="col-8 p-2">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
+          </div>
+          <div class="grid">
+            <p class="col-4 p-2 font-semibold">Display Name:</p>
+            <p class="col-8 p-2">{{ expandedPermission.displayName }}</p>
+          </div>
+          <div v-if="expandedPermission.exclusions.length > 0">
+            <p class="font-semibold">Exclusions</p>
+            <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.exclusions">
+              <Column field="url" header="URL" />
+              <Column field="reason" header="Reason" />
+            </DataTable>
+          </div>
+          <div v-if="expandedPermission.annotations.length > 0">
+            <p class="font-semibold">Annotations</p>
+            <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.annotations" >
+                <Column field="date" header="Date" />
+                <Column field="user" header="User" />
+                <Column field="notes" header="Notes" />
+            </DataTable>
+          </div>
+        </div>
+      </template>
     </DataTable>
   </div>
 </template>
