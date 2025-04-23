@@ -63,7 +63,6 @@ const setExpandedRow = async (event: DataTableRowClickEvent) => {
     const fetchedPermission: any = await usePermissionStore().fetch(event.data.permissionId);
     
     expandedPermission = fetchedPermission;
-
   } else {
     expandedRows.value = []; 
     expandedPermission = ({} as Permission);

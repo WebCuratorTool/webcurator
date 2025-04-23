@@ -4,16 +4,21 @@ import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import type { Permission } from '@/types/permission';
 
 export const usePermissionStatusStore = defineStore('PermissionStatus', () => {
-    const loadingPermissionStatuses = ref(false);
-    const rest: UseFetchApis = useFetch();
+  const loadingPermissionStatuses = ref(false);
+  const statuses = ref();
+  const rest: UseFetchApis = useFetch();
 
-    const fetch = async () => {
-        loadingPermissionStatuses.value = true;
-        const rsp = await rest.get('/harvest-authorisations/states');
-        loadingPermissionStatuses.value = false;
-        return rsp;
+  const fetch = async () => {
+    if (statuses.value) {       
+      return statuses.value;
     }
-    return { fetch }
+    loadingPermissionStatuses.value = true;
+    const rsp = await rest.get('/harvest-authorisations/states');
+    loadingPermissionStatuses.value = false;
+    statuses.value = rsp;     
+    return rsp;
+  }
+  return { fetch, statuses }
 })
 
 export const usePermissionStore = defineStore('Permission', () => {
