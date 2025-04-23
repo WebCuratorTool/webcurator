@@ -222,9 +222,9 @@ fetch();
           <div v-if="expandedPermission.annotations.length > 0">
             <p class="font-semibold">Annotations</p>
             <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.annotations" >
-                <Column field="date" header="Date" />
-                <Column field="user" header="User" />
-                <Column field="notes" header="Notes" />
+              <Column field="date" header="Date" />
+              <Column field="user" header="User" />
+              <Column field="notes" header="Notes" />
             </DataTable>
           </div>
         </div>
