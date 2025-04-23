@@ -41,11 +41,11 @@ const navigateBack = () => {
           <Button icon="pi pi-arrow-left" @click="navigateBack" text />
         </template>
         <template v-if="!editing" #end>
-          <Button icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
+          <Button icon="pi pi-pencil" @click="emit('setEditing', true)" label="Edit" />
         </template>
         <template v-else #end>
-          <Button icon="pi pi-times" @click="$emit('setEditing', false)"  label="Cancel" />
-          <Button class="ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+          <Button icon="pi pi-times" @click="emit('setEditing', false)"  label="Cancel" />
+          <Button class="ml-2" icon="pi pi-save" @click="emit('save')" label="Save" />
         </template>
       </Toolbar>
 
