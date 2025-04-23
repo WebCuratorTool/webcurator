@@ -145,7 +145,7 @@ fetch();
       @rowExpand="setExpandedRow"
     >
       <Column expander style="width: 5rem" />
-      <Column field="name" header="Name" />
+      <Column field="name" header="Harvest Authorisation" />
       <Column field="agent" header="Authorising Agent" />
       <Column  header="URL Patterns">
         <template #body="slotProps">
