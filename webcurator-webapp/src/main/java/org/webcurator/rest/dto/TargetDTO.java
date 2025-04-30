@@ -322,7 +322,7 @@ public class TargetDTO {
         }
 
         public static class Schedule {
-            long id;
+            Long id;
             @NotBlank(message = "cron is required")
             String cron;
             @NotNull(message = "startDate is required")
@@ -341,11 +341,11 @@ public class TargetDTO {
             public Schedule() {
             }
 
-            public long getId() {
+            public Long getId() {
                 return id;
             }
 
-            public void setId(long id) {
+            public void setId(Long id) {
                 this.id = id;
             }
 
