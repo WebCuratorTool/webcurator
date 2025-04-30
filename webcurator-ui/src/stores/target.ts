@@ -403,8 +403,13 @@ export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
         targetSchedule.value.schedules = targetSchedule.value.schedules.filter(s => s.id != scheduleId);
     }
 
+    const replaceSchedule = (replacementSchedule: any) => {
+        targetSchedule.value.schedules = targetSchedule.value.schedules.map(schedule => schedule.id === replacementSchedule.id ? replacementSchedule : schedule);
+
+    }
+
     const getData = () => targetSchedule.value;
     
-    return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule }
+    return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule, replaceSchedule }
 });
     

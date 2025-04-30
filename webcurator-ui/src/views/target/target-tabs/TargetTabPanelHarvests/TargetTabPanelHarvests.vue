@@ -9,16 +9,16 @@ import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
 import Button from 'primevue/button';
 
-const viewHarvestModal = useDialog();
+const scheduleModal = useDialog();
 
 const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
 
 const targetInstanceStates = ref<{ [key: string]: string }>({});
 
-const ViewHarvestModal = defineAsyncComponent(() => import('./modals/TargetViewHarvestModal.vue'));
+const ScheduleModal = defineAsyncComponent(() => import('./modals/TargetScheduleModal.vue'));
 
-const newHarverst = {
+const newSchedule = {
   cron: '',
   startDate: Date.now(),
   endDate: null,
@@ -33,12 +33,13 @@ defineProps<{
   editing: boolean
 }>()
 
-const showViewHarvestModal = (targetSchedule: any, editingHarvest: boolean) => {
-  viewHarvestModal.open(ViewHarvestModal, {
+const showScheduleModal = (targetSchedule: any, editingSchedule: boolean, isNewSchedule: boolean) => {
+  scheduleModal.open(ScheduleModal, {
     props: { header: 'Schedule', modal: true, dismissableMask: true, style: { width: '50vw' } },
     data: { 
       targetSchedule: targetSchedule,
-      editingHarvest: editingHarvest
+      editingSchedule: editingSchedule,
+      isNewSchedule: isNewSchedule
     }
   });
 }
@@ -67,7 +68,7 @@ onMounted(async () => {
           />
         </div>
       </div>
-      <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showViewHarvestModal(newHarverst, true)" />
+      <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showScheduleModal(newSchedule, true, true)" />
     </div>
     <WctTabViewPanel class="mt-2">
       <DataTable v-if="targetSchedule.schedules && targetSchedule.schedules.length" class="w-full" :rowHover="true" :value="targetSchedule.schedules">
@@ -80,8 +81,8 @@ onMounted(async () => {
         </Column>
         <Column header="Action">
           <template #body="{ data }">
-            <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Schedule'" text @click="showViewHarvestModal(data, false)" />
-            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Schedule'" text @click="showViewHarvestModal(data, true)" />
+            <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Schedule'" text @click="showScheduleModal(data, false, false)" />
+            <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Schedule'" text @click="showScheduleModal(data, true, false)" />
             <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Schedule'" text @click="targetHarvests.removeSchedule(data.id)" />
           </template>
         </Column>
