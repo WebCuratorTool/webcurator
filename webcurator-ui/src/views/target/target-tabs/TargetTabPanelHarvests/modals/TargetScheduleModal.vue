@@ -91,39 +91,40 @@ const getNextCustomTimes = () => {
   }
 }
 
-const save = () => {
-  let startDateObject;
-  if (Object.prototype.toString.call(startDate.value) != '[object Date]') {
-    const dateComponents = startDate.value.split('/');
-    startDateObject = new Date(`${dateComponents[2]}-${dateComponents[1]}-${dateComponents[0]}`);  
-  } else {
-    startDateObject = new Date(startDate.value);
-  }
+const saveSchedule = () => {
+  const parseDate = (dateStr: any) => {
+    const [day, month, year] = dateStr.split('/');
+    return new Date(`${year}-${month}-${day}`);
+  };
 
-  let cronExpression;
+  // Turn the start date into a date object
+  const startDateObject = Object.prototype.toString.call(startDate.value) !== '[object Date]' 
+    ? parseDate(startDate.value) 
+    : new Date(startDate.value);
 
-  if (scheduleType.value == 'Custom') {
-    cronExpression = createCustomCronExpression(cronFields.value);
-  } else {
-    cronExpression = createCronExpression(newCronObject.value);
-  }
+  // Create the cron string from all the parts chosen from the input fields
+  const cronExpression = scheduleType.value === 'Custom' 
+    ? createCustomCronExpression(cronFields.value) 
+    : createCronExpression(newCronObject.value);
 
-  const scheduleKey = Object.keys(scheduleTypes.value).find((key) => scheduleTypes.value[key] == scheduleType.value);
+  // Get the schedule type number from the schedule types list
+  const scheduleTypeNumber = Object.keys(scheduleTypes.value).find(key => scheduleTypes.value[key] === scheduleType.value);
 
   const scheduleToSave = {
     cron: cronExpression,
     startDate: startDateObject,
-    endDate: endDate.value != '' ? endDate.value : null,
-    type: scheduleKey,
+    endDate: endDate.value || null,
+    type: scheduleTypeNumber,
     nextExecutionDate: getNextScheduledTimes(cronExpression, 1, startDateObject)[0],
     owner: targetGeneral.selectedUser.code,
+    // If editing an exsiting schedule, add the id to the object
     ...(isNewSchedule.value ? {} : { id: targetSchedule.value.id })
-  }
+  };
 
   if (isNewSchedule.value) {
-    targetHarvests.addSchedule(scheduleToSave)
+    targetHarvests.addSchedule(scheduleToSave);
   } else {
-    targetHarvests.replaceSchedule(scheduleToSave)
+    targetHarvests.replaceSchedule(scheduleToSave);
   }
 
   closeDialog();
@@ -266,7 +267,7 @@ fetch();
       </div>
     
       <div v-if="editing">
-        <Button label="Save" @click="save"/>
+        <Button label="Save" @click="saveSchedule"/>
         <Button label="Cancel" text class="ml-2" @click="closeDialog"/>
       </div>
     </div>
