@@ -24,7 +24,6 @@ const editing = ref(dialogRef.value.data.editingSchedule);
 const isNewSchedule = ref(dialogRef.value.data.isNewSchedule);
 const scheduleTypes = ref();
 const loading = ref(true);
-const months = ref('');
 const monthGroups = ref<string[]>([]);
 const customScheduledTimes = ref<Date[]>([]);
 const validationErrors = ref(false);
@@ -76,15 +75,6 @@ const fetch = () => {
   }).catch((err: any) => {
     console.log(err.message);
   })
-}
-
-const fetchMonthGroups = () => {
-  if (shouldShowMonths.value) {
-    const results = getMonthGroups(scheduleType.value);
-    months.value = results[0];
-    monthGroups.value = results;
-  }
-  else monthGroups.value = [];
 }
 
 const getNextCustomTimes = () => {
@@ -143,30 +133,33 @@ const closeDialog = () => {
   dialogRef.value.close();
 }
 
-watch(scheduleType, () => {
-  fetchMonthGroups();
-});
-
-watch(shouldShowDayOfWeek, () => {
+const updateCronDayOfWeek = () => {
   if (shouldShowDayOfWeek.value) {
-    if (newCronObject.value.dayOfWeek == '') {
-      newCronObject.value.dayOfWeek = 'Monday';
-    }
-    if (newCronObject.value.dayOfMonth == '') {
-      newCronObject.value.dayOfMonth = '1';
-    }
+    newCronObject.value.dayOfWeek ||= 'Monday';
+    newCronObject.value.dayOfMonth ||= '1';
   } else {
     newCronObject.value.dayOfWeek = '';
   }
-});
+};
 
-watch(shouldShowDayOfMonth, () => {
-  if (shouldShowDayOfMonth.value && newCronObject.value.dayOfMonth == '') {
-    newCronObject.value.dayOfMonth = '1';
+const updateCronDayOfMonth = () => {
+  newCronObject.value.dayOfMonth = shouldShowDayOfMonth.value ? (newCronObject.value.dayOfMonth || '1') : '';
+};
+
+const updateMonthGroups = () => {
+  if (shouldShowMonths.value) {
+    const results = getMonthGroups(scheduleType.value);
+    newCronObject.value.months = results[0];
+    monthGroups.value = results;
   } else {
-    newCronObject.value.dayOfMonth = '';
+    newCronObject.value.months = '';
+    monthGroups.value = [];
   }
-});
+}
+
+watch(scheduleType, updateMonthGroups);
+watch(shouldShowDayOfWeek, updateCronDayOfWeek);
+watch(shouldShowDayOfMonth, updateCronDayOfMonth);
 
 fetch();
 
@@ -281,11 +274,11 @@ fetch();
     <div v-if="scheduleType == 'Custom' && editing">
       <p>Next 10 scheduled times</p>
       <Button label="Test" outlined @click="getNextCustomTimes"/>
-        <div v-if="customScheduledTimes.length" class="pt-4">
-          <p v-for="(time, index) in customScheduledTimes" class="font-semibold" :key="index">
-            {{ time.toLocaleString() }}
-          </p>
-        </div>
+      <div v-if="customScheduledTimes.length" class="pt-4">
+        <p v-for="(time, index) in customScheduledTimes" class="font-semibold" :key="index">
+          {{ time.toLocaleString() }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
