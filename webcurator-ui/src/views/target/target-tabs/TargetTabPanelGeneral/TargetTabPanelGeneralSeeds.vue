@@ -90,7 +90,7 @@ watch(() => props.editing, async(newEditing) => {
       </div>
     </div>
 
-    <table class="w-full target-seed-parent-table">
+    <table v-if="targetSeeds.targetSeeds.length > 0" class="w-full target-seed-parent-table">
       <thead>
         <tr style="border-bottom: 1px solid #E4E4E4;">
           <th style="width: 20%; text-align: left; padding: .5rem;">Seed</th>
@@ -144,11 +144,14 @@ watch(() => props.editing, async(newEditing) => {
         </tr>
       </tbody>
     </table>
+    <div v-else class="text-center">
+      <p class="text-500">No seeds have been added to this target yet</p>
+    </div>
   </WctTabViewPanel>
 </template>
 
 <style>
-table { 
+.target-seed-parent-table { 
   border-collapse: collapse; 
 }
 

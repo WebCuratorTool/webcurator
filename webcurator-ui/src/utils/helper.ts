@@ -9,12 +9,15 @@ export const formatDate = (timestamp:number) => {
     });
 };
 
+export const formatTime = (timestamp: number) => {
+    const value = new Date(timestamp);    
+    return value.toLocaleTimeString([], { hour12: false, timeStyle: 'short' });
+}
 
 export const formatDatetime = (timestamp:number) => {
-    const value=new Date(timestamp);
+    const value = new Date(timestamp);
     return value.toLocaleString();
 };
-
 
 export const filterRoutePathByName = (routeName:string)=>{
     let path=routes.routes[0].path;

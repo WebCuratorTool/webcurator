@@ -22,7 +22,6 @@ const accessZones = ref([
 </script>
 
 <template>
-    <h4 class="mt-4">Base Profile</h4>
     <WctTabViewPanel columns >
         <div class="col">
             <WctFormField label="Display Target">

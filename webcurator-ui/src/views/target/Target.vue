@@ -4,13 +4,14 @@ import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { useToast } from "primevue/usetoast";
 import {
-  setTarget,
-  useTargetDescriptionDTO,
-  useTargetGeneralDTO,
-  useTargetGropusDTO,
-  useTargetProfileDTO,
-  useTargetSeedsDTO, 
-  useNextStateStore 
+    setTarget,
+    useTargetDescriptionDTO,
+    useTargetGeneralDTO,
+    useTargetGropusDTO,
+    useTargetProfileDTO,
+    useTargetSeedsDTO,
+    useTargetHarvestsDTO, 
+    useNextStateStore 
 } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
@@ -25,6 +26,7 @@ const targetProfile = useTargetProfileDTO();
 const targetDescription = useTargetDescriptionDTO();
 const targetSeeds = useTargetSeedsDTO();
 const targetGroups = useTargetGropusDTO();
+const targetHarvests = useTargetHarvestsDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
@@ -54,18 +56,21 @@ const fetchTargetDetails = () => {
 }
 
 const save = () => {
-  const dataReq = {
-    general: targetGeneral.getData(),
-    profile: targetProfile.getData(),
-    description: targetDescription.getData(),
-    groups: targetGroups.getData(),
-    seeds: targetSeeds.getData()
-  }    
+    const dataReq = {
+        general: targetGeneral.getData(),
+        profile: targetProfile.getData(),
+        description: targetDescription.getData(),
+        groups: targetGroups.getData(),
+        seeds: targetSeeds.getData(),
+        schedule: targetHarvests.getData()
+    }    
 
   rest.put('targets/' + targetGeneral.id, dataReq)
-  .then(() => {
-    showSuccessMessage()
-    editing.value = false
+  .then((response: any) => {
+    if (response == 200) {
+      showSuccessMessage();
+      editing.value = false
+    }
   })
   .catch((err: any) => {
     showErrorMessage(err.message)
@@ -86,7 +91,6 @@ const showErrorMessage = (message: string) => {
 const showSuccessMessage = () => {
   toast.add({ severity: 'success', summary: 'Target succesfully saved', life: 3000 });
 };
-
 fetchTargetDetails();
 
 </script>
