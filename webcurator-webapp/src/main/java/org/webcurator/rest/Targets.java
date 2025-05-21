@@ -19,6 +19,8 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.simple.SimpleSeed;
+import org.webcurator.domain.model.simple.SimpleTarget;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
@@ -304,7 +306,6 @@ public class Targets {
         target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
         if (targetDTO.getSchedule() != null) {
-            Set<Schedule> schedules = new HashSet<>();
             if (targetDTO.getSchedule().getHarvestOptimization() != null) {
                 target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
             }
@@ -314,30 +315,30 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
+            // Upsert the schedules and distinguish existing ones to be updated from new ones to added
+            ArrayList<Schedule> schedulesToBeDeleted = new ArrayList<>();
+            for (Schedule schedule : target.getSchedules()) {
+                boolean deleteSchedule = true;
+                for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+                    if (schedule.getOid().equals(s.getId())) {
+                        deleteSchedule = false;
+                        fillSchedule(schedule, s);
+                        targetDTO.getSchedule().getSchedules().remove(s); // keep track of updates
+                        break;
+                    }
+                }
+                // The existing schedule was not found among the supplied schedules: delete it
+                if (deleteSchedule) {
+                    schedulesToBeDeleted.add(schedule);
+                }
+            }
+            target.getSchedules().removeAll(schedulesToBeDeleted);
+            // Any remaining supplied schedules are guaranteed to be new schedules: add them now
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
-                String cronExpression = s.getCron();
-                // we support classic cron, without the prepended SECONDS field expected by Quartz
-                cronExpression = "0 " + s.getCron();
-                try {
-                    new CronExpression(cronExpression);
-                } catch (ParseException ex) {
-                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
-                }
-                schedule.setCronPattern(cronExpression);
-                schedule.setStartDate(s.getStartDate());
-                schedule.setEndDate(s.getEndDate());
-                schedule.setScheduleType(s.getType());
-                owner = userRoleDAO.getUserByName(s.getOwner());
-                if (owner == null) {
-                    throw new BadRequestError(String.format("Owner with username %s unknown",
-                            targetDTO.getGeneral().getOwner()));
-                }
-                schedule.setOwningUser(owner);
-                schedules.add(schedule);
+                fillSchedule(schedule, s);
+                target.getSchedules().add(schedule);
             }
-            target.getSchedules().clear();
-            target.getSchedules().addAll(schedules);
         }
 
         if (targetDTO.getAccess() != null) {
@@ -503,6 +504,24 @@ public class Targets {
         }
     }
 
+    private void fillSchedule(Schedule schedule, TargetDTO.Scheduling.Schedule s) throws BadRequestError {
+        // we support classic cron, without the prepended SECONDS field expected by Quartz
+        String cronExpression = "0 " + s.getCron();
+        try {
+            new CronExpression(cronExpression);
+        } catch (ParseException ex) {
+            throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
+        }
+        schedule.setCronPattern(cronExpression);
+        schedule.setStartDate(s.getStartDate());
+        schedule.setEndDate(s.getEndDate());
+        schedule.setScheduleType(s.getType());
+        User owner = userRoleDAO.getUserByName(s.getOwner());
+        if (owner == null) {
+            throw new BadRequestError(String.format("Owner with username %s unknown", s.getOwner()));
+        }
+        schedule.setOwningUser(owner);
+    }
 
     /**
      * Traverses the supplied HashMap recursively, mapping any data it finds to the right setter in the supplied
@@ -686,11 +705,11 @@ public class Targets {
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
+        Pagination pagination = targetDAO.searchSummary(pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (Target t : (List<Target>) pagination.getList()) {
+        for (SimpleTarget t : (List<SimpleTarget>) pagination.getList()) {
             targetSummaries.add(getTargetSummary(t));
         }
         return new SearchResult(pagination.getTotal(), targetSummaries);
@@ -699,7 +718,7 @@ public class Targets {
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(Target t) {
+    private HashMap<String, Object> getTargetSummary(SimpleTarget t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
         targetSummary.put("creationDate", t.getCreationDate());
@@ -708,7 +727,7 @@ public class Targets {
         targetSummary.put("owner", t.getOwner().getUsername());
         targetSummary.put("state", t.getState());
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        for (Seed s : t.getSeeds()) {
+        for (SimpleSeed s : t.getSeeds()) {
             HashMap<String, Object> seed = new HashMap<>();
             seed.put("seed", s.getSeed());
             seed.put("primary", s.isPrimary());

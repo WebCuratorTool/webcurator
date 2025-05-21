@@ -11,7 +11,7 @@ Also the following parts can be updated separately by adding the part name to th
 
 Each part must contain at least one field that needs updating. Only the fields given are updated, fields not given, but present in the database, remain unchanged.
 
-Fields of mutable lists (seeds, schedule.schedules, annotations.annotations, groups) can not be updated individually: if a list is present in the input, the corresponding list attribute of the target will be overwritten with the new list. Fields of profile.overrides, which is a fixed list, can be updated individually.
+The fields of the following lists can not be updated individually: seeds, annotations.annotations, groups. If a list is present in the input for any of these attributes, the corresponding list attribute of the target will be overwritten with the new list. Fields of profile.overrides, which is a fixed list, and schedules in schedule.schedules can be updated individually.
 
 +-------------+
 | **part**    |

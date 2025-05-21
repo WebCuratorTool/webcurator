@@ -1,7 +1,7 @@
-import { ref, computed} from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSeeds } from '@/types/target';
+import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSchedule, type TargetSeeds } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -25,6 +25,7 @@ export const initNewTarget = () => {
     useTargetDescriptionDTO().initData();
     useTargetGeneralDTO().initData();
     useTargetGropusDTO().initData();
+    useTargetHarvestsDTO().initData();
     useTargetProfileDTO().initData();
     useTargetSeedsDTO().initData();
     useNextStateStore().initData();
@@ -35,6 +36,7 @@ export const setTarget = (target: Target) => {
     useTargetDescriptionDTO().setData(target.description);
     useTargetGeneralDTO().setData(target.general);
     useTargetGropusDTO().setData(target.groups);
+    useTargetHarvestsDTO().setData(target.schedule);
     target.profile != null && useTargetProfileDTO().setData(target.profile);
     useTargetSeedsDTO().setData(target.seeds);
     useTargetAccessDTO().setData(target.access);
@@ -361,7 +363,7 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     }
 
     const addGroup = (group: any)=>{
-        targetGroups.value.push(group);
+        targetGroups.value.push({ id: group.id, name: group.name });
     }
 
     return { targetGroups, initData, setData, getData, removeGroup, addGroup}
@@ -381,3 +383,33 @@ export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
 
     return { targetAccess, initData, setData, getData }
 });
+
+export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
+    const targetSchedule = ref({} as TargetSchedule);
+    
+    const initData = () => {
+        targetSchedule.value = {} as TargetSchedule
+    }
+
+    const setData = (data: TargetSchedule) => {
+        targetSchedule.value = data;
+    }
+    
+    const addSchedule = (schedule: any) => {
+        targetSchedule.value.schedules.push(schedule);
+    }
+
+    const removeSchedule = (scheduleId: number) => {
+        targetSchedule.value.schedules = targetSchedule.value.schedules.filter(s => s.id != scheduleId);
+    }
+
+    const replaceSchedule = (replacementSchedule: any) => {
+        targetSchedule.value.schedules = targetSchedule.value.schedules.map(schedule => schedule.id === replacementSchedule.id ? replacementSchedule : schedule);
+
+    }
+
+    const getData = () => targetSchedule.value;
+    
+    return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule, replaceSchedule }
+});
+    
