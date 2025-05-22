@@ -149,7 +149,13 @@ tasks.register('installUI', Exec) {
     description = "Install the dependencies for UI"
     workingDir '../webcurator-ui'
     commandLine 'npm', 'install'
+    standardOutput = new ByteArrayOutputStream()
+    errorOutput = new ByteArrayOutputStream()
     doLast {
+        def stdout = standardOutput.toString()
+        println "$stdout"
+        def stderr = errorOutput.toString()
+        println "$stderr"
         println 'UI installation done!'
     }
 }
@@ -160,7 +166,13 @@ tasks.register('buildUI', Exec) {
     dependsOn tasks.installUI
     workingDir '../webcurator-ui'
     commandLine 'npm', 'run', 'build-only'
+    standardOutput = new ByteArrayOutputStream()
+    errorOutput = new ByteArrayOutputStream()
     doLast {
+        def stdout = standardOutput.toString()
+        println "$stdout"
+        def stderr = errorOutput.toString()
+        println "$stderr"
         println 'UI building done!'
     }
 }
