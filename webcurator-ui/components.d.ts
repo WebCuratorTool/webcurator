@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BlockViewer: typeof import('./src/components/BlockViewer.vue')['default']
     Button: typeof import('primevue/button')['default']
+    Calendar: typeof import('primevue/calendar')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     Chip: typeof import('primevue/chip')['default']
     Column: typeof import('primevue/column')['default']
@@ -37,14 +38,17 @@ declare module 'vue' {
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Select: typeof import('primevue/select')['default']
     TabPanel: typeof import('primevue/tabpanel')['default']
     TabView: typeof import('primevue/tabview')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
+    WctButton: typeof import('./src/components/WctButton.vue')['default']
     WctFormField: typeof import('./src/components/WctFormField.vue')['default']
     WctSearchField: typeof import('./src/components/WctSearchField.vue')['default']
     WctTabViewPanel: typeof import('./src/components/WctTabViewPanel.vue')['default']
+    WctTopLabel: typeof import('./src/components/WctTopLabel.vue')['default']
   }
   export interface ComponentCustomProperties {
     Tooltip: typeof import('primevue/tooltip')['default']

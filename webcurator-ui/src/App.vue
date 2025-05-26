@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { RouterView } from 'vue-router';
+import LoginDialog from './components/LoginDialog.vue';
 import NavBar from './components/NavBar.vue';
-import { RouterView } from 'vue-router'
-import LoginDialog from './components/LoginDialog.vue'
-import { useLoginStore } from './utils/rest.api'
-const loginStore = useLoginStore()
+import { useLoginStore } from './utils/rest.api';
+import { togglePreset, toggleThemeMode } from './utils/themes';
+// import { togglePreset, toggleThemeMode } from './utils/themes';
 
-// import api from './restclient';
+const loginStore = useLoginStore();
+toggleThemeMode('light');
+togglePreset('purple');
 </script>
 
 <template>

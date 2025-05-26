@@ -18,7 +18,7 @@ app.use(router);
 
 // app.use(PrimeVue, { unstyled: false });
 app.use(PrimeVue, {
-  ripple: true,
+  // ripple: true,
   theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
 });
 app.use(ConfirmationService);

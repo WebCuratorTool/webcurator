@@ -1,5 +1,5 @@
 $gutter: 1rem; //for primeflex grid system
+@use 'main.scss';
 @use "tailwindcss";
 @use 'primeicons/primeicons.css';
 @use '@/assets/layout/layout.scss';
-@use 'main.css';
