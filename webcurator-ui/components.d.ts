@@ -43,6 +43,7 @@ declare module 'vue' {
     TabView: typeof import('primevue/tabview')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
+    ToggleSwitch: typeof import('primevue/toggleswitch')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
     WctButton: typeof import('./src/components/WctButton.vue')['default']
     WctFormField: typeof import('./src/components/WctFormField.vue')['default']

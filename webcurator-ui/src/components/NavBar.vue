@@ -2,18 +2,14 @@
   <div class="nav-bar">
     <div class="nav-bar-inner w-full">
       <img class="logo" src="@/assets/wct_logo.png" />
-      <div class="flex w-full justify-content-between">
+      <div class="flex w-full justify-between">
         <div class="nav-bar-links">
           <router-link class="nav-bar-link" to="/wct/dashboard">Dashboard</router-link>
           <router-link class="nav-bar-link" to="/wct/targets">Targets</router-link>
         </div>
         <div class="nav-bar-links pr-4">
           <Button label="Logout" @click="logout" />
-          <InputSwitch
-            class="my-auto ml-4"
-            :modelValue="layoutConfig.darkTheme.value"
-            @update:modelValue="onDarkModeChange"
-          />
+          <ToggleSwitch class="my-auto ml-4" :modelValue="layoutConfig.darkTheme.value" @update:modelValue="onDarkModeChange" />
         </div>
       </div>
     </div>
@@ -21,39 +17,31 @@
 </template>
 
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout'
-import { useUserProfileStore } from '@/stores/users'
-import { useLoginStore } from '@/utils/rest.api'
-import { usePrimeVue } from 'primevue/config'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { useLayout } from '@/layout/composables/layout';
+import { useUserProfileStore } from '@/stores/users';
+import { useLoginStore } from '@/utils/rest.api';
+import { toggleThemeMode } from '@/utils/themes';
+import { useRouter } from 'vue-router';
 
-const loginStore = useLoginStore()
+const router = useRouter();
 
-const { layoutConfig } = useLayout()
-const $primevue = usePrimeVue()
+const loginStore = useLoginStore();
 
-const token = useUserProfileStore()
+const { layoutConfig } = useLayout();
+
+const token = useUserProfileStore();
 const logout = () => {
-  loginStore.logout()
-  router.push("/wct")
-}
+  loginStore.logout();
+  router.push('/wct');
+};
 
 const onDarkModeChange = (value: any) => {
-  const newThemeName = value
-    ? layoutConfig.theme.value.replace('light', 'dark')
-    : layoutConfig.theme.value.replace('dark', 'light')
-
-  layoutConfig.darkTheme.value = value
-  onChangeTheme(newThemeName, value)
-}
-
-const onChangeTheme = (theme: string, mode: any) => {
-  $primevue.changeTheme(layoutConfig.theme.value, theme, 'theme-css', () => {
-    layoutConfig.theme.value = theme
-    layoutConfig.darkTheme.value = mode
-  })
-}
+  if (value) {
+    toggleThemeMode('dark');
+  } else {
+    toggleThemeMode('light');
+  }
+};
 </script>
 <style scoped>
 .nav-bar {
