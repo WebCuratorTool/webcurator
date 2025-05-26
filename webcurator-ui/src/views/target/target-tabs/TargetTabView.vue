@@ -59,7 +59,7 @@ const navigateBack = () => {
     <Loading v-if="loading" />
     <Tabs v-else value="0">
       <TabList>
-        <Tab value="0">Genaral</Tab>
+        <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>
         <Tab value="2">Profile</Tab>
         <Tab value="3">Harvests</Tab>

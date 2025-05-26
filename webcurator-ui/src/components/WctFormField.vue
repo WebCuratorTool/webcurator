@@ -1,31 +1,41 @@
-<template>
-    <div class="grid mb-4">
-        <div :class="checkbox ? 'col-4' : 'col-2'" style="padding: 0.5rem; text-align: left;">
-            <label>{{ label }}:</label>
-        </div>
-        <div :class="checkbox ? 'col' : 'col-10'"  style="padding: 0.5rem;">
-            <slot></slot>
-        </div>
-    </div>
-</template>
-
 <script setup lang="ts">
 defineProps<{
-    label: string,
-    checkbox?: boolean
-}>()
+  label: string;
+  checkbox?: boolean;
+  inputId?: string;
+}>();
 </script>
-
-<style>
-.col-2, .col-10{
-    padding: 15px;
+<template>
+  <div class="flex items-start justify-start gap-2 w-full">
+    <div class="wct-form-col-left">
+      <label :for="inputId">{{ label }}:</label>
+    </div>
+    <div class="wct-form-col-right">
+      <Fluid>
+        <slot></slot>
+      </Fluid>
+    </div>
+  </div>
+</template>
+<style lang="scss">
+.wct-form-field {
+  padding: 0.5rem;
+  text-align: left;
+}
+.wct-form-col-left {
+  @extend .wct-form-field;
+  width: 20%;
+}
+.wct-form-col-right {
+  @extend .wct-form-field;
+  width: 80%;
 }
 
-label{
-    width: 100%;
-    display: inline-block;
-    position: relative;
-    text-align: left;
-    margin-right: 0;
-}
+// label {
+//   width: 100%;
+//   display: inline-block;
+//   position: relative;
+//   text-align: left;
+//   margin-right: 0;
+// }
 </style>
