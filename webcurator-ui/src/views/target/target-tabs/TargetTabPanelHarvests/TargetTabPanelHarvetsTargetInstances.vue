@@ -1,46 +1,49 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { formatDatetime } from '@/utils/helper';
-import { useRoute } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 import Loading from '@/components/Loading.vue';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 
 const rest: UseFetchApis = useFetch();
 
-const route = useRoute()
-const targetId = route.params.id as string
+const route = useRoute();
+const targetId = route.params.id as string;
 
 const targetInstances = ref();
 const loading = ref(true);
 const emptyMessage = ref('');
 
 const props = defineProps<{
-  header: string
-  type: string
-  targetInstanceStates: {[key: string]: string}
-}>()
+  header: string;
+  type: string;
+  targetInstanceStates: { [key: string]: string };
+}>();
 
 const fetchTargetInstances = () => {
   loading.value = true;
 
   const now = new Date();
   const searchParams = {
-    filter: {        
+    filter: {
       targetId: targetId,
       to: props.type == 'latest' ? now : null,
       from: props.type == 'upcoming' ? now : null
     },
-    limit: props.type == 'latest' ? 5 : 15,
-  }
+    limit: props.type == 'latest' ? 5 : 15
+  };
 
-  rest.post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
+  rest
+    .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
     .then((data: any) => {
       targetInstances.value = data.targetInstances;
-    }).catch((err: any) => {
+    })
+    .catch((err: any) => {
       console.log(err.message);
-    }).finally(() => {
+    })
+    .finally(() => {
       if (targetInstances.value && targetInstances.value.length == 0) {
         if (props.type == 'latest') {
           emptyMessage.value = 'No recent target instances';
@@ -50,22 +53,21 @@ const fetchTargetInstances = () => {
       }
       loading.value = false;
     });
-}
+};
 
 fetchTargetInstances();
-
 </script>
 
 <template>
   <Loading v-if="loading" />
-  <div v-else>
-    <h4 class="mt-4">{{ header }}</h4>
+  <div v-else class="mt-4">
+    <h4>{{ header }}</h4>
     <WctTabViewPanel>
-      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value=targetInstances :loading=loading>
+      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="loading">
         <Column field="id" header="Id" dataType="numeric" style="min-width: 2rem" />
         <Column field="name" header="Name" />
         <Column field="state" header="State">
-          <template #body="{ data }"> 
+          <template #body="{ data }">
             {{ targetInstanceStates[data.state] }}
           </template>
         </Column>
