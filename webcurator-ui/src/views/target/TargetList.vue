@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PageHeader from '@/components/PageHeader.vue';
+import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import WctTopLabel from '@/components/WctTopLabel.vue';
 import { useAgenciesStore } from '@/stores/agencies';
 import { formatTargetState, showTargetAction, stateList } from '@/stores/target';
@@ -95,7 +96,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           </div>
         </WctTopLabel>
       </div>
-      <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="targetListData.search()"></Button>
+      <WctPrimaryButton label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="targetListData.search()" />
     </div>
 
     <div class="flex items-center justify-start gap-2" style="width: 70%">
@@ -152,7 +153,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           <h5>Results</h5> -->
         <div class="flex items-center justify-between gap-2">
           <span class="text-xl text-900 font-bold">Results</span>
-          <Button severity="primary" @click="createNew">Create new</Button>
+          <WctPrimaryButton class="wct-secondary-button" @click="createNew" label="Create new" />
         </div>
       </template>
       <template #empty> No targets found. </template>
@@ -194,7 +195,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
   <!-- </div> -->
 </template>
 
-<style>
+<style lang="scss" scoped>
 #grid-search label {
   text-align: left;
 }

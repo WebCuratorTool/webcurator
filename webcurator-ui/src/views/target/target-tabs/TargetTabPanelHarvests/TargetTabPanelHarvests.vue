@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import { useTargetHarvestsDTO } from '@/stores/target';
 import { useTargetInstanceStateStore } from '@/stores/targetInstance';
 import { formatDatetime } from '@/utils/helper';
+import Button from 'primevue/button';
 import { useDialog } from 'primevue/usedialog';
 import { defineAsyncComponent, onMounted, ref } from 'vue';
-
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import Button from 'primevue/button';
 import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
 
 const scheduleModal = useDialog();
@@ -53,7 +53,7 @@ onMounted(async () => {
 <template>
   <div>
     <div v-if="editing" class="flex justify-end">
-      <Button label="Harvest now" />
+      <WctPrimaryButton label="Harvest now" />
     </div>
 
     <div class="flex items-center justify-between mt-6">

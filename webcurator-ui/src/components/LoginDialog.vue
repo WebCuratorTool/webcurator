@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { useLoginStore } from '@/utils/rest.api';
 
 const loginStore = useLoginStore();
@@ -26,7 +27,7 @@ const login = () => {
 
       <InputText v-model="loginStore.password" placeholder="password" id="password" class="w-full" autocomplete="off" type="password" />
 
-      <Button label="Sign In" class="mt-4 w-full" @click="login"></Button>
+      <WctPrimaryButton label="Sign In" class="mt-4 w-full" @click="login" fluid />
 
       <Divider />
       <span>version: 3.2.1</span>

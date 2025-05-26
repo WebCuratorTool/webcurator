@@ -23,29 +23,21 @@ const onClick = (event: any) => {
 </script>
 
 <template>
-  <!-- <Button @click="onClick">
-    <div :class="customizedClass">
-      <span>{{ label }}</span>
-      <slot></slot>
-    </div>
-  </Button> -->
-
   <Button :icon="icon" :label="label" :iconPos="iconPos" @click="onClick" class="wct-secondary-button" />
 </template>
 
-<style>
+<style scoped>
 .wct-secondary-button {
   border: 1px solid #3f51b5;
-  background-color: transparent;
-  color: #3f51b5;
-  border-radius: 0;
+  background: #3f51b5;
+  color: white;
   /* padding: 1em; */
 }
 
 .wct-secondary-button:hover {
   border: 1px solid #6f7699;
-  background-color: transparent;
-  color: #6f7699;
+  background: #425cde;
+  color: white;
   /* padding: 1em; */
 }
 </style>

@@ -54,6 +54,7 @@ declare module 'vue' {
     Toolbar: typeof import('primevue/toolbar')['default']
     WctButton: typeof import('./src/components/WctButton.vue')['default']
     WctFormField: typeof import('./src/components/WctFormField.vue')['default']
+    WctPrimaryButton: typeof import('./src/components/WctPrimaryButton.vue')['default']
     WctSearchField: typeof import('./src/components/WctSearchField.vue')['default']
     WctTabViewPanel: typeof import('./src/components/WctTabViewPanel.vue')['default']
     WctTopLabel: typeof import('./src/components/WctTopLabel.vue')['default']

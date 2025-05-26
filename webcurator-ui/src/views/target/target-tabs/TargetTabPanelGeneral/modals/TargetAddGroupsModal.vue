@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { useTargetGropusDTO } from '@/stores/target';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { ref } from 'vue';
@@ -57,7 +58,7 @@ fetch();
     <h5>Search</h5>
     <div class="flex mb-4">
       <InputText v-model="searchTerm" type="text" class="mr-4" />
-      <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
+      <WctPrimaryButton label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
     </div>
 
     <Divider type="dotted" />

@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import Loading from '@/components/Loading.vue';
+import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 import { formatDatetime } from '@/utils/helper';
 import { useRouter } from 'vue-router';
-
-import Loading from '@/components/Loading.vue';
-
 import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
 import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
@@ -39,11 +38,13 @@ const navigateBack = () => {
           <Button icon="pi pi-arrow-left" @click="navigateBack" text />
         </template>
         <template v-if="!editing" #end>
-          <Button icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
+          <WctPrimaryButton icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
         </template>
         <template v-else #end>
-          <Button icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
-          <Button class="ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+          <div class="flex gap-2">
+            <WctPrimaryButton icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
+            <WctPrimaryButton class="ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+          </div>
         </template>
       </Toolbar>
 
