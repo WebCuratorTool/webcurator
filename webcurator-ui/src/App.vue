@@ -24,7 +24,7 @@ togglePreset('violet');
   </div>
 </template>
 
-<style scoped>
+<style>
 .app {
   height: 100vh;
   width: 100%;
@@ -33,4 +33,8 @@ togglePreset('violet');
   position: fixed;
   z-index: 9999;
 }
+
+/* .main-container .p-button {
+  background: #1f5384;
+} */
 </style>

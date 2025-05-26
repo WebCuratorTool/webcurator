@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
-import Material from '@primeuix/themes/material';
+import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import DialogService from 'primevue/dialogservice';
@@ -19,7 +19,7 @@ app.use(router);
 // app.use(PrimeVue, { unstyled: false });
 app.use(PrimeVue, {
   // ripple: true,
-  theme: { preset: Material, options: { darkModeSelector: '.app-dark' } }
+  theme: { preset: Aura, options: { darkModeSelector: '.app-dark' } }
 });
 app.use(ConfirmationService);
 app.use(ToastService);

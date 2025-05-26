@@ -29,7 +29,7 @@ const showAddGroups = () => {
   </div>
   <WctTabViewPanel>
     <div v-if="targetGroups.targetGroups.length > 0" class="flex flex-wrap gap-2">
-      <Chip v-for="group in targetGroups.targetGroups" class="px-2" :key="group.id">
+      <Chip v-for="group in targetGroups.targetGroups" :key="group.id" style="padding: 0 4px">
         <span class="p-2 m-0">{{ group.name }}</span>
         <Button v-if="editing" class="p-0 m-0" icon="pi pi-times-circle" style="width: 2rem" link @click="targetGroups.removeGroup(group.id)" />
       </Chip>
