@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Loading from '@/components/Loading.vue';
 import WctFormField from '@/components/WctFormField.vue';
-import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { useTargetGeneralDTO, useTargetHarvestsDTO } from '@/stores/target';
 import { createCronExpression, createCustomCronExpression, dates, days, getCronMonths, getMonthGroups, getNextScheduledTimes, parseCron } from '@/utils/cronParser';
 import { formatDate, formatTime } from '@/utils/helper';
@@ -260,7 +259,7 @@ fetch();
       </div>
 
       <div v-if="editing" class="flex items-center justify-end w-full mt-4">
-        <WctPrimaryButton label="Save" @click="saveSchedule" />
+        <Button class="wct-primary-button" label="Save" @click="saveSchedule" />
         <Button label="Cancel" text class="ml-2" @click="closeDialog" />
       </div>
     </div>

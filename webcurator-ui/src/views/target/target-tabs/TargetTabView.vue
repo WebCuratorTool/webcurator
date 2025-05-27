@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Loading from '@/components/Loading.vue';
-import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 import { formatDatetime } from '@/utils/helper';
 import { useRouter } from 'vue-router';
@@ -38,12 +37,12 @@ const navigateBack = () => {
           <Button icon="pi pi-arrow-left" @click="navigateBack" text />
         </template>
         <template v-if="!editing" #end>
-          <WctPrimaryButton icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
+          <Button class="wct-primary-button" icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
         </template>
         <template v-else #end>
           <div class="flex gap-2">
-            <WctPrimaryButton icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
-            <WctPrimaryButton class="ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+            <Button class="wct-primary-button" icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
+            <Button class="wct-primary-button ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
           </div>
         </template>
       </Toolbar>
@@ -58,7 +57,7 @@ const navigateBack = () => {
   </div>
   <div class="main-content">
     <Loading v-if="loading" />
-    <Tabs v-else value="0">
+    <Tabs v-else value="0" class="tabview-custom">
       <TabList>
         <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>
@@ -67,7 +66,7 @@ const navigateBack = () => {
         <Tab value="4">Annotations</Tab>
         <Tab value="5">Access</Tab>
       </TabList>
-      <TabPanels class="tabview-custom">
+      <TabPanels>
         <TabPanel value="0">
           <TargetTabPanelGeneral :editing="editing" />
         </TabPanel>
@@ -91,9 +90,4 @@ const navigateBack = () => {
   </div>
 </template>
 
-<style>
-.tabview-custom {
-  width: 80vw;
-  min-height: 60vh;
-}
-</style>
+<style></style>

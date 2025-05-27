@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import { useTargetHarvestsDTO } from '@/stores/target';
 import { useTargetInstanceStateStore } from '@/stores/targetInstance';
@@ -53,7 +52,7 @@ onMounted(async () => {
 <template>
   <div>
     <div v-if="editing" class="flex justify-end">
-      <WctPrimaryButton label="Harvest now" />
+      <Button class="wct-primary-button" label="Harvest now" />
     </div>
 
     <div class="flex items-center justify-between mt-6">

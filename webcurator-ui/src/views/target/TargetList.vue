@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import PageHeader from '@/components/PageHeader.vue';
-import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import WctTopLabel from '@/components/WctTopLabel.vue';
 import { useAgenciesStore } from '@/stores/agencies';
 import { formatTargetState, showTargetAction, stateList } from '@/stores/target';
@@ -72,7 +71,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
   </div>
   <div class="flex flex-col justify-start w-full gap-4">
     <h5>Query</h5>
-    <div class="flex items-end justify-between w-full gap-2">
+    <div class="flex items-end justify-between w-full gap-2 pr-4">
       <div class="flex items-center justify-start w-full gap-4" id="grid-search">
         <WctTopLabel label="Target ID">
           <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" />
@@ -90,13 +89,13 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           <InputText v-model="targetListData.searchTerms.targetMemberOf" type="text" />
         </WctTopLabel>
         <WctTopLabel label="Non-Display Only">
-          <div class="flex items-center gap-2 border" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
+          <div class="flex items-center justify-center gap-4 border" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
             <label for="none-display-only">Option</label>
             <Checkbox v-model="targetListData.searchTerms.noneDisplayOnly" :binary="true" inputId="none-display-only" />
           </div>
         </WctTopLabel>
       </div>
-      <WctPrimaryButton label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="targetListData.search()" />
+      <Button class="wct-primary-button" label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="targetListData.search()" />
     </div>
 
     <div class="flex items-center justify-start gap-2" style="width: 70%">
@@ -147,13 +146,17 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
       resizableColumns
       columnResizeMode="fit"
       showGridlines
+      :pt="{
+        // Use 'pcPaginator' to target the internal Paginator component to align to the right side
+        pcPaginator: {
+          root: '!flex !justify-end !items-center !p-4 w-full'
+        }
+      }"
     >
       <template #header>
-        <!-- <div class="flex justify-content-between flex-column sm:flex-row">
-          <h5>Results</h5> -->
-        <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center justify-between gap-2 p-2">
           <span class="text-xl text-900 font-bold">Results</span>
-          <WctPrimaryButton class="wct-secondary-button" @click="createNew" label="Create new" />
+          <Button class="wct-primary-button" @click="createNew" label="Create new" />
         </div>
       </template>
       <template #empty> No targets found. </template>

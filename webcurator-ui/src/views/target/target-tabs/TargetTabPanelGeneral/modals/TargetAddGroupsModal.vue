@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import WctPrimaryButton from '@/components/WctPrimaryButton.vue';
 import { useTargetGropusDTO } from '@/stores/target';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { ref } from 'vue';
@@ -58,7 +57,7 @@ fetch();
     <h5>Search</h5>
     <div class="flex mb-4">
       <InputText v-model="searchTerm" type="text" class="mr-4" />
-      <WctPrimaryButton label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
+      <Button class="wct-primary-button" label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
     </div>
 
     <Divider type="dotted" />
@@ -72,7 +71,22 @@ fetch();
 
     <Divider type="dotted" />
 
-    <DataTable class="w-full" :value="filteredGroups" size="small" paginator :rows="10" scrollHeight="100%" :loading="loading" pt:wrapper:class="h-26rem">
+    <DataTable
+      class="w-full"
+      :value="filteredGroups"
+      size="small"
+      paginator
+      :rows="10"
+      scrollHeight="100%"
+      :loading="loading"
+      pt:wrapper:class="h-26rem"
+      :pt="{
+        // Use 'pcPaginator' to target the internal Paginator component to align to the right side
+        pcPaginator: {
+          root: '!flex !justify-end !items-center !p-4 w-full'
+        }
+      }"
+    >
       <Column field="name" header="Name" />
       <Column field="state" header="Status">
         <template #body="{ data }">
@@ -82,7 +96,7 @@ fetch();
       <Column field="agency" header="Agency" sortable />
       <Column>
         <template #body="{ data }">
-          <div class="flex justify-content-center">
+          <div class="flex justify-center">
             <i v-if="isGroupAdded(data.id)" class="pi pi-check" />
             <Button v-else class="p-0 m-0" label="Add" text @click="targetGroups.addGroup(data)" />
           </div>
