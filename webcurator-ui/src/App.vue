@@ -8,7 +8,7 @@ import { togglePreset, toggleThemeMode } from './utils/themes';
 
 const loginStore = useLoginStore();
 toggleThemeMode('light');
-togglePreset('violet');
+togglePreset('indigo');
 </script>
 
 <template>
