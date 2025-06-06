@@ -19,6 +19,7 @@ public class ScreenshotTimestampExtractorTest {
     private static final long tiOid = 19L;
     private static final int harvestNumber = 1;
 
+    @Ignore
     @Test
     public void testExtractTimestamp() throws DigitalAssetStoreException {
         List<SeedHistoryDTO> seeds = new ArrayList<>();

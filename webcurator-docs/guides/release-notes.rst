@@ -14,6 +14,21 @@ Curator Tool System Administrator Guide*, *Web Curator Tool Developer Guide*,
 accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
+
+3.2.1
+=====
+
+Patch release, August 2024:
+
+- Pywb Individual Collections feature
+
+  - Documentation added under :doc:`System Administrator Guide <system-administrator-guide>`.
+
+- Bug fixes
+
+  - Improved the performance of checking the state of screenshots and indexing.
+  - Added optional info logging for tracking user sessions.
+
 3.2.0
 =====
 
