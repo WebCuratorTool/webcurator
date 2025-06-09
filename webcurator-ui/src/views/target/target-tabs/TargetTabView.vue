@@ -90,4 +90,9 @@ const navigateBack = () => {
   </div>
 </template>
 
-<style></style>
+<style scoped>
+::v-deep .p-badge {
+  outline-style: none !important;
+}
+</style>
+
