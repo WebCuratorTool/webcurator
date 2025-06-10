@@ -192,8 +192,8 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
     }
 
     /**
-     * Execute search of Target Instances in 'Running' or 'Paused' states. Add any
-     * active job names to List for Harvest Agent attempting recovery.
+     * Execute search of Target Instances in active states (i.e. that might still have associated
+     * crawl jobs). Add any active job names to List for Harvest Agent attempting recovery.
      *
      * @param aStatus harvest agent scheme/host/port/service requesting attempting recovery
      */

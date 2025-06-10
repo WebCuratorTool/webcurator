@@ -18,6 +18,8 @@ package org.webcurator.core.harvester.agent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.archive.crawler.framework.CrawlController;
+import org.netarchivesuite.heritrix3wrapper.Heritrix3Wrapper;
 import org.netarchivesuite.heritrix3wrapper.ScriptResult;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
@@ -191,6 +193,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                             // get status of h3 job
                             String h3JobState = h3JobNames.get(jobName);
 
+                            // FIXME Why are we filtering on these states specifically? (Cf. CrawlController.State in Heritrix)
                             if (h3JobState != null && (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED"))) {
                                 // Heritrix was still running while we were down: simply load our datastructures with the latest status info from Heritrix
                                 log.info("Harvest Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
