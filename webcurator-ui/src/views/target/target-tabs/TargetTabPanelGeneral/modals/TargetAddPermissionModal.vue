@@ -141,7 +141,15 @@ fetch();
       paginator :rows="10" 
       scrollHeight="100%" 
       :loading="loading" 
-      pt:wrapper:class="h-26rem"
+      :pt="{
+        // Use 'pcPaginator' to target the internal Paginator component to align to the right side
+        pcPaginator: {
+          root: '!flex !justify-end !items-center !p-4 w-full'
+        },
+        wrapper: {
+          root: 'h-26rem'
+        }
+      }"
       @rowExpand="setExpandedRow"
     >
       <Column expander style="width: 5rem" />
@@ -166,10 +174,10 @@ fetch();
       </Column>
       <Column>
         <template #body="slotProps">
-          <div class="flex justify-content-center">
-            <div v-if="isAuthAdded(slotProps.data.permissionId)" class="flex align-items-center">
+          <div class="flex justify-center">
+            <div v-if="isAuthAdded(slotProps.data.permissionId)" class="flex items-center">
               <i class="pi pi-check" />
-              <Button icon="pi pi-trash" text v-tooltip.bottom="'Remove from Seed'" @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== data.permissionId)" />
+              <Button icon="pi pi-trash" text v-tooltip.bottom="'Remove from Seed'" @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== slotProps.data.permissionId)" />
             </div>
             <Button
               v-else
@@ -196,21 +204,21 @@ fetch();
       <template #expansion>
         <Loading v-if="loadingPermission" />
         <div v-else class="p-4">
-          <div class="grid">
-            <p class="col-4 p-2 font-semibold">Status:</p>
-            <p class="col-8 p-2">{{ permissionStatuses[expandedPermission.status] }}</p>
+          <div class="grid grid-cols-5">
+            <p class="p-2 font-semibold">Status:</p>
+            <p class="col-span-4 p-2">{{ permissionStatuses[expandedPermission.status] }}</p>
           </div>
-          <div class="grid">
-            <p class="col-4 p-2 font-semibold">Auth Agency Response:</p>
-            <p class="col-8 p-2">{{ permissionStatuses[expandedPermission.authResponse] }}</p>
+          <div class="grid grid-cols-5">
+            <p class="p-2 font-semibold">Auth Agency Response:</p>
+            <p class="col-span-4 p-2">{{ permissionStatuses[expandedPermission.authResponse] }}</p>
           </div>
-          <div class="grid">
-            <p class="col-4 p-2 font-semibold">Quick Pick:</p>
-            <p class="col-8 p-2">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
+          <div class="grid grid-cols-5">
+            <p class="p-2 font-semibold">Quick Pick:</p>
+            <p class="col-span-4 p-2">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
           </div>
-          <div class="grid">
-            <p class="col-4 p-2 font-semibold">Display Name:</p>
-            <p class="col-8 p-2">{{ expandedPermission.displayName }}</p>
+          <div class="grid grid-cols-5">
+            <p class="p-2 font-semibold">Display Name:</p>
+            <p class="col-span-4 p-2">{{ expandedPermission.displayName }}</p>
           </div>
           <div v-if="expandedPermission.exclusions.length > 0">
             <p class="font-semibold">Exclusions</p>
