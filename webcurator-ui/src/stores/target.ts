@@ -1,5 +1,5 @@
 import { getPresentationUserName, useUserProfileStore } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSchedule, type TargetSeeds } from '@/types/target';
+import { type Target, type TargetAccess, type TargetAnnotations, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSchedule, type TargetSeeds } from '@/types/target';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -22,6 +22,7 @@ export const initNewTarget = () => {
   useTargetSeedsDTO().initData();
   useNextStateStore().initData();
   useTargetAccessDTO().initData();
+  useTargetAnnotationsDTO().initData();
 };
 
 export const setTarget = (target: Target) => {
@@ -32,6 +33,7 @@ export const setTarget = (target: Target) => {
   target.profile != null && useTargetProfileDTO().setData(target.profile);
   useTargetSeedsDTO().setData(target.seeds);
   useTargetAccessDTO().setData(target.access);
+  useTargetAnnotationsDTO().setData(target.annotations)
 };
 
 export const formatTargetState = (state: number | any) => {
@@ -374,6 +376,21 @@ export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
   const getData = () => targetAccess.value;
 
   return { targetAccess, initData, setData, getData };
+});
+
+export const useTargetAnnotationsDTO = defineStore('TargetAnnotationsDTO', () => {
+  const targetAnnotations = ref({} as TargetAnnotations);
+  
+  const initData = () => {
+      targetAnnotations.value = {} as TargetAnnotations;
+  }
+
+  const setData = (data: TargetAnnotations) => {
+      targetAnnotations.value = data;
+  }
+  const getData = () => targetAnnotations.value;
+
+  return { targetAnnotations, initData, setData, getData }
 });
 
 export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
