@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useTargetDescriptionDTO } from '@/stores/target';
+import { ref } from 'vue';
 
-import WctFormField from '@/components/WctFormField.vue'
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
+import WctFormField from '@/components/WctFormField.vue';
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 
 defineProps<{
-    editing: boolean
-}>()
+  editing: boolean;
+}>();
 
 const targetDescription = ref(useTargetDescriptionDTO().targetDescription);
 
 const types = ref([
-    "",
-    "Collection",
-    "Dataset",
-    "Event",
-    "Image",
-    "Interactive Resource",
-    "Moving Image",
-    "Physical Object",
-    "Service",
-    "Software",
-    "Sound",
-    "Still Image",
-    "Text",
-    "Serial",
-    "eSerial"
-])
-
+  '',
+  'Collection',
+  'Dataset',
+  'Event',
+  'Image',
+  'Interactive Resource',
+  'Moving Image',
+  'Physical Object',
+  'Service',
+  'Software',
+  'Sound',
+  'Still Image',
+  'Text',
+  'Serial',
+  'eSerial'
+]);
 </script>
 
 <template>
@@ -36,7 +35,7 @@ const types = ref([
   <WctTabViewPanel>
     <WctFormField label="Identifier">
       <InputText v-if="editing" v-model="targetDescription.identifier" :disabled="!editing" />
-      <p v-else class="font-semibold">{{ targetDescription.identifier}}</p>
+      <p v-else class="font-semibold">{{ targetDescription.identifier }}</p>
     </WctFormField>
     <WctFormField label="Description">
       <Textarea v-if="editing" v-model="targetDescription.description" :disabled="!editing" />
@@ -48,23 +47,19 @@ const types = ref([
     </WctFormField>
     <WctFormField label="Creator">
       <InputText v-if="editing" v-model="targetDescription.creator" :disabled="!editing" />
-      <p v-else class="font-semibold">{{ targetDescription.creator}}</p>
+      <p v-else class="font-semibold">{{ targetDescription.creator }}</p>
     </WctFormField>
     <WctFormField label="Contributor">
       <InputText v-if="editing" v-model="targetDescription.contributor" :disabled="!editing" />
       <p v-else class="font-semibold">{{ targetDescription.contributor }}</p>
     </WctFormField>
     <WctFormField label="Type">
-      <Dropdown v-if="editing"
-        v-model="targetDescription.type"
-        :options="types"
-        :disabled="!editing"
-      />
+      <Select v-if="editing" v-model="targetDescription.type" :options="types" :disabled="!editing" />
       <p v-else class="font-semibold">{{ targetDescription.type }}</p>
     </WctFormField>
     <WctFormField label="Format">
       <InputText v-if="editing" v-model="targetDescription.format" :disabled="!editing" />
-      <p v-else class="font-semibold">{{ targetDescription.format}}</p>
+      <p v-else class="font-semibold">{{ targetDescription.format }}</p>
     </WctFormField>
     <WctFormField label="Source">
       <InputText v-if="editing" v-model="targetDescription.source" :disabled="!editing" />
@@ -93,6 +88,4 @@ const types = ref([
   </WctTabViewPanel>
 </template>
 
-<style>
-
-</style>
+<style></style>

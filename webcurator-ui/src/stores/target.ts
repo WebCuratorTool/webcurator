@@ -1,415 +1,405 @@
-import { ref } from 'vue';
-import { defineStore } from 'pinia';
-import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
+import { getPresentationUserName, useUserProfileStore } from '@/stores/users';
 import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSchedule, type TargetSeeds } from '@/types/target';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
-const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
-const TARGET_STATE_NOMINATED = { name: "Nominated", code: 3 }
-const TARGET_STATE_REJECTED = { name: "Rejected", code: 4 }
-const TARGET_STATE_APPROVED = { name: "Approved", code: 5 }
-const TARGET_STATE_CANCELLED = { name: "Cancelled", code: 6 }
-const TARGET_STATE_COMPLETED = { name: "Completed", code: 7 }
+const TARGET_STATE_PENDING = { name: 'Pending', code: 1 };
+const TARGET_STATE_REINSTATED = { name: 'Reinstated', code: 2 };
+const TARGET_STATE_NOMINATED = { name: 'Nominated', code: 3 };
+const TARGET_STATE_REJECTED = { name: 'Rejected', code: 4 };
+const TARGET_STATE_APPROVED = { name: 'Approved', code: 5 };
+const TARGET_STATE_CANCELLED = { name: 'Cancelled', code: 6 };
+const TARGET_STATE_COMPLETED = { name: 'Completed', code: 7 };
 
-export const stateList = [
-    TARGET_STATE_PENDING,
-    TARGET_STATE_REINSTATED,
-    TARGET_STATE_NOMINATED,
-    TARGET_STATE_REJECTED,
-    TARGET_STATE_APPROVED,
-    TARGET_STATE_CANCELLED,
-    TARGET_STATE_COMPLETED,
-]
+export const stateList = [TARGET_STATE_PENDING, TARGET_STATE_REINSTATED, TARGET_STATE_NOMINATED, TARGET_STATE_REJECTED, TARGET_STATE_APPROVED, TARGET_STATE_CANCELLED, TARGET_STATE_COMPLETED];
 
 export const initNewTarget = () => {
-    useTargetDescriptionDTO().initData();
-    useTargetGeneralDTO().initData();
-    useTargetGropusDTO().initData();
-    useTargetHarvestsDTO().initData();
-    useTargetProfileDTO().initData();
-    useTargetSeedsDTO().initData();
-    useNextStateStore().initData();
-    useTargetAccessDTO().initData();
-}
+  useTargetDescriptionDTO().initData();
+  useTargetGeneralDTO().initData();
+  useTargetGropusDTO().initData();
+  useTargetHarvestsDTO().initData();
+  useTargetProfileDTO().initData();
+  useTargetSeedsDTO().initData();
+  useNextStateStore().initData();
+  useTargetAccessDTO().initData();
+};
 
-export const setTarget = (target: Target) => {         
-    useTargetDescriptionDTO().setData(target.description);
-    useTargetGeneralDTO().setData(target.general);
-    useTargetGropusDTO().setData(target.groups);
-    useTargetHarvestsDTO().setData(target.schedule);
-    target.profile != null && useTargetProfileDTO().setData(target.profile);
-    useTargetSeedsDTO().setData(target.seeds);
-    useTargetAccessDTO().setData(target.access);
-}
+export const setTarget = (target: Target) => {
+  useTargetDescriptionDTO().setData(target.description);
+  useTargetGeneralDTO().setData(target.general);
+  useTargetGropusDTO().setData(target.groups);
+  useTargetHarvestsDTO().setData(target.schedule);
+  target.profile != null && useTargetProfileDTO().setData(target.profile);
+  useTargetSeedsDTO().setData(target.seeds);
+  useTargetAccessDTO().setData(target.access);
+};
 
 export const formatTargetState = (state: number | any) => {
-    const placeHolder = 'Select a state';
+  const placeHolder = 'Select a state';
 
-    if (typeof state === 'undefined') {
-        return placeHolder;
-    }
+  if (typeof state === 'undefined') {
+    return placeHolder;
+  }
 
-    if (typeof state === 'number') {
-        if (state > 0 && state <= stateList.length) {
-            return stateList[state - 1].name;
-        } else {
-            return placeHolder;
-        }
+  if (typeof state === 'number') {
+    if (state > 0 && state <= stateList.length) {
+      return stateList[state - 1].name;
     } else {
-        return state.name;
+      return placeHolder;
     }
+  } else {
+    return state.name;
+  }
 };
 
 export const useNextStateStore = defineStore('TargetNextStateList', () => {
-    const nextStateList = ref()
+  const nextStateList = ref();
 
-    const initData = () => {
-        nextStateList.value = [
-            {
-                label: 'Original',
-                code: 'original',
-                items: [TARGET_STATE_PENDING]
-            },
-            {
-                label: 'Next States',
-                code: 'next',
-                items: [TARGET_STATE_NOMINATED, TARGET_STATE_APPROVED, TARGET_STATE_CANCELLED]
-            }
-        ]
+  const initData = () => {
+    nextStateList.value = [
+      {
+        name: 'Original',
+        code: 'original',
+        items: [TARGET_STATE_PENDING]
+      },
+      {
+        name: 'Next States',
+        code: 'next',
+        items: [TARGET_STATE_NOMINATED, TARGET_STATE_APPROVED, TARGET_STATE_CANCELLED]
+      }
+    ];
+  };
+
+  const setData = (originalState: any, data: any) => {
+    const states = [];
+    for (let i = 0; i < data.length; i++) {
+      states.push(stateList[data[i] - 1]);
     }
+    nextStateList.value = [
+      {
+        name: 'Original',
+        code: 'original',
+        items: [originalState]
+      },
+      {
+        name: 'Next States',
+        code: 'next',
+        items: states
+      }
+    ];
+  };
 
-    const setData = (originalState: any, data: any) => {
-        const states = [];
-        for (let i = 0; i < data.length; i++) {
-            states.push(stateList[data[i] - 1]);
-        }
-        nextStateList.value = [
-            {
-                label: 'Original',
-                code: 'original',
-                items: [originalState]
-            },
-            {
-                label: 'Next States',
-                code: 'next',
-                items: states
-            }
-        ]
-    }
-
-    return { nextStateList, initData, setData };
+  return { nextStateList, initData, setData };
 });
 
 export const showTargetAction = (target: any, actionName: string) => {
-    if (!target || !actionName) {
-        return false;
-    }
+  if (!target || !actionName) {
+    return false;
+  }
 
-    //TODO: privilege applied
+  //TODO: privilege applied
 
-    if (actionName === 'view') {
-        return true;
-    }
+  if (actionName === 'view') {
+    return true;
+  }
 
-    if (actionName === 'edit') {
-        return true;
-    }
+  if (actionName === 'edit') {
+    return true;
+  }
 
-    if (actionName === 'new' || actionName === 'copy') {
-        return true;
-    }
+  if (actionName === 'new' || actionName === 'copy') {
+    return true;
+  }
 
-    if (actionName === 'delete') {
-        return (target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code);
-    }
+  if (actionName === 'delete') {
+    return target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code;
+  }
 };
 
 export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
-    const id = ref();
-    const name = ref("");
-    const creationDate = ref();
-    const description = ref("");
-    const referenceNumber = ref("");
-    const runOnApproval = ref(false);
-    const automatedQA = ref(false);
-    const selectedUser = ref();
-    const selectedState = ref(TARGET_STATE_PENDING);
-    const autoPrune = ref(false);
-    const referenceCrawl = ref(false);
-    const requestToArchivists = ref("");
-    const nextStates = ref([]);
+  const id = ref();
+  const name = ref('');
+  const creationDate = ref();
+  const description = ref('');
+  const referenceNumber = ref('');
+  const runOnApproval = ref(false);
+  const automatedQA = ref(false);
+  const selectedUser = ref();
+  const selectedState = ref(TARGET_STATE_PENDING);
+  const autoPrune = ref(false);
+  const referenceCrawl = ref(false);
+  const requestToArchivists = ref('');
+  const nextStates = ref([]);
 
-    const userProfile = useUserProfileStore();
+  const userProfile = useUserProfileStore();
 
-    const initData = () => {
-        id.value = undefined;
-        name.value = "";
-        description.value = "";
-        referenceNumber.value = "";
-        runOnApproval.value = false;
-        automatedQA.value = false;
-        selectedUser.value = {
-            name: userProfile.currUserName,
-            code: userProfile.name,
-        };
-        selectedState.value = TARGET_STATE_PENDING;
-        autoPrune.value = false;
-        referenceCrawl.value = false;
-        requestToArchivists.value = "";
-        nextStates.value = [];
-    }
+  const initData = () => {
+    id.value = undefined;
+    name.value = '';
+    description.value = '';
+    referenceNumber.value = '';
+    runOnApproval.value = false;
+    automatedQA.value = false;
+    selectedUser.value = {
+      name: userProfile.currUserName,
+      code: userProfile.name
+    };
+    selectedState.value = TARGET_STATE_PENDING;
+    autoPrune.value = false;
+    referenceCrawl.value = false;
+    requestToArchivists.value = '';
+    nextStates.value = [];
+  };
 
-    const getData = () => {
-        return {
-            id: id.value,
-            name: name.value,
-            description: description.value,
-            referenceNumber: referenceNumber.value,
-            runOnApproval: runOnApproval.value,
-            automatedQA: automatedQA.value,
-            owner: selectedUser.value.code,
-            state: selectedState.value.code,
-            autoPrune: autoPrune.value,
-            referenceCrawl: referenceCrawl.value,
-            requestToArchivists: requestToArchivists.value,
-        }
-    }
+  const getData = () => {
+    return {
+      id: id.value,
+      name: name.value,
+      description: description.value,
+      referenceNumber: referenceNumber.value,
+      runOnApproval: runOnApproval.value,
+      automatedQA: automatedQA.value,
+      owner: selectedUser.value.code,
+      state: selectedState.value.code,
+      autoPrune: autoPrune.value,
+      referenceCrawl: referenceCrawl.value,
+      requestToArchivists: requestToArchivists.value
+    };
+  };
 
-    const setData = (data: any) => {        
-        id.value = data.id;
-        name.value = data.name;
-        creationDate.value = data.creationDate;
-        description.value = data.description;
-        referenceNumber.value = data.referenceNumber;
-        runOnApproval.value = data.runOnApproval;
-        automatedQA.value = data.automatedQA;
-        selectedUser.value = {
-            name: getPresentationUserName(data.owner),
-            code: data.owner,
-        };
-        selectedState.value = {
-            code: data.state,
-            name: formatTargetState(data.state),
-        };
-        autoPrune.value = data.autoPrune;
-        referenceCrawl.value = data.referenceCrawl;
-        requestToArchivists.value = data.requestToArchivists;
+  const setData = (data: any) => {
+    id.value = data.id;
+    name.value = data.name;
+    creationDate.value = data.creationDate;
+    description.value = data.description;
+    referenceNumber.value = data.referenceNumber;
+    runOnApproval.value = data.runOnApproval;
+    automatedQA.value = data.automatedQA;
+    selectedUser.value = {
+      name: getPresentationUserName(data.owner),
+      code: data.owner
+    };
+    selectedState.value = {
+      code: data.state,
+      name: formatTargetState(data.state)
+    };
+    autoPrune.value = data.autoPrune;
+    referenceCrawl.value = data.referenceCrawl;
+    requestToArchivists.value = data.requestToArchivists;
 
-        // const rest: UseFetchApis=useFetch();
-        // rest.get('targets/nextStates/'+data.id).then((rsp:any)=>{
-        //     console.log(rsp);
-        // }).catch((err:any)=>{
+    // const rest: UseFetchApis=useFetch();
+    // rest.get('targets/nextStates/'+data.id).then((rsp:any)=>{
+    //     console.log(rsp);
+    // }).catch((err:any)=>{
 
-        // });
-    }
+    // });
+  };
 
-    return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
+  return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
 });
 
 const profileOverrides = [
-    {
-        id:	"documentLimit",
-        value:	0,
-        enabled: false
-    },
-    {
-        id: "dataLimit",
-        value: 0.0,
-        enabled: false,
-        unit: "B"
-    },
-    {
-        id: "timeLimit",
-        value: 0.0,
-        enabled: false,
-        unit: "SECOND"	
-    },
-    {
-        id: "maxPathDepth",
-        value: 0,
-        enabled: false,
-    },
-    {
-        id: "maxHops",
-        value: 0,
-        enabled: false
-    },
-    {   
-        id: "maxTransitiveHops",
-        value: 0,
-        enabled: false
-    },
-    {
-        id: "ignoreRobots",
-        value: false,
-        enabled: false
-    },
-    {
-        id: "extractJs",
-        value: false,
-        enabled: false
-    },
-    {
-        id: "ignoreCookies",
-        value: false,
-        enabled: false
-    },
-    {
-        id: "blockedUrls",
-        value: [],
-        enabled: false
-    },
-    {
-        id: "includedUrls",
-        value: [],
-        enabled: false
-    }
+  {
+    id: 'documentLimit',
+    value: 0,
+    enabled: false
+  },
+  {
+    id: 'dataLimit',
+    value: 0.0,
+    enabled: false,
+    unit: 'B'
+  },
+  {
+    id: 'timeLimit',
+    value: 0.0,
+    enabled: false,
+    unit: 'SECOND'
+  },
+  {
+    id: 'maxPathDepth',
+    value: 0,
+    enabled: false
+  },
+  {
+    id: 'maxHops',
+    value: 0,
+    enabled: false
+  },
+  {
+    id: 'maxTransitiveHops',
+    value: 0,
+    enabled: false
+  },
+  {
+    id: 'ignoreRobots',
+    value: false,
+    enabled: false
+  },
+  {
+    id: 'extractJs',
+    value: false,
+    enabled: false
+  },
+  {
+    id: 'ignoreCookies',
+    value: false,
+    enabled: false
+  },
+  {
+    id: 'blockedUrls',
+    value: [],
+    enabled: false
+  },
+  {
+    id: 'includedUrls',
+    value: [],
+    enabled: false
+  }
 ];
 
 export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
-    const targetProfile = ref({} as TargetProfile);
+  const targetProfile = ref({} as TargetProfile);
 
-    const initData = () => {
-        targetProfile.value = {} as TargetProfile;
-        targetProfile.value.id = null
-        targetProfile.value.overrides = profileOverrides
-    }
+  const initData = () => {
+    targetProfile.value = {} as TargetProfile;
+    targetProfile.value.id = null;
+    targetProfile.value.overrides = profileOverrides;
+  };
 
-    const getData = () => {        
-        targetProfile.value.overrides.forEach((override) => {       
-            // Ensure blockedUrls and includedUrls are arrays
-            if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
-                if (!Array.isArray(override.value)) {
-                    override.value = override.value.toString().split(',');
-                }
-            }
-        })        
+  const getData = () => {
+    targetProfile.value.overrides.forEach((override) => {
+      // Ensure blockedUrls and includedUrls are arrays
+      if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+        if (!Array.isArray(override.value)) {
+          override.value = override.value.toString().split(',');
+        }
+      }
+    });
 
-        return targetProfile.value;
-    }
+    return targetProfile.value;
+  };
 
-    const setProfile = (data: {id: number, type: string, name: string}) => {
-        targetProfile.value.id = data.id;
-        targetProfile.value.harvesterType = data.type;
-        targetProfile.value.name = data.name
-    }
-    
-    const setData = (data: TargetProfile) => {
-        targetProfile.value = data;
-    }
+  const setProfile = (data: { id: number; type: string; name: string }) => {
+    targetProfile.value.id = data.id;
+    targetProfile.value.harvesterType = data.type;
+    targetProfile.value.name = data.name;
+  };
 
-    return { targetProfile, initData, getData, setData, setProfile }
+  const setData = (data: TargetProfile) => {
+    targetProfile.value = data;
+  };
+
+  return { targetProfile, initData, getData, setData, setProfile };
 });
 
 export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () => {
-    const targetDescription = ref({} as TargetDescription);
+  const targetDescription = ref({} as TargetDescription);
 
-    const initData = () => {
-        targetDescription.value = {} as TargetDescription;
-    }
+  const initData = () => {
+    targetDescription.value = {} as TargetDescription;
+  };
 
-    const setData = (data: TargetDescription) => {
-        targetDescription.value = data;
-    }
-    
-    const getData = () => targetDescription.value;
+  const setData = (data: TargetDescription) => {
+    targetDescription.value = data;
+  };
 
-    return { targetDescription, initData, setData, getData }
+  const getData = () => targetDescription.value;
+
+  return { targetDescription, initData, setData, getData };
 });
 
 export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
-    const targetSeeds = ref([] as TargetSeeds);
-    
-    const initData = () => {
-        targetSeeds.value = [] as TargetSeeds;
-    }
+  const targetSeeds = ref([] as TargetSeeds);
 
-    const setData = (data: TargetSeeds) => {
-        targetSeeds.value = data;
-    }
+  const initData = () => {
+    targetSeeds.value = [] as TargetSeeds;
+  };
 
-    const getData = () => targetSeeds.value;
+  const setData = (data: TargetSeeds) => {
+    targetSeeds.value = data;
+  };
 
-    const addSeed = (seed: any) => {
-        targetSeeds.value.push(seed)
-    }
+  const getData = () => targetSeeds.value;
 
-    const removeSeed = (seedId: number) => {
-        targetSeeds.value = targetSeeds.value.filter(s => s.id != seedId)
-    }
+  const addSeed = (seed: any) => {
+    targetSeeds.value.push(seed);
+  };
 
-    const replaceSeed = (replacementSeed: any) => {
-        targetSeeds.value = targetSeeds.value.map(seed => seed.id === replacementSeed.id ? replacementSeed : seed);
-    }
+  const removeSeed = (seedId: number) => {
+    targetSeeds.value = targetSeeds.value.filter((s) => s.id != seedId);
+  };
 
-    return { targetSeeds, addSeed, getData, initData, removeSeed, replaceSeed, setData }
+  const replaceSeed = (replacementSeed: any) => {
+    targetSeeds.value = targetSeeds.value.map((seed) => (seed.id === replacementSeed.id ? replacementSeed : seed));
+  };
+
+  return { targetSeeds, addSeed, getData, initData, removeSeed, replaceSeed, setData };
 });
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
-    const targetGroups = ref([] as TargetGroups);
-   
-    const initData = () => {
-        targetGroups.value = [] as TargetGroups;
-    }
+  const targetGroups = ref([] as TargetGroups);
 
-    const setData = (data: TargetGroups) => {
-        targetGroups.value = data;
-    }
+  const initData = () => {
+    targetGroups.value = [] as TargetGroups;
+  };
 
-    const getData = () => targetGroups.value;
+  const setData = (data: TargetGroups) => {
+    targetGroups.value = data;
+  };
 
-    const removeGroup =  (groupId: number) => {
-        targetGroups.value = targetGroups.value.filter(g => g.id != groupId);
-    }
+  const getData = () => targetGroups.value;
 
-    const addGroup = (group: any)=>{
-        targetGroups.value.push({ id: group.id, name: group.name });
-    }
+  const removeGroup = (groupId: number) => {
+    targetGroups.value = targetGroups.value.filter((g) => g.id != groupId);
+  };
 
-    return { targetGroups, initData, setData, getData, removeGroup, addGroup}
+  const addGroup = (group: any) => {
+    targetGroups.value.push({ id: group.id, name: group.name });
+  };
+
+  return { targetGroups, initData, setData, getData, removeGroup, addGroup };
 });
 
 export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
-    const targetAccess = ref({} as TargetAccess);
-    
-    const initData = () => {
-        targetAccess.value = {} as TargetAccess;
-    }
+  const targetAccess = ref({} as TargetAccess);
 
-    const setData = (data: TargetAccess) => {
-        targetAccess.value = data;
-    }
-    const getData = () => targetAccess.value;
+  const initData = () => {
+    targetAccess.value = {} as TargetAccess;
+  };
 
-    return { targetAccess, initData, setData, getData }
+  const setData = (data: TargetAccess) => {
+    targetAccess.value = data;
+  };
+  const getData = () => targetAccess.value;
+
+  return { targetAccess, initData, setData, getData };
 });
 
 export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
-    const targetSchedule = ref({} as TargetSchedule);
-    
-    const initData = () => {
-        targetSchedule.value = {} as TargetSchedule
-    }
+  const targetSchedule = ref({} as TargetSchedule);
 
-    const setData = (data: TargetSchedule) => {
-        targetSchedule.value = data;
-    }
-    
-    const addSchedule = (schedule: any) => {
-        targetSchedule.value.schedules.push(schedule);
-    }
+  const initData = () => {
+    targetSchedule.value = {} as TargetSchedule;
+  };
 
-    const removeSchedule = (scheduleId: number) => {
-        targetSchedule.value.schedules = targetSchedule.value.schedules.filter(s => s.id != scheduleId);
-    }
+  const setData = (data: TargetSchedule) => {
+    targetSchedule.value = data;
+  };
 
-    const replaceSchedule = (replacementSchedule: any) => {
-        targetSchedule.value.schedules = targetSchedule.value.schedules.map(schedule => schedule.id === replacementSchedule.id ? replacementSchedule : schedule);
+  const addSchedule = (schedule: any) => {
+    targetSchedule.value.schedules.push(schedule);
+  };
 
-    }
+  const removeSchedule = (scheduleId: number) => {
+    targetSchedule.value.schedules = targetSchedule.value.schedules.filter((s) => s.id != scheduleId);
+  };
 
-    const getData = () => targetSchedule.value;
-    
-    return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule, replaceSchedule }
+  const replaceSchedule = (replacementSchedule: any) => {
+    targetSchedule.value.schedules = targetSchedule.value.schedules.map((schedule) => (schedule.id === replacementSchedule.id ? replacementSchedule : schedule));
+  };
+
+  const getData = () => targetSchedule.value;
+
+  return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule, replaceSchedule };
 });
-    

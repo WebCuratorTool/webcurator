@@ -1,87 +1,93 @@
 /* @import './base.css'; */
 .break {
-	flex-basis: 100%;
-	height: 0;
+  flex-basis: 100%;
+  height: 0;
 }
 
 .w-full {
-	width: 100%;
+  width: 100%;
 }
 
 .main-container {
-	padding: 0 10vw;
+  padding: 0 10vw;
 }
 
 .main-header {
-	width: 80vw;
-	height: 5em;
-	font-size: xx-large;
-	font-weight: bold;
-	text-align: left;
-	margin: 0;
-	padding: 0;
-	text-align: left;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
+  width: 80vw;
+  height: 5em;
+  font-size: xx-large;
+  font-weight: bold;
+  text-align: left;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .main-content {
-	width: 80vw;
-	margin: 0;
-	padding: 0;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
+  width: 80vw;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .target-header-container {
-	height: 3.5em;
-	width: 100%;
+  height: 3.5em;
+  width: 100%;
 }
 
 #main-header-arrow-left {
-	font-size: 1.5rem;
+  font-size: 1.5rem;
 }
 
 .title {
-	font-size: xx-large;
-	font-weight: bold;
+  font-size: xx-large;
+  font-weight: bold;
 }
 
 .subtitle-container {
-	display: inline-block;
-	position: relative;
+  display: inline-block;
+  position: relative;
 }
 
 .sub-title {
-	font-size: large;
-	margin-left: 2em;
-	padding-right: 1.2em;
+  font-size: large;
+  margin-left: 2em;
+  padding-right: 1.2em;
 }
-
 
 .p-tabview-nav,
 .p-tabview-nav-link,
 .p-tabview-panels {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 .p-tabview-panels {
-	padding-top: 1.2em;
-	/* width: calc(100vw - 480px); */
+  padding-top: 1.2em;
+  /* width: calc(100vw - 480px); */
 }
 
-.wct-secondary-button {
-	border: 1px solid #3F51B5;
-	background-color: transparent;
-	color: #3F51B5;
-	padding: 1em;
+.tabview-custom .p-tabpanels {
+  background-color: transparent;
+  background: transparent;
+}
+.tabview-custom .p-tablist-tab-list {
+  background-color: transparent;
+  background: transparent;
 }
 
-.wct-secondary-button:hover {
-	border: 1px solid #6f7699;
-	background-color: transparent;
-	color: #6f7699;
-	padding: 1em;
+button.wct-primary-button {
+  border: 1px solid #3f51b5;
+  background: #3f51b5;
+  color: white;
+}
+
+button.wct-primary-button:hover {
+  border: 1px solid #6f7699;
+  background: #6878c4;
+  color: white;
 }

@@ -1,142 +1,148 @@
+@use 'mixins' as *;
+
 .layout-topbar {
     position: fixed;
-    height: 5rem;
+    height: 4rem;
     z-index: 997;
     left: 0;
     top: 0;
     width: 100%;
     padding: 0 2rem;
     background-color: var(--surface-card);
-    transition: left $transitionDuration;
+    transition: left var(--layout-section-transition-duration);
     display: flex;
     align-items: center;
-    box-shadow: 0px 3px 5px rgba(0,0,0,.02), 0px 0px 2px rgba(0,0,0,.05), 0px 1px 4px rgba(0,0,0,.08);
 
-    .layout-topbar-logo {
+    .layout-topbar-logo-container {
+        width: 20rem;
         display: flex;
         align-items: center;
-        color: var(--surface-900);
-        font-size: 1.5rem;
-        font-weight: 500;
-        width: 300px;
-        border-radius: 12px;
+    }
 
-        img {
-            height: 2.5rem;
-            margin-right: .5rem;
+    .layout-topbar-logo {
+        display: inline-flex;
+        align-items: center;
+        font-size: 1.5rem;
+        border-radius: var(--content-border-radius);
+        color: var(--text-color);
+        font-weight: 500;
+        gap: 0.5rem;
+
+        svg {
+            width: 3rem;
         }
 
-        &:focus {
+        &:focus-visible {
             @include focused();
         }
     }
 
-    .layout-topbar-button {
+    .layout-topbar-action {
         display: inline-flex;
         justify-content: center;
         align-items: center;
-        position: relative;
-        color: var(--text-color-secondary);
         border-radius: 50%;
-        width: 3rem;
-        height: 3rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        color: var(--text-color);
+        transition: background-color var(--element-transition-duration);
         cursor: pointer;
-        transition: background-color $transitionDuration;
 
         &:hover {
-            color: var(--text-color);
             background-color: var(--surface-hover);
         }
 
-        &:focus {
+        &:focus-visible {
             @include focused();
         }
 
         i {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
         }
 
         span {
             font-size: 1rem;
             display: none;
         }
+
+        &.layout-topbar-action-highlight {
+            background-color: var(--primary-color);
+            color: var(--primary-contrast-color);
+        }
     }
 
     .layout-menu-button {
-        margin-left: 2rem;
+        margin-right: 0.5rem;
     }
 
     .layout-topbar-menu-button {
         display: none;
-
-        i {
-            font-size: 1.25rem;
-        }
     }
 
-    .layout-topbar-menu {
-        margin: 0 0 0 auto;
-        padding: 0;
-        list-style: none;
+    .layout-topbar-actions {
+        margin-left: auto;
         display: flex;
+        gap: 1rem;
+    }
 
-        .layout-topbar-button {
-            margin-left: 1rem;
-        }
+    .layout-topbar-menu-content {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .layout-config-menu {
+        display: flex;
+        gap: 1rem;
     }
 }
 
 @media (max-width: 991px) {
     .layout-topbar {
-        justify-content: space-between;
+        padding: 0 2rem;
 
-        .layout-topbar-logo {
+        .layout-topbar-logo-container {
             width: auto;
-            order: 2;
         }
 
         .layout-menu-button {
             margin-left: 0;
-            order: 1;
+            margin-right: 0.5rem;
         }
 
         .layout-topbar-menu-button {
             display: inline-flex;
-            margin-left: 0;
-            order: 3;
         }
 
         .layout-topbar-menu {
-            margin-left: 0;
             position: absolute;
-            flex-direction: column;
             background-color: var(--surface-overlay);
-            box-shadow: 0px 3px 5px rgba(0,0,0,.02), 0px 0px 2px rgba(0,0,0,.05), 0px 1px 4px rgba(0,0,0,.08);
-            border-radius: 12px;
+            transform-origin: top;
+            box-shadow:
+                0px 3px 5px rgba(0, 0, 0, 0.02),
+                0px 0px 2px rgba(0, 0, 0, 0.05),
+                0px 1px 4px rgba(0, 0, 0, 0.08);
+            border-radius: var(--content-border-radius);
             padding: 1rem;
             right: 2rem;
-            top: 5rem;
+            top: 4rem;
             min-width: 15rem;
-            display: none;
-            -webkit-animation: scalein 0.15s linear;
-            animation: scalein 0.15s linear;
+            border: 1px solid var(--surface-border);
 
-            &.layout-topbar-menu-mobile-active {
-                display: block
+            .layout-topbar-menu-content {
+                gap: 0.5rem;
             }
 
-            .layout-topbar-button {
-                margin-left: 0;
+            .layout-topbar-action {
                 display: flex;
                 width: 100%;
                 height: auto;
                 justify-content: flex-start;
-                border-radius: 12px;
-                padding: 1rem;
+                border-radius: var(--content-border-radius);
+                padding: 0.5rem 1rem;
 
                 i {
                     font-size: 1rem;
-                    margin-right: .5rem;
+                    margin-right: 0.5rem;
                 }
 
                 span {
@@ -145,5 +151,51 @@
                 }
             }
         }
+
+        .layout-topbar-menu-content {
+            flex-direction: column;
+        }
+    }
+}
+
+.config-panel {
+    .config-panel-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary-color);
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .config-panel-colors {
+        > div {
+            padding-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+
+            button {
+                border: none;
+                width: 1.25rem;
+                height: 1.25rem;
+                border-radius: 50%;
+                padding: 0;
+                cursor: pointer;
+                outline-color: transparent;
+                outline-width: 2px;
+                outline-style: solid;
+                outline-offset: 1px;
+
+                &.active-color {
+                    outline-color: var(--primary-color);
+                }
+            }
+        }
+    }
+
+    .config-panel-settings {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 }

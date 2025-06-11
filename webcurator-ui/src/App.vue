@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import { RouterView } from 'vue-router';
+import LoginDialog from './components/LoginDialog.vue';
 import NavBar from './components/NavBar.vue';
-import { RouterView } from 'vue-router'
-import LoginDialog from './components/LoginDialog.vue'
-import { useLoginStore } from './utils/rest.api'
-const loginStore = useLoginStore()
+import { useLoginStore } from './utils/rest.api';
+import { togglePreset, toggleThemeMode } from './utils/themes';
+// import { togglePreset, toggleThemeMode } from './utils/themes';
 
-// import api from './restclient';
+const loginStore = useLoginStore();
+toggleThemeMode('light');
+togglePreset('indigo');
 </script>
 
 <template>
@@ -21,7 +24,7 @@ const loginStore = useLoginStore()
   </div>
 </template>
 
-<style scoped>
+<style>
 .app {
   height: 100vh;
   width: 100%;
@@ -30,4 +33,8 @@ const loginStore = useLoginStore()
   position: fixed;
   z-index: 9999;
 }
+
+/* .main-container .p-button {
+  background: #1f5384;
+} */
 </style>
