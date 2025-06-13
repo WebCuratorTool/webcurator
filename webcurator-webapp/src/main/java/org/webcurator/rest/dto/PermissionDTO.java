@@ -1,5 +1,6 @@
 package org.webcurator.rest.dto;
 
+import org.webcurator.domain.model.core.AuthorisingAgent;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionExclusion;
 import org.webcurator.domain.model.core.UrlPattern;
@@ -37,6 +38,7 @@ public class PermissionDTO {
         for (UrlPattern p : permission.getUrls()) {
             urlPatterns.add(p.getPattern());
         }
+        authorisingAgent = new AuthorisingAgent(permission.getAuthorisingAgent());
         harvestAuthorisationId = permission.getSite().getOid();
         accessStatus = permission.getAccessStatus();
         copyrightStatement = permission.getCopyrightStatement();
@@ -246,6 +248,11 @@ public class PermissionDTO {
     public static class AuthorisingAgent {
         private Long id;
         private String name;
+
+        public AuthorisingAgent(org.webcurator.domain.model.core.AuthorisingAgent authorisingAgent) {
+            this.id = authorisingAgent.getOid();
+            this.name = authorisingAgent.getName();
+        }
 
         public AuthorisingAgent() {}
 
