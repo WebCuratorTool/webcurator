@@ -5,6 +5,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.targets.TargetManager2;
+import org.webcurator.core.util.WctUtils;
+import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Target;
@@ -22,6 +24,9 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/api/{version}/permissions")
 public class Permissions {
+
+    @Autowired
+    AnnotationDAO annotationDAO;
 
     @Autowired
     TargetManager2 targetManager;
@@ -79,6 +84,7 @@ public class Permissions {
         if (permission == null) {
             return ResponseEntity.notFound().build();
         }
+        permission.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(permission.getClass()), id));
         PermissionDTO permissionDTO = new PermissionDTO(permission);
         return ResponseEntity.ok().body(permissionDTO);
     }
