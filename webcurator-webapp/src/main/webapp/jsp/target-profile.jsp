@@ -133,7 +133,7 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
     var profilesList = [];
     <c:forEach items="${profiles}" var="prf">
       var jsProfile = {
-        name: "${prf.name}",
+        name: "<spring:escapeBody javaScriptEscape="true">${prf.name}</spring:escapeBody>",
         oid: "${prf.oid}",
         harvesterType: "${prf.harvesterType}",
         <c:if test="${prf.harvesterType eq 'HERITRIX3' && prf.imported eq 'true'}">h3RawProfile: "<spring:escapeBody javaScriptEscape="true">${prf.profile}</spring:escapeBody>",</c:if>
