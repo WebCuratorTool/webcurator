@@ -73,8 +73,10 @@ startDate               Date    Required
 endDate                 Date    Required
 status                  Integer Required
 urlPatterns             List    Required
-harvestAuthorisationId  Number  Required
+authorisingAgentName    String  Required
+harvestAuthorisation    Object  Required
 ======================= ======= ========
+
 
 Errors
 ------

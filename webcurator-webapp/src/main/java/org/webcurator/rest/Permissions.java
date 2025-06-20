@@ -70,6 +70,7 @@ public class Permissions {
                 urls.add(u.getPattern());
            }
            permission.put("urlPatterns", urls);
+           permission.put("authorisingAgentName", p.getAuthorisingAgent().getName());
            HashMap<String, Object> harvestAuthorisation = new HashMap<>();
            harvestAuthorisation.put("id", p.getSite().getOid());
            harvestAuthorisation.put("name", p.getSite().getTitle());
