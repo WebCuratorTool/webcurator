@@ -35,12 +35,8 @@ public class PermissionDTO {
         for (UrlPattern p : permission.getUrls()) {
             urlPatterns.add(p.getPattern());
         }
-<<<<<<< HEAD
-        harvestAuthorisationId = permission.getSite().getOid();
-=======
         authorisingAgent = new AuthorisingAgent(permission.getAuthorisingAgent());
         harvestAuthorisation = new HarvestAuthorisation(permission.getSite());
->>>>>>> 0b019454 (Add harvestAuthorisation object to GET /permissions/<id> response)
         accessStatus = permission.getAccessStatus();
         copyrightStatement = permission.getCopyrightStatement();
         copyRightUrl = permission.getCopyrightUrl();
@@ -275,6 +271,11 @@ public class PermissionDTO {
     public static class AuthorisingAgent {
         private Long id;
         private String name;
+
+        public AuthorisingAgent(org.webcurator.domain.model.core.AuthorisingAgent authorisingAgent) {
+            this.id = authorisingAgent.getOid();
+            this.name = authorisingAgent.getName();
+        }
 
         public AuthorisingAgent() {}
 
