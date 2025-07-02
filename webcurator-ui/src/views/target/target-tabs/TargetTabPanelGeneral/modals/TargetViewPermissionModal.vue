@@ -32,7 +32,7 @@ onMounted(async() => {
     <Loading v-if="loading" />
     <div v-else class="mt-4">
       <WctFormField label="Authorising Agent">
-        <p class="font-semibold">{{ permission.authorisingAgent }}</p>
+        <p class="font-semibold">{{ permission.authorisingAgent.name }}</p>
       </WctFormField>
       <WctFormField label="Dates">
         <p class="font-semibold">{{ formatDate(permission.startDate) }} - {{ formatDate(permission.endDate) }}</p>
@@ -54,15 +54,15 @@ onMounted(async() => {
       </WctFormField>
 
       <p class="font-semibold">Exclusions</p>
-      <DataTable v-if="permission.exclusions.length > 0" size="small" showGridlines class="w-full" :rowHover="true" :value="permission.exclusions">
+      <DataTable v-if="permission.exclusions.length > 0" size="small" showGridlines class="mb-4 w-full" :rowHover="true" :value="permission.exclusions">
         <Column field="url" header="URL" />
         <Column field="reason" header="Reason" />
       </DataTable>
-      <div v-else class="text-center">
+      <div v-else class="text-center mb-4">
         <p class="text-500">No exclusions have been defined</p>
       </div>
 
-      <p class="font-semibold mt-4">Annotations</p>
+      <p class="font-semibold">Annotations</p>
       <DataTable v-if="permission.annotations.length > 0" size="small" showGridlines class="w-full" :rowHover="true" :value="permission.annotations" >
         <Column field="date" header="Date" />
         <Column field="user" header="User" />

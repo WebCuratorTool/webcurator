@@ -1,3 +1,4 @@
+import type { AuthorisingAgent } from "./authorisingAgent";
 interface Permission {
     id: number;
     startDate: number; 
@@ -10,7 +11,7 @@ interface Permission {
     copyrightUrl: string;
     authResponse: string;
     openAccessDate: null | string; 
-    authorisingAgent: null | string; 
+    authorisingAgent: AuthorisingAgent; 
     quickPick: boolean;
     annotations: any[]; 
     displayName: string;
