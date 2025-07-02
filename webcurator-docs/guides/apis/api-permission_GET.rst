@@ -24,7 +24,7 @@ startDate                Date    Required
 endDate                  Date    Required
 status                   Integer Required
 urlPatterns              List    Required
-harvestAuthorisationId   Number  Required
+harvestAuthorisation     Object  Required
 accessStatus             String  Required
 copyrightStatement       String  Optional
 copyrightUrl             String  Optional
@@ -36,6 +36,9 @@ annotations              List    Required
 displayName              String  Optional
 exclusions               List    Required
 ======================== ======= ========
+
+| **harvestAuthorisation** 
+| Object containing the id and the name of the harvest authorisation. 
 
 | **authorisingAgent** 
 | Object containing the id and the name of the authorising agent. 
