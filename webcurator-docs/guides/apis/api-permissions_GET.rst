@@ -25,12 +25,19 @@ page   Number Optional
 
 Filterable fields are:
 
-========= ====== ========
-targetId  Number Required
-url       String Optional
-========= ====== ========
+======================== ====== ========
+targetId                 Number Required
+url                      String Optional
+harvestAuthorisationName String Optional
+======================== ====== ========
 
-Semantics of the filter: return all permissions having a URL pattern that matches the supplied URL and having the same agency as the owning user of the target (identified by the supplied target id).
+Semantics of the filter:
+
+* if the url parameter has been supplied: return all permissions having a URL pattern that matches the supplied URL and having the same agency as the owning user of the target (identified by the supplied target id).
+
+* if the harvestAuthorisationName parameter has been supplied: return all permissions having a harvest authorisation with a name starting with the supplied value and having the same agency as the owning user of the target (identified by the supplied target id).
+
+* if the filter contains both these parameters, a Bad Request error will be returned.
 
 
 | **page**
@@ -66,8 +73,10 @@ startDate               Date    Required
 endDate                 Date    Required
 status                  Integer Required
 urlPatterns             List    Required
-harvestAuthorisationId  Number  Required
+authorisingAgentName    String  Required
+harvestAuthorisation    Object  Required
 ======================= ======= ========
+
 
 Errors
 ------

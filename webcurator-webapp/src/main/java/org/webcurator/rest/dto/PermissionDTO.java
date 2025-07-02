@@ -1,8 +1,6 @@
 package org.webcurator.rest.dto;
 
-import org.webcurator.domain.model.core.Permission;
-import org.webcurator.domain.model.core.PermissionExclusion;
-import org.webcurator.domain.model.core.UrlPattern;
+import org.webcurator.domain.model.core.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,7 +12,7 @@ public class PermissionDTO {
     private Date endDate;
     private Integer status;
     private List<String> urlPatterns;
-    private Long harvestAuthorisationId;
+    private HarvestAuthorisation harvestAuthorisation;
     private String accessStatus;
     private String copyrightStatement;
     private String copyRightUrl;
@@ -37,7 +35,8 @@ public class PermissionDTO {
         for (UrlPattern p : permission.getUrls()) {
             urlPatterns.add(p.getPattern());
         }
-        harvestAuthorisationId = permission.getSite().getOid();
+        authorisingAgent = new AuthorisingAgent(permission.getAuthorisingAgent());
+        harvestAuthorisation = new HarvestAuthorisation(permission.getSite());
         accessStatus = permission.getAccessStatus();
         copyrightStatement = permission.getCopyrightStatement();
         copyRightUrl = permission.getCopyrightUrl();
@@ -100,14 +99,6 @@ public class PermissionDTO {
 
     public void setUrlPatterns(List<String> urlPatterns) {
         this.urlPatterns = urlPatterns;
-    }
-
-    public Long getHarvestAuthorisationId() {
-        return harvestAuthorisationId;
-    }
-
-    public void setHarvestAuthorisationId(Long harvestAuthorisationId) {
-        this.harvestAuthorisationId = harvestAuthorisationId;
     }
 
     public String getAccessStatus() {
@@ -190,6 +181,40 @@ public class PermissionDTO {
         this.exclusions = exclusions;
     }
 
+    public HarvestAuthorisation getHarvestAuthorisation() {
+        return harvestAuthorisation;
+    }
+
+    public void setHarvestAuthorisation(HarvestAuthorisation harvestAuthorisation) {
+        this.harvestAuthorisation = harvestAuthorisation;
+    }
+
+    public static class HarvestAuthorisation {
+        Long id;
+        String name;
+
+        public HarvestAuthorisation(Site site) {
+            id = site.getOid();
+            name = site.getTitle();
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
     public static class Exclusion {
         String url;
         String reason;
@@ -246,6 +271,11 @@ public class PermissionDTO {
     public static class AuthorisingAgent {
         private Long id;
         private String name;
+
+        public AuthorisingAgent(org.webcurator.domain.model.core.AuthorisingAgent authorisingAgent) {
+            this.id = authorisingAgent.getOid();
+            this.name = authorisingAgent.getName();
+        }
 
         public AuthorisingAgent() {}
 
