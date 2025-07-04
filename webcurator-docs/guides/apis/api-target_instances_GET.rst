@@ -14,12 +14,13 @@ Body
 ^^^^
 .. include:: /guides/apis/descriptions/desc-query-method.rst
 
-====== ====== ========
-filter String Optional
-sortBy String Optional
-offset Number Optional
-limit  Number Optional
-====== ====== ========
+================== ======= ========
+filter             String  Optional
+sortBy             String  Optional
+offset             Number  Optional
+limit              Number  Optional
+includeAnnotations Boolean Optional
+================== ======= ========
 
 | **filter**
 | Name of field upon which the result set must be filtered. Only filterable fields maybe given, others are ignored. Filterable fields are:
@@ -33,7 +34,7 @@ limit  Number Optional
 * name [contains text]
 * flagId [exact match only]
 * nonDisplayOnly [Boolean]
-* state [List of integers, exact match only]
+* states [List of integers, exact match only]
 * qaRecommendation [List of strings, exact match only]
 
 | Multiple filter fields may be given, but each field only once. If a filter field is given multiple times this will result in an error.
@@ -65,6 +66,9 @@ Only one sort field may be given as input. If multiple sort fields are given the
 .. include:: /guides/apis/descriptions/desc-request-offset.rst
 
 .. include:: /guides/apis/descriptions/desc-request-limit.rst
+
+| **includeAnnotations**
+| If true, return the annotations for every target instance (default false).
 
 Response
 --------
