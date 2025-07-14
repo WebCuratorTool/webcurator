@@ -4,6 +4,7 @@ import { ref } from 'vue';
 
 import WctFormField from '@/components/WctFormField.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+import { Select } from 'primevue';
 
 const data = useTargetAccessDTO();
 const targetAccess = data.targetAccess;
@@ -24,7 +25,7 @@ const accessZones = ref(['Public', 'Onsite', 'Restricted']);
           <p v-else class="font-semibold">{{ targetAccess.displayTarget ? 'Yes' : 'No' }}</p>
         </WctFormField>
         <WctFormField label="Access Zone">
-          <Dropdown v-if="editing" v-model="targetAccess.accessZoneText" :options="accessZones" />
+          <Select v-if="editing" v-model="targetAccess.accessZoneText" :options="accessZones" />
           <p v-else class="font-semibold">{{ targetAccess.accessZoneText }}</p>
         </WctFormField>
         <WctFormField label="Target Introductory Display Note">
