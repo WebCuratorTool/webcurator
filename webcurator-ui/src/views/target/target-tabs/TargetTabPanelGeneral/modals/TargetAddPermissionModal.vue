@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { inject, onMounted, reactive, ref } from 'vue';
 import type { DataTableRowClickEvent } from 'primevue/datatable';
-import { usePermissionStore, usePermissionStatusStore } from '@/stores/permissions';
+import { usePermissionStore } from '@/stores/permissions';
+import { useHarvestAuthorisationStatusStore } from '@/stores/harvestAuthorisations';
 import type { Permission } from '@/types/permission';
 import { formatDate } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
@@ -31,7 +32,7 @@ const searchTerm = ref('');
 const seed = ref();
 let expandedPermission = reactive<Permission>({} as Permission);
 const expandedRows = ref<any[]>([]);
-const permissionStatuses = ref();
+const harvestAuthorisationStatuses = ref();
 
 const prepareData = (data: HarvestAuth[]) => {
   data.forEach((harvestAuth: HarvestAuth) => {
@@ -92,6 +93,7 @@ const fetch = () => {
     });
 };
 
+
 const search = () => {
   const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
   filteredHarvestAuths.value = harvestAuths.value.filter((g: any) => 
@@ -110,8 +112,8 @@ const isAuthAdded = (authPermissionId: number) =>
 
 onMounted(async () => {
   seed.value = dialogRef.value.data.seed;
-  const statuses = await usePermissionStatusStore().fetch();
-  permissionStatuses.value = statuses;
+  const statuses = await useHarvestAuthorisationStatusStore().fetch();
+  harvestAuthorisationStatuses.value = statuses;
 });
 
 fetch();
@@ -205,20 +207,20 @@ fetch();
         <Loading v-if="loadingPermission" />
         <div v-else class="p-4">
           <div class="grid grid-cols-5">
-            <p class="p-2 font-semibold">Status:</p>
-            <p class="col-span-4 p-2">{{ permissionStatuses[expandedPermission.status] }}</p>
+            <p class="font-semibold">Status:</p>
+            <p class="col-span-4">{{ harvestAuthorisationStatuses[expandedPermission.status] }}</p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="p-2 font-semibold">Auth Agency Response:</p>
-            <p class="col-span-4 p-2">{{ permissionStatuses[expandedPermission.authResponse] }}</p>
+            <p class="font-semibold">Auth Agency Response:</p>
+            <p class="col-span-4">{{ harvestAuthorisationStatuses[expandedPermission.authResponse] }}</p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="p-2 font-semibold">Quick Pick:</p>
-            <p class="col-span-4 p-2">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
+            <p class="font-semibold">Quick Pick:</p>
+            <p class="col-span-4">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="p-2 font-semibold">Display Name:</p>
-            <p class="col-span-4 p-2">{{ expandedPermission.displayName }}</p>
+            <p class="font-semibold">Display Name:</p>
+            <p class="col-span-4">{{ expandedPermission.displayName }}</p>
           </div>
           <div v-if="expandedPermission.exclusions.length > 0">
             <p class="font-semibold">Exclusions</p>

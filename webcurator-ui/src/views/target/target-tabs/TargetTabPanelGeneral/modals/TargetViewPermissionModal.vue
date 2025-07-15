@@ -2,7 +2,8 @@
 import { inject, onMounted, ref } from 'vue';
 import { formatDate } from '@/utils/helper';
 import type { Permission } from '@/types/permission';
-import { usePermissionStore, usePermissionStatusStore } from '@/stores/permissions';
+import { useHarvestAuthorisationStatusStore } from '@/stores/harvestAuthorisations';
+import { usePermissionStore } from '@/stores/permissions';
 
 import WctFormField from '@/components/WctFormField.vue';
 import Loading from '@/components/Loading.vue'
@@ -17,7 +18,7 @@ onMounted(async() => {
   try {
     const fetchedPermission: any = await usePermissionStore().fetch(dialogRef.value.data.permissionId);
     permission.value = fetchedPermission;
-    const statuses = await usePermissionStatusStore().fetch();
+    const statuses = await useHarvestAuthorisationStatusStore().fetch();
     permissionStatuses.value = statuses;
     loading.value = false;
   } catch (error) {
@@ -50,7 +51,7 @@ onMounted(async() => {
         <p class="font-semibold">{{ permission.displayName }}</p>
       </WctFormField>
       <WctFormField label="Urls">
-        <p v-for="(url, index) in permission.urlPatterns" :key="index" class="font-semibold">{{ url }}</p>  
+        <p v-for="(url, index) in permission.urlPatterns" :key="index" class="font-semibold !mb-0">{{ url }}</p>  
       </WctFormField>
 
       <p class="font-semibold">Exclusions</p>

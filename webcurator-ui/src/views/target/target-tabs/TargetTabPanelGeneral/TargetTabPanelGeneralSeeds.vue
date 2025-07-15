@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import WctTopLabel from '@/components/WctTopLabel.vue';
 import { useTargetSeedsDTO } from '@/stores/target';
 import { formatDate } from '@/utils/helper';
 import { useDialog } from 'primevue/usedialog';
 import { useToast } from 'primevue/usetoast';
-import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
 
 const AddPermissionModal = defineAsyncComponent(() => import('./modals/TargetAddPermissionModal.vue'));
 const ViewPermissionModal = defineAsyncComponent(() => import('./modals/TargetViewPermissionModal.vue'));
@@ -15,6 +16,9 @@ const toast = useToast();
 const props = defineProps<{
   editing: boolean;
 }>();
+
+const route = useRoute()
+const targetId = route.params.id as string
 
 const targetSeeds = useTargetSeedsDTO();
 
@@ -55,7 +59,7 @@ const removePermission = (seed: any, auth: any) => {
 const showAddPermission = (seed: any) => {
   addSeedsModal.open(AddPermissionModal, {
     props: { header: `Add Permission to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
-    data: { seed: seed }
+    data: { seed: seed, targetId: targetId }
   });
 };
 
