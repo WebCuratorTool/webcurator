@@ -229,7 +229,7 @@ fetch();
               <Column field="reason" header="Reason" />
             </DataTable>
           </div>
-          <div v-if="expandedPermission.annotations.length > 0">
+          <div v-if="expandedPermission.annotations.length > 0" class="mt-4">
             <p class="font-semibold">Annotations</p>
             <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.annotations" >
               <Column field="date" header="Date" />
