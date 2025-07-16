@@ -553,8 +553,8 @@ public class TargetInstances {
             }
         }
 
-        if (limit < 1) {
-            throw new BadRequestError("Limit must be positive");
+        if (limit < -1 || limit == 0) {
+            throw new BadRequestError("Limit must be positive or -1 (no limit)");
         }
         if (offset < 0) {
             throw new BadRequestError("Offset may not be negative");
@@ -582,12 +582,21 @@ public class TargetInstances {
         targetInstanceCriteria.setFlag(flag);
         targetInstanceCriteria.setTargetSearchOid(filter.targetId);
         targetInstanceCriteria.setSortorder(magicSortStringForDao);
-        Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
+        List<TargetInstance> result;
+        long total;
+        if (limit == -1) { // return all results without paging
+            result = targetInstanceDAO.search(targetInstanceCriteria);
+            total = result.size();
+        } else {
+            Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
+            result = pagination.getList();
+            total = pagination.getTotal();
+        }
         List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
-        for (TargetInstance t : (List<TargetInstance>) pagination.getList()) {
+        for (TargetInstance t : result) {
             targetInstanceSummaries.add(getTargetInstanceSummary(t, includeAnnotations));
         }
-        return new SearchResult(pagination.getTotal(), targetInstanceSummaries);
+        return new SearchResult(total, targetInstanceSummaries);
     }
 
     /**
