@@ -63,7 +63,9 @@ const save = () => {
         groups: targetGroups.getData(),
         seeds: targetSeeds.getData(),
         schedule: targetHarvests.getData()
-    }    
+    }
+
+    console.log(dataReq.profile.overrides);    
 
   rest.put('targets/' + targetGeneral.id, dataReq)
   .then((response: any) => {

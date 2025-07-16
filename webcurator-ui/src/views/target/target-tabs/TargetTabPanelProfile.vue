@@ -9,6 +9,7 @@ import Loading from '@/components/Loading.vue';
 import WctFormField from '@/components/WctFormField.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import type { Profile } from '@/types/profile';
+import { Textarea } from 'primevue';
 
 const rest: UseFetchApis = useFetch();
 
@@ -94,11 +95,11 @@ watch(
               <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
             </div>
             <div v-else-if="Array.isArray(data.value) || typeof data.value == 'string'">
-              <InputText v-if="editing" v-model="data.value" :disabled="!editing" />
-              <p v-else class="font-semibold">{{ data.value.toString() }}</p>
+              <Textarea v-if="editing" v-model="data.value" :disabled="!editing" class="w-2/3" />
+              <p v-else class="font-semibold w-2/3">{{ data.value.toString() }}</p>
             </div>
-            <div v-else style="min-width: 30rem">
-              <div v-if="editing" class="flex justify-start w-full">
+            <div v-else>
+              <div v-if="editing" class="flex justify-start">
                 <InputNumber
                   class="w-6"
                   v-model="data.value"
@@ -119,9 +120,11 @@ watch(
             </div>
           </template>
         </Column>
-        <Column field="enabled" header="Enable Override">
+        <Column field="enabled" header="Enable Override" pt:columnHeaderContent:class="text-red-50">
           <template #body="{ data }">
-            <Checkbox v-if="editing" id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
+            <div v-if="editing" class="flex justify-center">
+              <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
+            </div>
             <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
           </template>
         </Column>
