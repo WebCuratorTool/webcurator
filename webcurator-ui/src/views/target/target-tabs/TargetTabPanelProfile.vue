@@ -70,14 +70,16 @@ watch(
   <div v-else>
     <h4 class="mt-4">Base Profile</h4>
     <WctTabViewPanel>
-      <WctFormField label="Harvester Type">
+      <div class="grid grid-cols-5 p-1">
+        <p>Harvester Type</p>
         <Select v-if="editing" v-model="selectedHarvesterType" :options="harvesterTypes" :disabled="!editing" />
         <p v-else class="font-semibold">{{ targetProfile.harvesterType }}</p>
-      </WctFormField>
-      <WctFormField label="Base Profile">
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Base Profile</p>
         <Select v-if="editing" v-model="selectedProfile" :options="baseProfileOptions" optionLabel="name" :disabled="!editing" @change="onChangeProfile" />
         <p v-else class="font-semibold">{{ targetProfile.name }}</p>
-      </WctFormField>
+      </div>
     </WctTabViewPanel>
 
     <h4 class="mt-4">Profile Overrides</h4>
@@ -120,7 +122,7 @@ watch(
             </div>
           </template>
         </Column>
-        <Column field="enabled" header="Enable Override" pt:columnHeaderContent:class="text-red-50">
+        <Column field="enabled" header="Enable Override">
           <template #body="{ data }">
             <div v-if="editing" class="flex justify-center">
               <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />

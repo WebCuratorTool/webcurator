@@ -91,22 +91,22 @@ watch(
     <table v-if="targetSeeds.targetSeeds.length > 0" class="w-full target-seed-parent-table">
       <thead>
         <tr style="border-bottom: 1px solid #e4e4e4">
-          <th style="width: 20%; text-align: left; padding: 0.5rem">Seed</th>
-          <th style="width: 10%; text-align: left; padding: 0.5rem">Primary</th>
+          <th style="width: 33%; text-align: left; padding: 0.5rem">Seed</th>
+          <th style="width: 7%; text-align: left; padding: 0.5rem">Primary</th>
           <th style="width: 15%; text-align: left; padding: 0.5rem">Harvest Auth</th>
           <th style="width: 15%; text-align: left; padding: 0.5rem">Auth Agent</th>
-          <th style="width: 17.5%; text-align: left; padding: 0.5rem">Start Date</th>
-          <th style="width: 17.5%; text-align: left; padding: 0.5rem">End Date</th>
+          <th style="width: 10%; text-align: left; padding: 0.5rem">Start Date</th>
+          <th style="width: 10%; text-align: left; padding: 0.5rem">End Date</th>
           <th style="width: 10%; text-align: left; padding: 0.5rem">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="data in targetSeeds.targetSeeds" :key="data.id">
-          <td style="width: 20%; padding: 0.5rem">
+          <td style="width: 33%; padding: 0.5rem">
             <span v-if="editingSeed != data.id">{{ data.seed }}</span>
             <InputText v-else v-model="data.seed" />
           </td>
-          <td style="width: 10%; padding: 0.5rem">
+          <td style="width: 7%; padding: 0.5rem">
             <span v-if="editingSeed != data.id">{{ data.primary ? 'Yes' : 'No' }}</span>
             <Checkbox v-else v-model="data.primary" :binary="true" />
           </td>
@@ -114,11 +114,11 @@ watch(
             <table class="w-full target-seed-child-table">
               <tbody>
                 <tr v-for="authorisation in data.authorisations" :key="authorisation.id">
-                  <td style="width: 15%; padding: 0.5rem">{{ authorisation.name }}</td>
-                  <td style="width: 15%; padding: 0.5rem">{{ authorisation.agent }}</td>
-                  <td style="width: 17.5%; padding: 0.5rem">{{ authorisation.startDate && formatDate(authorisation.startDate) }}</td>
-                  <td style="width: 17.5%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
-                  <td style="width: 5%; padding: 0.5rem">
+                  <td style="width: 25%; padding: 0.5rem">{{ authorisation.name }}</td>
+                  <td style="width: 25%; padding: 0.5rem">{{ authorisation.agent }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">{{ authorisation.startDate && formatDate(authorisation.startDate) }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">
                     <div class="flex">
                       <Button class="p-button-text" style="width: 2rem" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text />
                       <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removeHarvestAuth(data, authorisation)" />

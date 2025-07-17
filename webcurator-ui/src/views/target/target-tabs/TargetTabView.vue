@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Loading from '@/components/Loading.vue';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
-import { formatDatetime } from '@/utils/helper';
+import { formatDate } from '@/utils/helper';
 import { useRouter } from 'vue-router';
 import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
@@ -30,34 +30,44 @@ const navigateBack = () => {
 </script>
 
 <template>
-  <div class="main-header">
-    <div class="target-header-container">
-      <Toolbar style="border: none; background: transparent">
-        <template #start>
-          <Button icon="pi pi-arrow-left" @click="navigateBack" text />
-        </template>
-        <template v-if="!editing" #end>
-          <Button class="wct-primary-button" icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
-        </template>
-        <template v-else #end>
-          <div class="flex gap-2">
-            <Button class="wct-primary-button" icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
-            <Button class="wct-primary-button ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
-          </div>
-        </template>
-      </Toolbar>
+  <div class="w-[80vw] flex flex-col "> 
+    <!-- <Toolbar>
+      <template #start>
+        <Button icon="pi pi-arrow-left" @click="navigateBack" text />
+      </template>
+      <template v-if="!editing" #end>
+        <Button class="wct-primary-button" icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
+      </template>
+      <template v-else #end>
+        <div class="flex gap-2">
+          <Button class="wct-primary-button" icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
+          <Button class="wct-primary-button ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+        </div>
+      </template>
+    </Toolbar> -->
 
-      <div class="flex items-center justify-start w-full">
-        <span class="title">{{ targetGeneral.name }}</span>
-        <OverlayBadge v-if="isTargetAvailable" :value="formatTargetState(targetGeneral.selectedState)">
-          <span class="sub-title">{{ formatDatetime(targetGeneral.creationDate) }}</span>
-        </OverlayBadge>
-      </div>
+    <div class="flex justify-between w-7/8 px-5 pt-8">
+      <!-- <Button icon="pi pi-arrow-left" @click="navigateBack" text /> -->
+      <router-link to="/wct/targets/">
+        <span class="pi pi-arrow-left wct-back-button"></span>
+      </router-link>
+      <Button v-if="!editing" class="wct-primary-button" icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
+      <div v-else class="flex gap-2">
+          <Button class="wct-primary-button" icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
+          <Button class="wct-primary-button ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
+        </div>
+    </div>
+
+    <div class="flex items-center justify-start w-7/8"  style="padding: var(--p-tabs-tabpanel-padding);">
+      <span class="title">{{ targetGeneral.name }}</span>
+      <span v-if="isTargetAvailable" class="sub-title">{{ formatDate(targetGeneral.creationDate) }}</span>
+      <Badge v-if="isTargetAvailable" :value="formatTargetState(targetGeneral.selectedState)" />
     </div>
   </div>
+
   <div class="main-content">
     <Loading v-if="loading" />
-    <Tabs v-else value="0" class="tabview-custom">
+    <Tabs v-else value="0" class="tabview-custom w-7/8">
       <TabList>
         <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>
