@@ -6,7 +6,6 @@ import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { computed, ref, watch } from 'vue';
 
 import Loading from '@/components/Loading.vue';
-import WctFormField from '@/components/WctFormField.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import type { Profile } from '@/types/profile';
 import { Textarea } from 'primevue';
