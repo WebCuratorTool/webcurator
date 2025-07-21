@@ -1,13 +1,12 @@
 <template>
   <div class="dashboard">
-    <PageHeader title="Dashboard" />
+    <p class="title pt-8">Targets</p>
+
     <Button label="Fetch Targets" @click="showTargets" />
   </div>
 </template>
 
 <script setup lang="ts">
-
-import PageHeader from '@/components/PageHeader.vue';
 
 import {type UseFetchApis, useFetch} from '../utils/rest.api';
 

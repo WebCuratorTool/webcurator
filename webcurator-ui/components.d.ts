@@ -38,7 +38,6 @@ declare module 'vue' {
     MultiSelect: typeof import('primevue/multiselect')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
-    PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
