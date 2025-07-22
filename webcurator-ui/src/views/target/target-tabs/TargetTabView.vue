@@ -30,7 +30,7 @@ const navigateBack = () => {
 </script>
 
 <template>
-  <div class="w-[80vw] flex flex-col "> 
+  <div class="2xl:w-5/6 flex flex-col "> 
     <!-- <Toolbar>
       <template #start>
         <Button icon="pi pi-arrow-left" @click="navigateBack" text />
@@ -46,7 +46,7 @@ const navigateBack = () => {
       </template>
     </Toolbar> -->
 
-    <div class="flex justify-between w-7/8 px-5 pt-8">
+    <div class="flex items-center justify-between w-full px-5 pt-8">
       <!-- <Button icon="pi pi-arrow-left" @click="navigateBack" text /> -->
       <router-link to="/wct/targets/">
         <span class="pi pi-arrow-left wct-back-button"></span>
@@ -65,9 +65,9 @@ const navigateBack = () => {
     </div>
   </div>
 
-  <div class="main-content">
+  <div class="2xl:w-5/6">
     <Loading v-if="loading" />
-    <Tabs v-else value="0" class="tabview-custom w-7/8">
+    <Tabs v-else value="0" class="tabview-custom w-full">
       <TabList>
         <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>

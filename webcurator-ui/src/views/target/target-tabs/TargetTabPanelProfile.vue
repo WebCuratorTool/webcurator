@@ -121,10 +121,10 @@ watch(
             </div>
           </template>
         </Column>
-        <Column field="enabled" header="Enable Override">
+        <Column field="enabled" header="Enable Override" :headerStyle="editing ? 'display: flex; justify-content: center' : ''">
           <template #body="{ data }">
             <div v-if="editing" class="flex justify-center">
-              <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
+              <Checkbox v-if="editing" id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
             </div>
             <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
           </template>

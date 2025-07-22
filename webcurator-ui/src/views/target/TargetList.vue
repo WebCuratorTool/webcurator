@@ -70,10 +70,10 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
 
   <p class="title pt-8">Targets</p>
 
-  <div class="flex flex-col justify-start 2xl:w-5/6 ">
+  <div class="flex flex-col justify-start 2xl:w-5/6">
     <h5>Query</h5>
     <div class="flex items-end justify-between w-full mb-4">
-      <div class="flex items-center justify-start w-3/4 gap-4" id="grid-search">
+      <div class="flex items-center justify-start w-3/4 2xl:w-5/6 gap-4" id="grid-search">
         <WctTopLabel label="Target ID" class="w-15">
           <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" pt:pcInputText:root:class="max-w-full" />
         </WctTopLabel>
@@ -94,7 +94,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
     </div>
 
     <div class="flex items-center justify-between w-full mb-8" >
-      <div class="flex items-center justify-start w-3/4 gap-4" id="grid-search">
+      <div class="flex items-center justify-start w-3/4 2xl:w-5/6 gap-4" id="grid-search">
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">Agency</InputGroupAddon>
           <Select
@@ -107,7 +107,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           />
         </InputGroup>
   
-        <InputGroup class="">
+        <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">User</InputGroupAddon>
           <Select 
             id="user" 
