@@ -133,7 +133,7 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
     var profilesList = [];
     <c:forEach items="${profiles}" var="prf">
       var jsProfile = {
-        name: "${prf.name}",
+        name: "<spring:escapeBody javaScriptEscape="true">${prf.name}</spring:escapeBody>",
         oid: "${prf.oid}",
         harvesterType: "${prf.harvesterType}",
         <c:if test="${prf.harvesterType eq 'HERITRIX3' && prf.imported eq 'true'}">h3RawProfile: "<spring:escapeBody javaScriptEscape="true">${prf.profile}</spring:escapeBody>",</c:if>
@@ -190,7 +190,7 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
     function getSelectedProfile(profilesList) {
         // the currentProfileIndex will not change from -1, but in the 'ti' state, only one profile can be edited
     return {
-        name: "${profileName}",
+        name: "<spring:escapeBody javaScriptEscape="true">${profileName}</spring:escapeBody>",
         oid: "${command.profileOid}",
         harvesterType: "${command.harvesterType}",
         <c:if test="${command.harvesterType eq 'HERITRIX3' && command.imported eq 'true'}">h3RawProfile: "<spring:escapeBody javaScriptEscape="true">${command.h3RawProfile}</spring:escapeBody>",</c:if>
