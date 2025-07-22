@@ -59,6 +59,11 @@ watch(
   async (newEditing) => {
     if (newEditing) {
       await fetchProfile();
+      targetProfile.overrides.forEach((override) => {
+        if (Array.isArray(override.value)) {
+          override.value = override.value.join('\n');
+        }
+      });
     }
   }
 );
@@ -95,9 +100,9 @@ watch(
               <Checkbox v-if="editing" v-model="data.value" :binary="true" :disabled="!editing" />
               <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
             </div>
-            <div v-else-if="Array.isArray(data.value) || typeof data.value == 'string'">
-              <Textarea v-if="editing" v-model="data.value" :disabled="!editing" class="w-2/3" />
-              <p v-else class="font-semibold w-2/3">{{ data.value.toString() }}</p>
+            <div v-else-if="data.id == 'blockedUrls' || data.id == 'includedUrls'">
+              <Textarea :key="editing" v-if="editing" v-model="data.value" :disabled="!editing" class="w-2/3" />
+              <p v-else v-for="item in data.value" class="font-semibold w-2/3 !mb-1">{{ item }}</p>
             </div>
             <div v-else>
               <div v-if="editing" class="flex justify-start">

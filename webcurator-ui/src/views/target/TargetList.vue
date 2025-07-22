@@ -74,7 +74,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
     <h5>Query</h5>
     <div class="flex items-end justify-between w-full mb-4">
       <div class="flex items-center justify-start w-3/4 2xl:w-5/6 gap-4" id="grid-search">
-        <WctTopLabel label="Target ID" class="w-15">
+        <WctTopLabel label="Target ID" class="w-16">
           <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" pt:pcInputText:root:class="max-w-full" />
         </WctTopLabel>
         <WctTopLabel label="Target Name" class="md:w-xs">
