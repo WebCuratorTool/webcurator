@@ -119,8 +119,9 @@ public class TargetInstances {
         Integer offset = searchParams.getOffset();
         Integer limit = searchParams.getLimit();
         String sortBy = searchParams.getSortBy();
+        Boolean includeAnnotations = searchParams.getIncludeAnnotations();
         try {
-            SearchResult searchResult = search(filter, offset, limit, sortBy);
+            SearchResult searchResult = search(filter, offset, limit, sortBy, includeAnnotations);
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("filter", filter);
             responseMap.put("targetInstances", searchResult.targetInstanceSummaries);
@@ -139,6 +140,7 @@ public class TargetInstances {
             } else {
                 responseMap.put(OFFSET_FIELD, 0);
             }
+            responseMap.put("includeAnnotations", includeAnnotations);
             responseMap.put("amount", searchResult.amount);
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
@@ -510,7 +512,8 @@ public class TargetInstances {
     /**
      * Handle the actual search using the old Target DAO search API
      */
-    private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
+    private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy, boolean includeAnnotations)
+                                                                                                throws BadRequestError {
 
         // defaults
         if (limit == null) {
@@ -550,8 +553,8 @@ public class TargetInstances {
             }
         }
 
-        if (limit < 1) {
-            throw new BadRequestError("Limit must be positive");
+        if (limit < -1 || limit == 0) {
+            throw new BadRequestError("Limit must be positive or -1 (no limit)");
         }
         if (offset < 0) {
             throw new BadRequestError("Offset may not be negative");
@@ -579,18 +582,27 @@ public class TargetInstances {
         targetInstanceCriteria.setFlag(flag);
         targetInstanceCriteria.setTargetSearchOid(filter.targetId);
         targetInstanceCriteria.setSortorder(magicSortStringForDao);
-        Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
-        List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
-        for (TargetInstance t : (List<TargetInstance>) pagination.getList()) {
-            targetInstanceSummaries.add(getTargetInstanceSummary(t));
+        List<TargetInstance> result;
+        long total;
+        if (limit == -1) { // return all results without paging
+            result = targetInstanceDAO.search(targetInstanceCriteria);
+            total = result.size();
+        } else {
+            Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
+            result = pagination.getList();
+            total = pagination.getTotal();
         }
-        return new SearchResult(pagination.getTotal(), targetInstanceSummaries);
+        List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
+        for (TargetInstance t : result) {
+            targetInstanceSummaries.add(getTargetInstanceSummary(t, includeAnnotations));
+        }
+        return new SearchResult(total, targetInstanceSummaries);
     }
 
     /**
      * Create the summary target instance info used for search results
      */
-    private HashMap<String, Object> getTargetInstanceSummary(TargetInstance t) {
+    private HashMap<String, Object> getTargetInstanceSummary(TargetInstance t, boolean includeAnnotations) {
         HashMap<String, Object> targetInstanceSummary = new HashMap<>();
         targetInstanceSummary.put("id", t.getOid());
         // TODO Implement thumbnail reference if/when the screenshot functionality gets released
@@ -621,6 +633,19 @@ public class TargetInstances {
             flagId = t.getFlag().getOid();
         }
         targetInstanceSummary.put("flagId", flagId);
+        if (includeAnnotations) {
+            t.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(TargetInstance.class), t.getOid()));
+            List< TargetInstanceDTO.Annotation> annotations = new ArrayList<>();
+            for (org.webcurator.domain.model.core.Annotation a : t.getAnnotations()) {
+                TargetInstanceDTO.Annotation annotation = new TargetInstanceDTO.Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                annotation.setUser(a.getUser().getUsername());
+                annotation.setAlert(a.isAlertable());
+                annotations.add(annotation);
+            }
+            targetInstanceSummary.put("annotations", annotations);
+        }
         return targetInstanceSummary;
     }
 
@@ -686,6 +711,7 @@ public class TargetInstances {
         private Integer offset;
         private Integer limit;
         private String sortBy;
+        private Boolean includeAnnotations = false;
 
         SearchParams() {
             filter = new Filter();
@@ -721,6 +747,14 @@ public class TargetInstances {
 
         public void setSortBy(String sortBy) {
             this.sortBy = sortBy;
+        }
+
+        public Boolean getIncludeAnnotations() {
+            return includeAnnotations;
+        }
+
+        public void setIncludeAnnotations(Boolean includeAnnotations) {
+            this.includeAnnotations = includeAnnotations;
         }
     }
 
