@@ -136,10 +136,6 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
         </div>
       </div>
       <Button @click="targetListData.resetFilter" class="max-w-25" label="Clear" icon="pi pi-times" outlined fluid />
-      <!-- <div class="flex items-center justify-center gap-2 w-full">
-        <Button @click="targetListData.resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" outlined fluid />
-        <Button @click="targetListData.filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" outlined fluid />
-      </div> -->
     </div>
 
     <Divider type="solid" />
@@ -174,12 +170,6 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
               }
             }"
           >
-            <!-- <template #header>
-              <div class="flex items-center justify-between gap-2 p-2">
-                <span class="text-xl text-900 font-bold">Results</span>
-                <Button class="wct-primary-button" @click="createNew" label="Create new" />
-              </div>
-            </template> -->
             <Column field="id" sortable header="Id" dataType="numeric" class="w-15"/>
             <Column field="creationDate" header="Date" sortable dataType="date" class="w-30">
               <template #body="{ data }">
