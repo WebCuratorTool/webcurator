@@ -1,10 +1,13 @@
 package org.webcurator.rest;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.targets.TargetManager2;
+import org.webcurator.core.util.WctUtils;
+import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Target;
@@ -24,6 +27,9 @@ import java.util.List;
 public class Permissions {
 
     @Autowired
+    AnnotationDAO annotationDAO;
+
+    @Autowired
     TargetManager2 targetManager;
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -36,6 +42,11 @@ public class Permissions {
           return ResponseEntity.badRequest().body(Utils.errorMessage("Expected a filter parameter with 'targetId' field"));
        }
 
+       if (StringUtils.isNotEmpty(filter.url)  && StringUtils.isNotEmpty(filter.harvestAuthorisationName)) {
+           return ResponseEntity.badRequest().body(Utils.errorMessage("Filter parameters 'url' and 'harvestAuthorisationName' " +
+                                                                                            "may not both be present"));
+       }
+
        Target target = targetManager.load(filter.targetId, true);
        if (target == null) {
            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target %d does not exist",
@@ -44,7 +55,11 @@ public class Permissions {
 
        Pagination pagination;
        try {
-           pagination = targetManager.findPermissionsByUrl(target, filter.url, searchParams.getPage());
+           if (StringUtils.isNotEmpty(filter.url)) {
+               pagination = targetManager.findPermissionsByUrl(target, filter.url, searchParams.getPage());
+           } else { // if harvestAuthorisationName is empty as well, this will return all harvest authorisations
+               pagination = targetManager.findPermissionsBySiteTitle(target, filter.harvestAuthorisationName, searchParams.getPage());
+           }
        } catch (Exception e) {
            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
        }
@@ -60,7 +75,11 @@ public class Permissions {
                 urls.add(u.getPattern());
            }
            permission.put("urlPatterns", urls);
-           permission.put("harvestAuthorisationId", p.getSite().getOid());
+           permission.put("authorisingAgentName", p.getAuthorisingAgent().getName());
+           HashMap<String, Object> harvestAuthorisation = new HashMap<>();
+           harvestAuthorisation.put("id", p.getSite().getOid());
+           harvestAuthorisation.put("name", p.getSite().getTitle());
+           permission.put("harvestAuthorisation", harvestAuthorisation);
            permissions.add(permission);
        }
 
@@ -79,6 +98,7 @@ public class Permissions {
         if (permission == null) {
             return ResponseEntity.notFound().build();
         }
+        permission.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(permission.getClass()), id));
         PermissionDTO permissionDTO = new PermissionDTO(permission);
         return ResponseEntity.ok().body(permissionDTO);
     }
@@ -118,6 +138,7 @@ public class Permissions {
     private static class Filter {
         private Long targetId;
         private String url = "";
+        private String harvestAuthorisationName = "";
 
         public Long getTargetId() {
             return targetId;
@@ -133,6 +154,14 @@ public class Permissions {
 
         public void setUrl(String url) {
             this.url = url;
+        }
+
+        public String getHarvestAuthorisationName() {
+            return harvestAuthorisationName;
+        }
+
+        public void setHarvestAuthorisationName(String harvestAuthorisationName) {
+            this.harvestAuthorisationName = harvestAuthorisationName;
         }
     }
 

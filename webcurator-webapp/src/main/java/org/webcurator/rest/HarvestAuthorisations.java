@@ -128,7 +128,7 @@ public class HarvestAuthorisations {
         if (offset < 0) {
             throw new BadRequestError("Offset may not be negative");
         }
-        // The TargetDao API only supports offsets that are a multiple of limit
+        // The SiteDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
         SiteCriteria criteria = new SiteCriteria();

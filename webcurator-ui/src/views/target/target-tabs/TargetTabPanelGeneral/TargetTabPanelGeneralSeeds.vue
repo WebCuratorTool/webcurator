@@ -1,19 +1,24 @@
 <script setup lang="ts">
+import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import WctTopLabel from '@/components/WctTopLabel.vue';
 import { useTargetSeedsDTO } from '@/stores/target';
 import { formatDate } from '@/utils/helper';
 import { useDialog } from 'primevue/usedialog';
 import { useToast } from 'primevue/usetoast';
-import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
 
-const AddHarvestAuthModal = defineAsyncComponent(() => import('./modals/TargetAddHarvestAuthModal.vue'));
+const AddPermissionModal = defineAsyncComponent(() => import('./modals/TargetAddPermissionModal.vue'));
+const ViewPermissionModal = defineAsyncComponent(() => import('./modals/TargetViewPermissionModal.vue'));
 
 const toast = useToast();
 
 const props = defineProps<{
   editing: boolean;
 }>();
+
+const route = useRoute()
+const targetId = route.params.id as string
 
 const targetSeeds = useTargetSeedsDTO();
 
@@ -24,6 +29,7 @@ const previousSeed = ref({});
 const selectedAuthorisationOption = ref('Auto');
 
 const addSeedsModal = useDialog();
+const viewPermissionModal = useDialog();
 
 const addSeed = () => {
   if (newSeed.value.seed != '') {
@@ -46,29 +52,34 @@ const cancelEditSeed = () => {
   editingSeed.value = 0;
 };
 
-const removeHarvestAuth = (seed: any, auth: any) => {
+const removePermission = (seed: any, auth: any) => {
   seed.authorisations = seed.authorisations.filter((a: any) => a.permissionId !== auth.permissionId);
 };
 
-const showAddHarvestAuth = (seed: any) => {
-  addSeedsModal.open(AddHarvestAuthModal, {
-    props: { header: `Add Harvest Auth to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
-    data: { seed: seed }
+const showAddPermission = (seed: any) => {
+  addSeedsModal.open(AddPermissionModal, {
+    props: { header: `Add Permission to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
+    data: { seed: seed, targetId: targetId }
   });
 };
+
+const showViewPermission = (permissionId: number) => {
+  viewPermissionModal.open(ViewPermissionModal, { 
+    props: { modal: true, dismissableMask: true, closable: false, style: { width: '50vw' } },
+    data: { permissionId: permissionId }
+  })
+}
 
 const showErrorMessage = () => {
   toast.add({ severity: 'error', summary: 'Seed not added', detail: 'The seed already exists on the target', life: 3000 });
 };
 
-watch(
-  () => props.editing,
-  async (newEditing) => {
-    if (newEditing == false) {
-      editingSeed.value = 0;
-    }
+// If the Target is switched out of editing mode, clear the editing seed value too
+watch(() => props.editing, async(updatedEditingState) => {
+  if (updatedEditingState == false) {
+    editingSeed.value = 0;
   }
-);
+});
 </script>
 
 <template>
@@ -120,8 +131,8 @@ watch(
                   <td style="width: 17.5%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
                   <td style="width: 5%; padding: 0.5rem">
                     <div class="flex">
-                      <Button class="p-button-text" style="width: 2rem" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text />
-                      <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removeHarvestAuth(data, authorisation)" />
+                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)"/>
+                      <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removePermission(data, authorisation)" />
                     </div>
                   </td>
                 </tr>
@@ -130,9 +141,9 @@ watch(
           </td>
           <td v-if="editing" style="width: 5%; padding: 0.5rem">
             <div v-if="editing && editingSeed != data.id" class="flex">
-              <Button class="p-button-text" style="width: 2rem" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Harvest Auth'" text @click="showAddHarvestAuth(data)" />
-              <Button class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
-              <Button class="p-button-text" style="width: 2rem" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Permission'" text @click="showAddPermission(data)" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
+              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
             </div>
             <div v-else-if="editing && editingSeed == data.id" class="flex">
               <Button class="p-button-text" style="width: 2rem" icon="pi pi-save" v-tooltip.bottom="'Save'" text @click="editingSeed = 0" />
