@@ -6,4 +6,4 @@
  
 This is the maximum amount of rows shown on a results page.
 
-If '0' or less is given as limit then all rows that meet the filter criteria are returned. 
+If '-1' is given as limit then all rows that meet the filter criteria are returned. 

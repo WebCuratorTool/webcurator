@@ -255,6 +255,158 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
     }
 
+    public List<TargetInstance> search(final TargetInstanceCriteria aCriteria) {
+        return (List<TargetInstance>) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+                        Criteria query = session.createCriteria(TargetInstance.class);
+
+                        //To ignore duplicated data
+                        query.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+
+                        Date from = aCriteria.getFrom();
+                        if (null == from) {
+                            try {
+                                from = fullFormat.parse("01/01/1970 00:00:00");
+                            } catch (ParseException e) {
+                                if (log.isWarnEnabled()) {
+                                    log.warn("Failed to parse default from date.");
+                                }
+                            }
+                        }
+
+                        Date to = aCriteria.getTo();
+                        if (null == to) {
+                            try {
+                                to = fullFormat.parse("31/12/9999 23:59:59");
+                            } catch (ParseException e) {
+                                if (log.isWarnEnabled()) {
+                                    log.warn("Failed to parse default from date.");
+                                }
+                            }
+                        }
+
+                        query.add(Expression.between("scheduledTime", from, to));
+
+                        if (aCriteria.getStates() != null && !aCriteria.getStates().isEmpty()) {
+                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            for (String s : aCriteria.getStates()) {
+                                stateDisjunction.add(Restrictions.eq("state", s));
+                            }
+                            query.add(stateDisjunction);
+                        }
+
+                        if (aCriteria.getRecommendationFilter() != null && !aCriteria.getRecommendationFilter().isEmpty()) {
+                            Disjunction recommendationDisjunction = Restrictions.disjunction();
+                            for (String s : aCriteria.getRecommendationFilter()) {
+                                recommendationDisjunction.add(Restrictions.eq("recommendation", s));
+                            }
+                            query.add(recommendationDisjunction);
+                        }
+
+                        Criteria owner = null;
+                        if (aCriteria.getOwner() != null && !aCriteria.getOwner().trim().equals("")) {
+                            owner = query.createCriteria("owner").add(Restrictions.eq("username", aCriteria.getOwner()));
+                        }
+
+                        if (aCriteria.getAgency() != null && !aCriteria.getAgency().trim().equals("")) {
+                            if (null == owner) {
+                                query.createCriteria("owner").createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                            } else {
+                                owner.createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                            }
+                        }
+
+                        if (aCriteria.getName() != null && !aCriteria.getName().trim().equals("")) {
+                            query.createCriteria("target").add(Restrictions.ilike("name", aCriteria.getName(), MatchMode.START));
+                        }
+
+                        if (aCriteria.getSearchOid() != null && aCriteria.getTargetSearchOid() == null) {
+                            query.add(Restrictions.eq("oid", aCriteria.getSearchOid()));
+                        }
+
+                        if (aCriteria.getTargetSearchOid() != null) {
+                            query.createAlias("target", "t");
+                            query.add(Restrictions.eq("t.oid", aCriteria.getTargetSearchOid()));
+                            // if the search oid is supplied, then we start the search at this oid
+                            if (aCriteria.getSearchOid() != null) {
+                                query.add(Restrictions.le("oid", aCriteria.getSearchOid()));
+                            }
+                        }
+
+                        if (aCriteria.getFlagged()) {
+                            query.add(Restrictions.eq("flagged", aCriteria.getFlagged()));
+                        }
+
+                        if (aCriteria.getFlag() != null) {
+                            query.add(Restrictions.eq("flag", aCriteria.getFlag()));
+                        }
+
+                        if (aCriteria.getNondisplayonly()) {
+                            query.add(Restrictions.eq("display", false));
+                        }
+
+                        if (aCriteria.getSortorder() == null ||
+                                aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT)) {
+                            // use defaults
+                            query.addOrder(Order.asc("displayOrder"));
+                            query.addOrder(Order.asc("sortOrderDate"));
+                            query.addOrder(Order.asc("priority"));
+                            query.addOrder(Order.asc("oid"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_ASC)) {
+                            query.createAlias("target", "t");
+                            query.addOrder(Order.asc("t.name"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_DESC)) {
+                            query.createAlias("target", "t");
+                            query.addOrder(Order.desc("t.name"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_ASC)) {
+                            query.addOrder(Order.asc("sortOrderDate"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC)) {
+                            query.addOrder(Order.desc("sortOrderDate"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_ASC)) {
+                            query.addOrder(Order.asc("state"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_DESC)) {
+                            query.addOrder(Order.desc("state"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_ASC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.asc("hs.elapsedTime"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_DESC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.desc("hs.elapsedTime"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_ASC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.asc("hs.dataDownloaded"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_DESC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.desc("hs.dataDownloaded"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_ASC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.asc("hs.urlsSucceeded"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_DESC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.desc("hs.urlsSucceeded"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_ASC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.asc("hs.percentageUrlsFailed"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_DESC)) {
+                            query.createAlias("status", "hs");
+                            query.addOrder(Order.desc("hs.percentageUrlsFailed"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_ASC)) {
+                            query.createAlias("target", "t");
+                            query.addOrder(Order.asc("t.crawls"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_DESC)) {
+                            query.createAlias("target", "t");
+                            query.addOrder(Order.desc("t.crawls"));
+                        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID)) {
+                            query.addOrder(Order.desc("sortOrderDate"));
+                        }
+
+                        return query.list();
+                    }
+                }
+        );
+    }
+
     public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
         return (Pagination) getHibernateTemplate().execute(
                 new HibernateCallback() {
