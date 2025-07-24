@@ -14,17 +14,21 @@ defineProps<{
 
 <template>
   <Card class="mt-3">
-    <template #title>
+    <template #subtitle>
       <div class="flex justify-between">
-        <div>{{ item.user }}</div>
-        <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="" />
+        <div>
+          <div v-if="item.targetInstanceId">Target Instance {{ item.targetInstanceId }}</div>
+          <div>{{ item.user }} {{ formatDate(item.date) }}</div>
+        </div>
+        <div v-if="editing">
+          <Button class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Delete Annotation'" text @click="" />
+          <Button class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Annotation'" text @click="" />
+        </div>  
       </div>
     </template>
-    <template #subtitle>
-      {{ formatDate(item.date) }}
-    </template>
     <template #content>
-      <p>{{ item.note }}</p>
+      <Textarea v-if="editing" v-model="item.note" autoResize rows="3" class="w-full" />
+      <p v-else>{{ item.note }}</p>
     </template>
   </Card>
 </template>

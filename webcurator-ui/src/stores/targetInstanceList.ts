@@ -14,29 +14,35 @@ export const useTargetInstanceListStore = defineStore('TargetInstanceList', () =
     const rest: UseFetchApis = useFetch();
   
     const search = async (searchTerms: any) => { 
-        let targetInstanceList: never[] = [];
-
-          const searchParams = {
-            filter: searchTerms,
-            offset: 0,
-            limit: 2000,
-          }
-        
-          loadingTargetInstanceList.value = true
-          rest
-            .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-            .then((data: any) => {
-              targetInstanceList = data['targetInstances']
-            })
-            .catch((err: any) => {
-              console.log(err.message)
-            }).finally(() => {
-              loadingTargetInstanceList.value = false
-              console.log(targetInstanceList, searchTerms)
-              return targetInstanceList;
-            });
-            
+      let targetInstanceList: never[] = [];
+    
+      loadingTargetInstanceList.value = true
+      try {
+        const data = await rest.post('target-instances', searchTerms, { header: 'X-HTTP-Method-Override', value: 'GET' })
+        targetInstanceList = data['targetInstances']
+      } catch (err: any) {
+        console.log(err.message)
+      } finally {
+        loadingTargetInstanceList.value = false
+      }
+    
+      return targetInstanceList;
     }
 
-    return { search, loadingTargetInstanceList }
+    const getTargetInstanceAnnotations = async (targetId: number) => {
+      const targetInstanceAnnotations = ref([] as any);
+      const targetInstances = await search({ filter: { targetId: targetId }, limit: -1, includeAnnotations: true });
+      targetInstances.forEach((targetInstance: any) => {
+
+        if (targetInstance.annotations && targetInstance.annotations.length > 0) {
+          targetInstanceAnnotations.value.push(targetInstance);
+          // targetInstance.annotations.forEach((annotation: any) => {
+          //   targetInstanceAnnotations.value.push(annotation);
+          // })
+        }
+      })
+      return targetInstanceAnnotations.value;
+    }
+
+    return { search, loadingTargetInstanceList, getTargetInstanceAnnotations }
 });
