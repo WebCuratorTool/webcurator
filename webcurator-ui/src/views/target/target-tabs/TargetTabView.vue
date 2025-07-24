@@ -4,7 +4,7 @@ import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 import { formatDate } from '@/utils/helper';
 import { useRouter } from 'vue-router';
 import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
-import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
+import TargetTabPanelAnnotations from './TargetTabAnnotations/TargetTabPanelAnnotations.vue';
 import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
 import TargetTabPanelGeneral from './TargetTabPanelGeneral/TargetTabPanelGeneral.vue';
 import TargetTabPanelHarvests from './TargetTabPanelHarvests/TargetTabPanelHarvests.vue';
