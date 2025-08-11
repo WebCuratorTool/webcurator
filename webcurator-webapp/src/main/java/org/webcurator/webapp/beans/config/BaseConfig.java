@@ -307,8 +307,10 @@ public class BaseConfig {
 
     @Value("${core.base.dir}")
     private String baseDir;
+
     @Value("${queueController.thumbnailRenderer}")
     private String thumbnailRenderer;
+
 
     @Autowired
     private ListsConfig listsConfig;
@@ -1191,8 +1193,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public ScreenshotClient screenshotClient(){
-        ScreenshotClientRemote bean=new ScreenshotClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
+    public ScreenshotClient screenshotClient() {
+        ScreenshotClientRemote bean = new ScreenshotClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
         return bean;
     }
 }

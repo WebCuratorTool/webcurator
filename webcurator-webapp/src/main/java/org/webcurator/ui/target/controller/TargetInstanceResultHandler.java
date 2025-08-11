@@ -59,6 +59,8 @@ public class TargetInstanceResultHandler extends TabHandler {
     private TargetInstanceManager targetInstanceManager;
     private WctCoordinator wctCoordinator;
     private TargetInstanceDAO targetInstanceDAO;
+    private int hoursElapsedRejectStuckIndex;
+    private int hoursElapsedReindexPatched;
 
     /**
      * the digital asset store containing the harvests.
@@ -125,6 +127,8 @@ public class TargetInstanceResultHandler extends TabHandler {
         tmav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
         tmav.addObject("results", results);
         tmav.addObject("reasons", rejectionReasons);
+        tmav.addObject("hoursElapsedRejectStuckIndex", hoursElapsedRejectStuckIndex);
+        tmav.addObject("hoursElapsedReindexPatched", hoursElapsedReindexPatched);
         if (bindingResult.hasErrors()) {
             tmav.addObject(Constants.GBL_ERRORS, bindingResult);
         }
@@ -441,5 +445,13 @@ public class TargetInstanceResultHandler extends TabHandler {
             inTrayManager = ctx.getBean(InTrayManager.class);
         }
         return inTrayManager;
+    }
+
+    public void setHoursElapsedRejectStuckIndex(int hoursElapsedRejectStuckIndex) {
+        this.hoursElapsedRejectStuckIndex = hoursElapsedRejectStuckIndex;
+    }
+
+    public void setHoursElapsedReindexPatched(int hoursElapsedReindexPatched) {
+        this.hoursElapsedReindexPatched = hoursElapsedReindexPatched;
     }
 }

@@ -15,6 +15,9 @@
  */
 package org.webcurator.ui.common.taglib;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -26,6 +29,8 @@ import java.util.Date;
  * @author bbeaumont
  */
 public class Functions {
+    private static final Logger log = LoggerFactory.getLogger(Functions.class);
+
 
     /**
      * Test whether an int value is contained within a collection.
@@ -57,6 +62,7 @@ public class Functions {
      * @return true if the current time (now) is more than xHours after the input date; otherwise false.
      */
     public static boolean xHoursElapsed(int xHours, Date theDate) {
+        log.info("xHours={}, theDate={}", xHours, theDate);
         Calendar dateToTest = Calendar.getInstance();
         dateToTest.setTime(theDate);
         dateToTest.add(Calendar.HOUR, xHours);
@@ -73,6 +79,7 @@ public class Functions {
      * @return true if the current time (now) is more than xSeconds after the input date; otherwise false.
      */
     public static boolean xSecondsElapsed(int xSeconds, Date theDate) {
+        log.info("xSeconds={}, theDate={}", xSeconds, theDate);
         Calendar dateToTest = Calendar.getInstance();
         dateToTest.setTime(theDate);
         dateToTest.add(Calendar.SECOND, xSeconds);

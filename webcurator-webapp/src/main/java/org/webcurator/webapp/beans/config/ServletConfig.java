@@ -93,6 +93,12 @@ public class ServletConfig {
     @Value("${h3.scriptsDirectory}")
     private String h3ScriptsDirectory;
 
+    @Value("${hoursElapsed.rejectStuckIndex}")
+    private int hoursElapsedRejectStuckIndex;
+
+    @Value("${hoursElapsed.reindexPatched}")
+    private int hoursElapsedReindexPatched;
+
     @Autowired
     private BaseConfig baseConfig;
 
@@ -490,6 +496,8 @@ public class ServletConfig {
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setTargetInstanceDAO(baseConfig.targetInstanceDao());
+        bean.setHoursElapsedRejectStuckIndex(hoursElapsedRejectStuckIndex);
+        bean.setHoursElapsedReindexPatched(hoursElapsedReindexPatched);
         return bean;
     }
 

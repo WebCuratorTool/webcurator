@@ -5,6 +5,12 @@
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
 <%@page import="org.webcurator.domain.model.auth.Privilege"%>
+<%@ page import="org.slf4j.Logger, org.slf4j.LoggerFactory" %>
+<%
+    Logger log = LoggerFactory.getLogger("MyJspDebug");
+    log.info("hoursElapsedRejectStuckIndex = {}",  request.getAttribute("hoursElapsedRejectStuckIndex"));
+    log.info("hoursElapsedReindexPatched = {}",  request.getAttribute("hoursElapsedReindexPatched"));
+%>
 
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_OID%>" value="<c:out value="${command.targetInstanceId}"/>"/>
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_CMD%>" value="<c:out value="${command.cmd}"/>"/>
@@ -150,7 +156,7 @@
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
 					    		<c:choose>
-						    		<c:when test="${wct:xHoursElapsed(12,hr.creationDate)}">
+						    		<c:when test="${wct:xHoursElapsed(hoursElapsedRejectStuckIndex, hr.creationDate)}">
 								    	&nbsp;|&nbsp;<a href="#" onclick="javascript: return clickReject(<c:out value="${hr.oid}"/>); ">Reject&nbsp;(Stuck&nbsp;in&nbsp;Indexing&nbsp;State):</a>&nbsp;
 						    			<select name="<%=TargetInstanceCommand.PARAM_REASON%><c:out value="${hr.oid}"/>">				
 											<c:forEach items="${reasons}" var="o">
@@ -171,7 +177,7 @@
                                         &nbsp;|&nbsp;
                                         <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
                                     </c:when>
-                                    <c:when test="${instance.state eq 'Patching' && wct:xHoursElapsed(6,hr.creationDate)}">
+                                    <c:when test="${instance.state eq 'Patching' && wct:xHoursElapsed(hoursElapsedReindexPatched,hr.creationDate)}">
                                         &nbsp;|&nbsp;
                                         <a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
                                     </c:when>
