@@ -1,7 +1,11 @@
 <script setup lang="ts">
+// librarys
 import { ref } from 'vue';
-import { formatDate } from '@/utils/helper';
+
+// types
 import type { Annotation } from '@/types/annotation';
+// utils
+import { formatDate } from '@/utils/helper';
 
 const props = defineProps<{
   annotation: Annotation,

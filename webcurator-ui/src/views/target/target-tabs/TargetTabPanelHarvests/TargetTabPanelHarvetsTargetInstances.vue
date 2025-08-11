@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { formatDatetime } from '@/utils/helper';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+// librarys
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
+// components
 import Loading from '@/components/Loading.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
+import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
+// types
+import type { TargetInstance } from '@/types/targetInstance';
+// utils
+import { formatDatetime } from '@/utils/helper';
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 const rest: UseFetchApis = useFetch();
 
 const route = useRoute();
 const targetId = route.params.id as string;
 
-const targetInstances = ref();
+const targetInstances = ref(<Array<TargetInstance>>([]));
 const loading = ref(true);
 const emptyMessage = ref('');
 
@@ -22,7 +29,7 @@ const props = defineProps<{
   targetInstanceStates: { [key: string]: string };
 }>();
 
-const fetchTargetInstances = () => {
+const fetchTargetInstances = async() => {
   loading.value = true;
 
   const now = new Date();
@@ -35,24 +42,17 @@ const fetchTargetInstances = () => {
     limit: props.type == 'latest' ? 5 : 15
   };
 
-  rest
-    .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-    .then((data: any) => {
-      targetInstances.value = data.targetInstances;
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-    })
-    .finally(() => {
-      if (targetInstances.value && targetInstances.value.length == 0) {
-        if (props.type == 'latest') {
-          emptyMessage.value = 'No recent target instances';
-        } else {
-          emptyMessage.value = 'No upcoming target instances';
-        }
-      }
-      loading.value = false;
-    });
+  targetInstances.value = await useTargetInstanceListStore().search(searchParams);
+
+  if (targetInstances.value && targetInstances.value.length == 0) {
+    if (props.type == 'latest') {
+      emptyMessage.value = 'No recent target instances';
+    } else {
+      emptyMessage.value = 'No upcoming target instances';
+    }
+  }
+
+  loading.value = false;
 };
 
 fetchTargetInstances();

@@ -1,14 +1,18 @@
 <script setup lang="ts">
+// librarys
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import TargetTabAnnotationsMessage from './TargetTabAnnotationsMessage.vue';
 
+// components
+import TargetTabAnnotationsMessage from './TargetTabAnnotationsMessage.vue';
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
 import { useTargetAnnotationsDTO } from '@/stores/target';
 import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
 import { useUserProfileStore } from '@/stores/users';
-
+// types
 import type { Annotation } from '@/types/annotation';
+// utils
 import { formatDate } from '@/utils/helper';
 
 const route = useRoute();

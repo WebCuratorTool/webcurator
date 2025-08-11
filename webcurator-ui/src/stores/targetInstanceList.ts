@@ -1,8 +1,12 @@
+// libraries
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+
+// types
 import type { Annotation } from '@/types/annotation';
 import type { TargetInstance } from '@/types/targetInstance';
+// utils
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 export const useTargetInstanceListSearchStore = defineStore('TargetInstanceListSearchStore', () => {
     // Search conditions
