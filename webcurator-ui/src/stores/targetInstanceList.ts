@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import type { Annotation } from '@/types/annotation';
 
 export const useTargetInstanceListSearchStore = defineStore('TargetInstanceListSearchStore', () => {
     // Search conditions
@@ -33,14 +34,14 @@ export const useTargetInstanceListStore = defineStore('TargetInstanceList', () =
       const targetInstanceAnnotations = ref([] as any);
       const targetInstances = await search({ filter: { targetId: targetId }, limit: -1, includeAnnotations: true });
       targetInstances.forEach((targetInstance: any) => {
-
         if (targetInstance.annotations && targetInstance.annotations.length > 0) {
-          targetInstanceAnnotations.value.push(targetInstance);
-          // targetInstance.annotations.forEach((annotation: any) => {
-          //   targetInstanceAnnotations.value.push(annotation);
-          // })
+          targetInstance.annotations.forEach((annotation: Annotation) => {
+            annotation.targetInstanceId = targetInstance.id;
+            targetInstanceAnnotations.value.push(annotation);
+          })
         }
       })
+
       return targetInstanceAnnotations.value;
     }
 

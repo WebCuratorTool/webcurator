@@ -26,16 +26,12 @@ const userProfile = useUserProfileStore();
 const newAnnotation = ref(<Annotation>{alert: false, user: userProfile.name});
 const loading = ref(true);
 
-async function fetchTIAnnotations() {
-  const targetInstances = await useTargetInstanceListStore().getTargetInstanceAnnotations(targetId);
-  console.log(targetInstances);
-  
-  targetInstances.forEach((targetInstance: any) => {
-    targetInstance.annotations.forEach((annotation: Annotation) => {
-      annotation.targetInstanceId = targetInstance.id;
-      annotations.value.push(annotation);
-    })
-  })
+async function prepareAnnotations() {
+  const targetInstanceAnnotations = await useTargetInstanceListStore().getTargetInstanceAnnotations(targetId);
+
+  targetInstanceAnnotations.forEach((annotation: Annotation) => {
+    annotations.value.push(annotation);
+  });
 
   targetAnnotations.annotations.forEach((annotation: Annotation) => {
     annotations.value.push(annotation);
@@ -62,7 +58,7 @@ const deleteAnnotation = (annotation: Annotation) => {
   );
 }
 
-fetchTIAnnotations();
+prepareAnnotations();
 
 </script>
 
