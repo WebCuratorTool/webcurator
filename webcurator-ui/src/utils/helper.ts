@@ -9,16 +9,6 @@ export const formatDate = (timestamp: number) => {
     });
 };
 
-export const formatStringDate = (timestamp: string) => {
-    const value = new Date(timestamp);
-    return value.toLocaleDateString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-};
-
-
 export const formatTime = (timestamp: number) => {
     const value = new Date(timestamp);    
     return value.toLocaleTimeString([], { hour12: false, timeStyle: 'short' });

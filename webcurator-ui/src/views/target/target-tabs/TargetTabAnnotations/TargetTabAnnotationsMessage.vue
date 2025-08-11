@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { formatStringDate } from '@/utils/helper';
+import { formatDate } from '@/utils/helper';
 import type { Annotation } from '@/types/annotation';
 
 const props = defineProps<{
@@ -31,7 +31,7 @@ const cancelEditAnnotation = () => {
       <div class="flex justify-between">
         <div>
           <div v-if="annotation.targetInstanceId">Target Instance {{ annotation.targetInstanceId }}</div>
-          <div>{{ annotation.user }} {{ formatStringDate(annotation.date) }}</div>
+          <div>{{ annotation.user }} {{ formatDate(annotation.date) }}</div>
         </div>
         <div v-if="editing && !annotation.targetInstanceId && !editingAnnotation">
           <Button 

@@ -47,7 +47,7 @@ async function fetchTIAnnotations() {
 }
 
 const addAnnotation = () => {
-  newAnnotation.value.date = new Date().toISOString();
+  newAnnotation.value.date = Number(new Date());
   targetAnnotations.annotations.push(newAnnotation.value);
   annotations.value.push(newAnnotation.value);
   newAnnotation.value = <Annotation>{};

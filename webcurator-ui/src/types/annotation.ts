@@ -1,5 +1,5 @@
 interface Annotation {
-    date: string,
+    date: number,
     note: string,
     user: string,
     alert: boolean,
