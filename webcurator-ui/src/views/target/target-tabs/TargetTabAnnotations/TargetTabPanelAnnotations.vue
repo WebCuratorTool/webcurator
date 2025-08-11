@@ -4,71 +4,147 @@ import { useRoute } from 'vue-router';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import TargetTabAnnotationsMessage from './TargetTabAnnotationsMessage.vue';
 
-import { useTargetAnnotationsDTO, useTargetGeneralDTO } from '@/stores/target';
+import { useTargetAnnotationsDTO } from '@/stores/target';
 import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
+import { useUserProfileStore } from '@/stores/users';
 
+import type { Annotation } from '@/types/annotation';
+import { formatDate } from '@/utils/helper';
 
 const route = useRoute();
-const targetId = route.params.id as string;
+const targetId = Number(route.params.id);
 
 defineProps<{
   editing: boolean;
 }>();
 
-const annotations = ref([]);
-const targetAnnotations = useTargetAnnotationsDTO();
+const annotations = ref<Array<Annotation>>([]);
+const targetAnnotations = useTargetAnnotationsDTO().targetAnnotations;
+const selectionTypes = ["Area", "Collection", "Other collections", "Producer type", "Publication type"];
+const harvestTypes = ["Event", "Subject", "Theme"];
+const userProfile = useUserProfileStore();
+const newAnnotation = ref(<Annotation>{alert: false, user: userProfile.name});
 const loading = ref(true);
-// targetInstanceAnnotations.value = useTargetInstanceListStore().getTargetInstanceAnnotations(targetId);
-
-// if (!useTargetInstanceListStore().loadingTargetInstanceList && targetInstanceAnnotations) {
-//   targetInstanceAnnotations.forEach((annotation: any) => {
-//     console.log('s',annotation);
-//   })
-// }
 
 async function fetchTIAnnotations() {
   const targetInstances = await useTargetInstanceListStore().getTargetInstanceAnnotations(targetId);
   console.log(targetInstances);
   
   targetInstances.forEach((targetInstance: any) => {
-    targetInstance.annotations.forEach((annotation: any) => {
+    targetInstance.annotations.forEach((annotation: Annotation) => {
       annotation.targetInstanceId = targetInstance.id;
       annotations.value.push(annotation);
     })
   })
 
-  targetAnnotations.targetAnnotations.annotations.forEach((annotation: any) => {
+  targetAnnotations.annotations.forEach((annotation: Annotation) => {
     annotations.value.push(annotation);
   })
 
-  annotations.value.sort((a, b) => new Date(a.date) - new Date(b.date));
+  annotations.value.sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
 
   loading.value = false;
 }
 
-fetchTIAnnotations();	
+const addAnnotation = () => {
+  newAnnotation.value.date = new Date().toISOString();
+  targetAnnotations.annotations.push(newAnnotation.value);
+  annotations.value.push(newAnnotation.value);
+  newAnnotation.value = <Annotation>{};
+}
+
+const deleteAnnotation = (annotation: Annotation) => {
+  targetAnnotations.annotations = targetAnnotations.annotations.filter((a) => 
+    !(a.date === annotation.date && a.user === annotation.user && a.note === annotation.note)
+  );
+  annotations.value = annotations.value.filter((a) =>
+    !(a.date === annotation.date && a.user === annotation.user && a.note === annotation.note)
+  );
+}
+
+fetchTIAnnotations();
 
 </script>
 
 <template>
-  <h4 class="mt-4">Annotations</h4>
-  <WctTabViewPanel>
-    <Loading v-if="loading" />
-    <div v-else>    
+  <Loading v-if="loading" />
+  <div v-else>
+    <h4 class="mt-4">Selection</h4>
+    <WctTabViewPanel>
+      <div class="grid grid-cols-5 p-1">
+        <p>Selection date</p>
+        <p class="font-semibold">{{ formatDate(targetAnnotations.selection.date) }}</p>
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Selection type</p>
+        <Select v-if="editing" v-model="targetAnnotations.selection.type" :options="selectionTypes" />
+        <p v-else class="font-semibold">{{ targetAnnotations.selection.type }}</p>
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Selection note</p>
+        <InputText v-if="editing" v-model="targetAnnotations.selection.note" :disabled="!editing" />
+        <p v-else class="font-semibold">{{ targetAnnotations.selection.note }}</p>
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Evaluation Note</p>
+        <InputText v-if="editing" v-model="targetAnnotations.evaluationNote" :disabled="!editing" />
+        <p v-else class="font-semibold">{{ targetAnnotations.evaluationNote }}</p>
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Harvest Type</p>
+        <Select v-if="editing" v-model="targetAnnotations.harvestType" :options="harvestTypes" />
+        <p v-else class="font-semibold">{{ targetAnnotations.harvestType }}</p>
+      </div>
+    </WctTabViewPanel>
+
+    <h4 class="mt-4">Annotations</h4>
+    <WctTabViewPanel>
       <div class="flex justify-between">
-        <h4>Target</h4>
+        <div class="w-1/2">
+          <h4>Target</h4>
+
+          <div v-if="editing" class="flex">
+            <FloatLabel variant="on" class="w-4/6 mr-4">
+              <Textarea v-model="newAnnotation.note" class="w-full" rows="3"/>
+              <label for="on_label">New target annotation</label>
+            </FloatLabel>
+            <div>
+
+              <div class="flex flex-col items-start justify-between gap-4">
+                <div class="flex items-center gap-2">
+                  <Checkbox v-model="newAnnotation.alert" binary />
+                  <label>Generate alert</label>
+                </div>
+                <Button class="wct-primary-button" label="Add" @click="addAnnotation" />
+              </div>
+            </div>
+          </div>
+
+        </div>
         <h4>Target Instances</h4>
       </div>
       <Timeline :value="annotations">
         <template #content="slotProps">
-          <TargetTabAnnotationsMessage v-if="slotProps.item.targetInstanceId" :item="slotProps.item" :editing="editing" />
+          <!-- Target instance annotations -->
+          <TargetTabAnnotationsMessage 
+            v-if="slotProps.item.targetInstanceId" 
+            :annotation="slotProps.item"
+            :editing="editing" 
+            @deleteAnnotation="deleteAnnotation"
+          />
         </template>
         <template #opposite="slotProps">
-          <TargetTabAnnotationsMessage v-if="!slotProps.item.targetInstanceId" :item="slotProps.item" :editing="editing" />
+          <!-- Target annotations -->
+          <TargetTabAnnotationsMessage 
+            v-if="!slotProps.item.targetInstanceId" 
+            :annotation="slotProps.item"
+            :editing="editing"
+            @deleteAnnotation="deleteAnnotation"
+          />
         </template>
       </Timeline>
-    </div>
-  </WctTabViewPanel>
+    </WctTabViewPanel>
+  </div>
 </template>
 
 <style>

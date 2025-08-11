@@ -1,7 +1,7 @@
 import { routes } from '@/router';
 
-export const formatDate = (timestamp:number) => {
-    const value=new Date(timestamp);
+export const formatDate = (timestamp: number) => {
+    const value = new Date(timestamp);
     return value.toLocaleDateString(undefined, {
         day: '2-digit',
         month: '2-digit',
@@ -9,17 +9,27 @@ export const formatDate = (timestamp:number) => {
     });
 };
 
+export const formatStringDate = (timestamp: string) => {
+    const value = new Date(timestamp);
+    return value.toLocaleDateString(undefined, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+};
+
+
 export const formatTime = (timestamp: number) => {
     const value = new Date(timestamp);    
     return value.toLocaleTimeString([], { hour12: false, timeStyle: 'short' });
 }
 
-export const formatDatetime = (timestamp:number) => {
+export const formatDatetime = (timestamp: number) => {
     const value = new Date(timestamp);
     return value.toLocaleString();
 };
 
-export const filterRoutePathByName = (routeName:string)=>{
+export const filterRoutePathByName = (routeName: string)=>{
     let path=routes.routes[0].path;
     for(let i=0; i<routes.routes[0].children.length;i++){
         const r=routes.routes[0].children[i];
@@ -30,7 +40,7 @@ export const filterRoutePathByName = (routeName:string)=>{
     return undefined;
 };
 
-export const getRouteURLByName = (routeName:string, params:any=undefined)=>{
+export const getRouteURLByName = (routeName: string, params: any = undefined)=>{
     let path=filterRoutePathByName(routeName);
     if(!path){
         return "/";

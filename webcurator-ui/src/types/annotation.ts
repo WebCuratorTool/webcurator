@@ -1,9 +1,9 @@
 interface Annotation {
-    date: Date,
+    date: string,
     note: string,
     user: string,
     alert: boolean,
-    type?: string
+    targetInstanceId?: string
 }
 
 export type { Annotation }
