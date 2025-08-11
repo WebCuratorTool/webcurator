@@ -3,7 +3,7 @@ interface Annotation {
     note: string,
     user: string,
     alert: boolean,
-    targetInstanceId?: string
+    targetInstanceId?: number
 }
 
 export type { Annotation }
