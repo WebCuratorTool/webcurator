@@ -38,9 +38,11 @@ export const useTargetInstanceListStore = defineStore('TargetInstanceList', () =
     const getTargetInstanceAnnotations = async (targetId: number) => {
       const targetInstanceAnnotations = ref(<Array<Annotation>>([]));
       const targetInstances = await search({ filter: { targetId: targetId }, limit: -1, includeAnnotations: true });
+
       targetInstances.forEach((targetInstance: TargetInstance) => {
         if (targetInstance.annotations && targetInstance.annotations.length > 0) {
           targetInstance.annotations.forEach((annotation: Annotation) => {
+            // add targetInstanceId, used for rendering in Target Annotations view
             annotation.targetInstanceId = targetInstance.id;
             targetInstanceAnnotations.value.push(annotation);
           });

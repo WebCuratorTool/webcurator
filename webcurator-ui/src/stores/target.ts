@@ -382,7 +382,16 @@ export const useTargetAnnotationsDTO = defineStore('TargetAnnotationsDTO', () =>
   const targetAnnotations = ref({} as TargetAnnotations);
   
   const initData = () => {
-      targetAnnotations.value = {} as TargetAnnotations;
+    targetAnnotations.value = {
+      evaluationNote: '',
+      harvestType: '',
+      annotations: [],
+      alert: false,
+      selection: { date: 0, type: '', note: '' },
+      date: 0,
+      type: '',
+      note: ''
+  } as TargetAnnotations;
   }
 
   const setData = (data: TargetAnnotations) => {

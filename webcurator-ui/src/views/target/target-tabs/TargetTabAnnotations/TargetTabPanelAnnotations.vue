@@ -28,9 +28,11 @@ const selectionTypes = ["Area", "Collection", "Other collections", "Producer typ
 const harvestTypes = ["Event", "Subject", "Theme"];
 const userProfile = useUserProfileStore();
 const newAnnotation = ref(<Annotation>{ alert: false, user: userProfile.name });
-const loading = ref(true);
+const loading = ref(false);
 
 async function prepareAnnotations() {
+  loading.value = true;
+  
   const targetInstanceAnnotations = await useTargetInstanceListStore().getTargetInstanceAnnotations(targetId);
 
   targetInstanceAnnotations.forEach((annotation: Annotation) => {
@@ -39,7 +41,7 @@ async function prepareAnnotations() {
 
   targetAnnotations.annotations.forEach((annotation: Annotation) => {
     annotations.value.push(annotation);
-  })
+  });
 
   annotations.value.sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
 
@@ -62,7 +64,9 @@ const deleteAnnotation = (annotation: Annotation) => {
   );
 }
 
-prepareAnnotations();
+if (targetId) {
+  prepareAnnotations();
+} 
 
 </script>
 
@@ -115,14 +119,14 @@ prepareAnnotations();
         </div>
       </div>
 
-      <div v-if="annotations.length > 0" class="mt-8">
-        <div class="flex justify-between items-center mb-8">
+      <div v-if="annotations.length > 0" :class="{'mt-6': editing}">
+        <div class="flex justify-between items-center mb-6">
           <h4>Target</h4>
           <h4 class="!mt-0">Target Instances</h4>
         </div>
         <Timeline :value="annotations">
+          <!-- Target instance annotations -->
           <template #content="slotProps">
-            <!-- Target instance annotations -->
             <TargetTabAnnotationsMessage 
               v-if="slotProps.item.targetInstanceId" 
               :annotation="slotProps.item"
@@ -130,8 +134,8 @@ prepareAnnotations();
               @deleteAnnotation="deleteAnnotation"
             />
           </template>
+          <!-- Target annotations -->
           <template #opposite="slotProps">
-            <!-- Target annotations -->
             <TargetTabAnnotationsMessage 
               v-if="!slotProps.item.targetInstanceId" 
               :annotation="slotProps.item"

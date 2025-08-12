@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // libraries
 import { ref } from 'vue';
-import { useRoute } from 'vue-router';
 
 // components
 import Loading from '@/components/Loading.vue';
@@ -12,12 +11,6 @@ import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
 import type { TargetInstance } from '@/types/targetInstance';
 // utils
 import { formatDatetime } from '@/utils/helper';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-
-const rest: UseFetchApis = useFetch();
-
-const route = useRoute();
-const targetId = route.params.id as string;
 
 const targetInstances = ref(<Array<TargetInstance>>([]));
 const loading = ref(true);
@@ -27,6 +20,7 @@ const props = defineProps<{
   header: string;
   type: string;
   targetInstanceStates: { [key: string]: string };
+  targetId: string
 }>();
 
 const fetchTargetInstances = async() => {
@@ -35,7 +29,7 @@ const fetchTargetInstances = async() => {
   const now = new Date();
   const searchParams = {
     filter: {
-      targetId: targetId,
+      targetId: props.targetId,
       to: props.type == 'latest' ? now : null,
       from: props.type == 'upcoming' ? now : null
     },
