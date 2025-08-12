@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// librarys
+// libraries
 import { ref } from 'vue';
 
 // types
