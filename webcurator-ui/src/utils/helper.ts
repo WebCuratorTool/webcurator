@@ -1,6 +1,6 @@
 import { routes } from '@/router';
 
-export const formatDate = (timestamp: number) => {
+export const formatDate = (timestamp: number | string) => {
     const value = new Date(timestamp);
     return value.toLocaleDateString(undefined, {
         day: '2-digit',

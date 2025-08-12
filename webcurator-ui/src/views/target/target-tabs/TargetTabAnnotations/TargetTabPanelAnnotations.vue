@@ -99,7 +99,7 @@ prepareAnnotations();
 
     <h4 class="mt-4">Annotations</h4>
     <WctTabViewPanel>
-      <div v-if="editing" class="flex mb-8">
+      <div v-if="editing" class="flex">
         <FloatLabel variant="on" class="w-1/2  mr-4">
           <Textarea v-model="newAnnotation.note" class="w-full" rows="3"/>
           <label for="on_label">New target annotation</label>
@@ -115,7 +115,7 @@ prepareAnnotations();
         </div>
       </div>
 
-      <div v-if="annotations.length > 0">
+      <div v-if="annotations.length > 0" class="mt-8">
         <div class="flex justify-between items-center mb-8">
           <h4>Target</h4>
           <h4 class="!mt-0">Target Instances</h4>
@@ -141,7 +141,7 @@ prepareAnnotations();
           </template>
         </Timeline>
       </div>
-      <div v-else class="text-center">
+      <div v-else-if="!editing" class="text-center">
         <p class="text-500">No annotations to display</p>
       </div>
     </WctTabViewPanel>
