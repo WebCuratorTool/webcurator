@@ -27,7 +27,7 @@ const targetAnnotations = useTargetAnnotationsDTO().targetAnnotations;
 const selectionTypes = ["Area", "Collection", "Other collections", "Producer type", "Publication type"];
 const harvestTypes = ["Event", "Subject", "Theme"];
 const userProfile = useUserProfileStore();
-const newAnnotation = ref(<Annotation>{alert: false, user: userProfile.name});
+const newAnnotation = ref(<Annotation>{ alert: false, user: userProfile.name });
 const loading = ref(true);
 
 async function prepareAnnotations() {
@@ -47,10 +47,10 @@ async function prepareAnnotations() {
 }
 
 const addAnnotation = () => {
-  newAnnotation.value.date = Number(new Date());
+  newAnnotation.value.date = new Date().toISOString();
   targetAnnotations.annotations.push(newAnnotation.value);
   annotations.value.push(newAnnotation.value);
-  newAnnotation.value = <Annotation>{};
+  newAnnotation.value = <Annotation>{ alert: false, user: userProfile.name };
 }
 
 const deleteAnnotation = (annotation: Annotation) => {
@@ -99,50 +99,51 @@ prepareAnnotations();
 
     <h4 class="mt-4">Annotations</h4>
     <WctTabViewPanel>
-      <div class="flex justify-between">
-        <div class="w-1/2">
-          <h4>Target</h4>
-
-          <div v-if="editing" class="flex">
-            <FloatLabel variant="on" class="w-4/6 mr-4">
-              <Textarea v-model="newAnnotation.note" class="w-full" rows="3"/>
-              <label for="on_label">New target annotation</label>
-            </FloatLabel>
-            <div>
-
-              <div class="flex flex-col items-start justify-between gap-4">
-                <div class="flex items-center gap-2">
-                  <Checkbox v-model="newAnnotation.alert" binary />
-                  <label>Generate alert</label>
-                </div>
-                <Button class="wct-primary-button" label="Add" @click="addAnnotation" />
-              </div>
+      <div v-if="editing" class="flex mb-8">
+        <FloatLabel variant="on" class="w-1/2  mr-4">
+          <Textarea v-model="newAnnotation.note" class="w-full" rows="3"/>
+          <label for="on_label">New target annotation</label>
+        </FloatLabel>
+        <div>
+          <div class="flex flex-col items-start justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <Checkbox v-model="newAnnotation.alert" binary />
+              <label>Generate alert</label>
             </div>
+            <Button class="wct-primary-button" label="Add" @click="addAnnotation" />
           </div>
-
         </div>
-        <h4>Target Instances</h4>
       </div>
-      <Timeline :value="annotations">
-        <template #content="slotProps">
-          <!-- Target instance annotations -->
-          <TargetTabAnnotationsMessage 
-            v-if="slotProps.item.targetInstanceId" 
-            :annotation="slotProps.item"
-            :editing="editing" 
-            @deleteAnnotation="deleteAnnotation"
-          />
-        </template>
-        <template #opposite="slotProps">
-          <!-- Target annotations -->
-          <TargetTabAnnotationsMessage 
-            v-if="!slotProps.item.targetInstanceId" 
-            :annotation="slotProps.item"
-            :editing="editing"
-            @deleteAnnotation="deleteAnnotation"
-          />
-        </template>
-      </Timeline>
+
+      <div v-if="annotations.length > 0">
+        <div class="flex justify-between items-center mb-8">
+          <h4>Target</h4>
+          <h4 class="!mt-0">Target Instances</h4>
+        </div>
+        <Timeline :value="annotations">
+          <template #content="slotProps">
+            <!-- Target instance annotations -->
+            <TargetTabAnnotationsMessage 
+              v-if="slotProps.item.targetInstanceId" 
+              :annotation="slotProps.item"
+              :editing="editing" 
+              @deleteAnnotation="deleteAnnotation"
+            />
+          </template>
+          <template #opposite="slotProps">
+            <!-- Target annotations -->
+            <TargetTabAnnotationsMessage 
+              v-if="!slotProps.item.targetInstanceId" 
+              :annotation="slotProps.item"
+              :editing="editing"
+              @deleteAnnotation="deleteAnnotation"
+            />
+          </template>
+        </Timeline>
+      </div>
+      <div v-else class="text-center">
+        <p class="text-500">No annotations to display</p>
+      </div>
     </WctTabViewPanel>
   </div>
 </template>
