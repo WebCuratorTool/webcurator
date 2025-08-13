@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // libraries
-import { ref } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 
 // types
 import type { Annotation } from '@/types/annotation';
@@ -16,15 +16,18 @@ const emit = defineEmits(['deleteAnnotation']);
 
 const editingAnnotation = ref(false);
 const previousAnnotationNote = ref();
+const previousAnnotationAlert = ref();
 
 const editAnnotation = () => {
   editingAnnotation.value = true;
   previousAnnotationNote.value = props.annotation.note;
+  previousAnnotationAlert.value = props.annotation.alert;
 } 
 
 const cancelEditAnnotation = () => {
-  editingAnnotation.value = false;
   props.annotation.note = previousAnnotationNote.value;
+  props.annotation.alert = previousAnnotationAlert.value;
+  editingAnnotation.value = false;
 }
 
 </script>
@@ -32,14 +35,20 @@ const cancelEditAnnotation = () => {
 <template>
   <Card class="mt-3">
     <template #subtitle>
-      <div class="flex justify-between">
+      <div class="flex justify-between items-center">
         <div>
+          <div class="flex gap-2 items-center">
+            <div>{{ annotation.user }} {{ formatDate(annotation.date) }}</div>
+            <i v-if="annotation.alert && !editingAnnotation" class="pi pi-exclamation-triangle" />
+            <div v-if="editingAnnotation" class="flex items-center gap-2">
+              <Checkbox v-model="annotation.alert" binary />
+              <label>Generate alert</label>
+            </div>
+          </div>
           <div v-if="annotation.targetInstanceId">Target Instance {{ annotation.targetInstanceId }}</div>
-          <div>{{ annotation.user }} {{ formatDate(annotation.date) }}</div>
         </div>
         <div v-if="editing && !annotation.targetInstanceId && !editingAnnotation">
           <Button 
-            class="p-button-text" 
             style="width: 2rem;" 
             icon="pi pi-trash" 
             v-tooltip.bottom="'Delete Annotation'" 
@@ -47,7 +56,6 @@ const cancelEditAnnotation = () => {
             @click="$emit('deleteAnnotation', annotation)" 
           />
           <Button 
-            class="p-button-text" 
             style="width: 2rem" 
             icon="pi pi-pencil"
             v-tooltip.bottom="'Edit Annotation'" 

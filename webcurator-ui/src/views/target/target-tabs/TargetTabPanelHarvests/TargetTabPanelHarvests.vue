@@ -15,11 +15,10 @@ import { formatDatetime } from '@/utils/helper';
 import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
 
 const ScheduleModal = defineAsyncComponent(() => import('./modals/TargetScheduleModal.vue'));
+const scheduleModal = useDialog();
 
 const route = useRoute();
 const targetId = route.params.id as string;
-
-const scheduleModal = useDialog();
 
 const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;

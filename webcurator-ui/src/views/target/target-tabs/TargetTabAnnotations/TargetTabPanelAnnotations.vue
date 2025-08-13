@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // libraries
-import { ref } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
+import { useDialog } from 'primevue/usedialog'; 
 import { useRoute } from 'vue-router';
 
 // components
@@ -15,14 +16,28 @@ import type { Annotation } from '@/types/annotation';
 // utils
 import { formatDate } from '@/utils/helper';
 
+const NewAnnotationModal = defineAsyncComponent(() => import('./modals/TargetNewAnnotationModal.vue'));
+const newAnnotationModal = useDialog();
+
 const route = useRoute();
 const targetId = Number(route.params.id);
+
+const showNewAnnotationModal = () => {
+  newAnnotationModal.open( NewAnnotationModal, {
+    props: { header: 'New Annotation', modal: true, dismissableMask: true },
+    data: {
+      annotation: newAnnotation,
+      addAnnotation: addAnnotation
+    }
+  });
+}
 
 defineProps<{
   editing: boolean;
 }>();
 
 const annotations = ref<Array<Annotation>>([]);
+const sortDirection = ref('desc');
 const targetAnnotations = useTargetAnnotationsDTO().targetAnnotations;
 const selectionTypes = ["Area", "Collection", "Other collections", "Producer type", "Publication type"];
 const harvestTypes = ["Event", "Subject", "Theme"];
@@ -48,10 +63,24 @@ async function prepareAnnotations() {
   loading.value = false;
 }
 
+const sortAnnotaions = () => {
+  if (sortDirection.value === 'asc') {
+    annotations.value.sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf());
+    sortDirection.value = 'desc';
+  } else {
+    annotations.value.sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf());
+    sortDirection.value = 'asc';
+  }
+}
+
 const addAnnotation = () => {
   newAnnotation.value.date = new Date().toISOString();
   targetAnnotations.annotations.push(newAnnotation.value);
-  annotations.value.push(newAnnotation.value);
+  if (sortDirection.value === 'asc') {
+    annotations.value.unshift(newAnnotation.value);
+  } else {    
+    annotations.value.push(newAnnotation.value);
+  }
   newAnnotation.value = <Annotation>{ alert: false, user: userProfile.name };
 }
 
@@ -74,55 +103,51 @@ if (targetId) {
   <Loading v-if="loading" />
   <div v-else>
     <h4 class="mt-4">Selection</h4>
-    <WctTabViewPanel>
-      <div class="grid grid-cols-5 p-1">
-        <p>Selection date</p>
-        <p class="font-semibold">{{ formatDate(targetAnnotations.selection.date) }}</p>
-      </div>
-      <div class="grid grid-cols-5 p-1">
-        <p>Selection type</p>
-        <Select v-if="editing" v-model="targetAnnotations.selection.type" :options="selectionTypes" />
-        <p v-else class="font-semibold">{{ targetAnnotations.selection.type }}</p>
-      </div>
-      <div class="grid grid-cols-5 p-1">
-        <p>Selection note</p>
-        <InputText v-if="editing" v-model="targetAnnotations.selection.note" :disabled="!editing" />
-        <p v-else class="font-semibold">{{ targetAnnotations.selection.note }}</p>
-      </div>
-      <div class="grid grid-cols-5 p-1">
-        <p>Evaluation Note</p>
-        <InputText v-if="editing" v-model="targetAnnotations.evaluationNote" :disabled="!editing" />
-        <p v-else class="font-semibold">{{ targetAnnotations.evaluationNote }}</p>
-      </div>
-      <div class="grid grid-cols-5 p-1">
-        <p>Harvest Type</p>
-        <Select v-if="editing" v-model="targetAnnotations.harvestType" :options="harvestTypes" />
-        <p v-else class="font-semibold">{{ targetAnnotations.harvestType }}</p>
-      </div>
-    </WctTabViewPanel>
-
-    <h4 class="mt-4">Annotations</h4>
-    <WctTabViewPanel>
-      <div v-if="editing" class="flex">
-        <FloatLabel variant="on" class="w-1/2  mr-4">
-          <Textarea v-model="newAnnotation.note" class="w-full" rows="3"/>
-          <label for="on_label">New target annotation</label>
-        </FloatLabel>
-        <div>
-          <div class="flex flex-col items-start justify-between gap-4">
-            <div class="flex items-center gap-2">
-              <Checkbox v-model="newAnnotation.alert" binary />
-              <label>Generate alert</label>
-            </div>
-            <Button class="wct-primary-button" label="Add" @click="addAnnotation" />
-          </div>
+    <WctTabViewPanel columns>
+      <div class="flex items-start justify-between gap-8 w-full">
+        <div class="flex flex-col items-start gap-2 w-full">
+          <WctFormField label="Selection date">
+            <p class="font-semibold">{{ formatDate(targetAnnotations.selection.date) }}</p>
+          </WctFormField>
+          <WctFormField label="Selection type">
+            <Select v-if="editing" v-model="targetAnnotations.selection.type" :options="selectionTypes" />
+            <p v-else class="font-semibold">{{ targetAnnotations.selection.type }}</p>
+          </WctFormField>
+          <WctFormField label="Selection note">
+            <InputText v-if="editing" v-model="targetAnnotations.selection.note" :disabled="!editing" />
+            <p v-else class="font-semibold">{{ targetAnnotations.selection.note }}</p>
+          </WctFormField>
+        </div>
+        <div class="flex flex-col items-start gap-2 w-full">
+          <WctFormField label="Evaluation note">
+            <InputText v-if="editing" v-model="targetAnnotations.evaluationNote" :disabled="!editing" />
+            <p v-else class="font-semibold">{{ targetAnnotations.evaluationNote }}</p>
+          </WctFormField>
+          <WctFormField label="Harvest type">
+            <Select v-if="editing" v-model="targetAnnotations.harvestType" :options="harvestTypes" />
+            <p v-else class="font-semibold">{{ targetAnnotations.harvestType }}</p>
+          </WctFormField>
         </div>
       </div>
-
-      <div v-if="annotations.length > 0" :class="{'mt-6': editing}">
-        <div class="flex justify-between items-center mb-6">
+    </WctTabViewPanel>
+    <div class="flex justify-between"> 
+      <h4 class="mt-4">Annotations</h4>
+      <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showNewAnnotationModal()" />
+    </div>
+    <WctTabViewPanel>
+      <div v-if="annotations.length > 0">
+        <div class="flex justify-between items-center">
           <h4>Target</h4>
           <h4 class="!mt-0">Target Instances</h4>
+        </div>
+        <div class="flex justify-center">
+          <Button 
+            icon="pi pi-arrow-right-arrow-left"
+            style="transform: rotate(90deg); display: inline-block;" 
+            v-tooltip.top="'Change sort direction'" 
+            text
+            @click="sortAnnotaions()" 
+          />
         </div>
         <Timeline :value="annotations">
           <!-- Target instance annotations -->
@@ -151,7 +176,3 @@ if (targetId) {
     </WctTabViewPanel>
   </div>
 </template>
-
-<style>
-
-</style>
