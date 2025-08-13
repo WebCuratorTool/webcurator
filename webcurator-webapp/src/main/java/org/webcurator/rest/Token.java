@@ -1,12 +1,14 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.rest.auth.SessionManager;
+import org.webcurator.rest.auth.Sessions;
+
+import java.util.List;
 
 /**
  * Handlers for the token endpoint
@@ -17,6 +19,23 @@ public class Token {
 
     @Autowired
     SessionManager sessionManager;
+
+    @Autowired
+    Sessions sessions;
+
+    @GetMapping(path = "/{token}")
+    public ResponseEntity<?> get(@PathVariable String token) {
+        try {
+            List<String> roles = sessions.getRoles(token);
+            if (!roles.isEmpty()) {
+                return ResponseEntity.ok("valid");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            }
+        } catch (Sessions.InvalidSessionException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    }
 
     /**
      * Login
@@ -33,7 +52,6 @@ public class Token {
 
     /**
      * Logout
-     *
      */
     @DeleteMapping(path = "/{token}")
     public ResponseEntity<?> delete(@PathVariable String token) {
