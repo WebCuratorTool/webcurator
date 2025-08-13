@@ -19,6 +19,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   const load = () => {
     const cachedContent = localStorage.getItem(KEY_USER_PROFILE);
     if (!cachedContent) {
+      clear();
       return;
     }
 
@@ -83,7 +84,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
   load();
 
-  return { token, id, name, firstName, lastName, roles, agency, priviledges, currUserName, setBasicData, setToken, clear };
+  return { token, id, name, firstName, lastName, roles, agency, priviledges, currUserName, load, setBasicData, setToken, clear };
 });
 
 export const useUsersStore = defineStore('users', () => {

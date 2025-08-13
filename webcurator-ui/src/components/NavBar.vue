@@ -19,20 +19,16 @@
 <script setup lang="ts">
 import { useLayout } from '@/layout/composables/layout';
 import { useUserProfileStore } from '@/stores/users';
-import { useLoginStore } from '@/utils/rest.api';
+import { usePageAuthStore } from '@/utils/rest.api';
 import { toggleThemeMode } from '@/utils/themes';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
-
-const loginStore = useLoginStore();
+const authStore = usePageAuthStore();
 
 const { layoutConfig } = useLayout();
 
 const token = useUserProfileStore();
 const logout = () => {
-  loginStore.logout();
-  router.push('/wct');
+  authStore.logout();
 };
 
 const onDarkModeChange = (value: any) => {
