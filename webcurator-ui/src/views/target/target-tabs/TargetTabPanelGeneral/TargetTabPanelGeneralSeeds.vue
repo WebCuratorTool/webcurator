@@ -1,15 +1,24 @@
 <script setup lang="ts">
+// libraries
 import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import WctTopLabel from '@/components/WctTopLabel.vue';
-import { useTargetSeedsDTO } from '@/stores/target';
-import { formatDate } from '@/utils/helper';
 import { useDialog } from 'primevue/usedialog';
+import { useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 
+// components
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
+import { useTargetSeedsDTO } from '@/stores/target';
+// utils
+import { formatDate } from '@/utils/helper';
+
 const AddPermissionModal = defineAsyncComponent(() => import('./modals/TargetAddPermissionModal.vue'));
+const AddSeedModal = defineAsyncComponent(() => import('./modals/TargetAddSeedModal.vue'));
 const ViewPermissionModal = defineAsyncComponent(() => import('./modals/TargetViewPermissionModal.vue'));
+
+const addPermissionsModal = useDialog();
+const addSeedModal = useDialog();
+const viewPermissionModal = useDialog();
 
 const toast = useToast();
 
@@ -22,25 +31,8 @@ const targetId = route.params.id as string
 
 const targetSeeds = useTargetSeedsDTO();
 
-const addingSeeds = ref(false);
 const editingSeed = ref(0);
-const newSeed = ref({ seed: '', authorisations: [], primary: false });
 const previousSeed = ref({});
-const selectedAuthorisationOption = ref('Auto');
-
-const addSeedsModal = useDialog();
-const viewPermissionModal = useDialog();
-
-const addSeed = () => {
-  if (newSeed.value.seed != '') {
-    if (targetSeeds.targetSeeds.some((t) => t.seed == newSeed.value.seed)) {
-      showErrorMessage();
-    } else {
-      targetSeeds.addSeed(newSeed.value);
-    }
-    newSeed.value = { seed: '', authorisations: [], primary: false };
-  }
-};
 
 const editSeed = (seed: any) => {
   previousSeed.value = structuredClone(toRaw(seed));
@@ -57,9 +49,15 @@ const removePermission = (seed: any, auth: any) => {
 };
 
 const showAddPermission = (seed: any) => {
-  addSeedsModal.open(AddPermissionModal, {
+  addPermissionsModal.open(AddPermissionModal, {
     props: { header: `Add Permission to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
     data: { seed: seed, targetId: targetId }
+  });
+};
+
+const showAddSeed = () => {
+  addSeedModal.open(AddSeedModal, {
+    props: { header: 'Add Seed', modal: true, dismissableMask: true, style: { width: '20vw' } }
   });
 };
 
@@ -69,10 +67,6 @@ const showViewPermission = (permissionId: number) => {
     data: { permissionId: permissionId }
   })
 }
-
-const showErrorMessage = () => {
-  toast.add({ severity: 'error', summary: 'Seed not added', detail: 'The seed already exists on the target', life: 3000 });
-};
 
 // If the Target is switched out of editing mode, clear the editing seed value too
 watch(() => props.editing, async(updatedEditingState) => {
@@ -85,20 +79,9 @@ watch(() => props.editing, async(updatedEditingState) => {
 <template>
   <div class="flex justify-between">
     <h4>Seeds</h4>
-    <Button v-if="editing && !addingSeeds" icon="pi pi-plus" label="Add" text @click="addingSeeds = true" />
-    <Button v-if="editing && addingSeeds" icon="pi pi-times" text @click="addingSeeds = false" />
+    <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showAddSeed()" />
   </div>
   <WctTabViewPanel>
-    <div v-if="editing && addingSeeds" class="flex items-end justify-start w-full gap-4 pb-8">
-      <WctTopLabel label="Add Seed" style="width: 50%">
-        <InputText v-model="newSeed.seed" />
-      </WctTopLabel>
-      <WctTopLabel label="Authorisation" style="width: 30%">
-        <Select v-model="selectedAuthorisationOption" :options="['Auto', 'Add Later']" />
-      </WctTopLabel>
-      <Button class="w-auto" icon="pi pi-plus" label="Add" text @click="addSeed" />
-    </div>
-
     <table v-if="targetSeeds.targetSeeds.length > 0" class="w-full target-seed-parent-table">
       <thead>
         <tr style="border-bottom: 1px solid #e4e4e4">
