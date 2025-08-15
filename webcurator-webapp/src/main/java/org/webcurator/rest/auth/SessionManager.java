@@ -13,6 +13,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
 
 import java.util.ArrayList;
@@ -66,23 +67,35 @@ public class SessionManager {
     }
 
     /**
-     * Checks whether the bearer of the token has the supplied role
+     * Checks whether the bearer of the token has the supplied role with the supplied scope
      */
-    public AuthorizationResult authorize(String authorizationHeader, String role) {
+    public AuthorizationResult authorize(String authorizationHeader, String role, int scope) {
         if (authorizationHeader == null) {
             return new AuthorizationResult(true, 401, "Unauthorized, no token was supplied");
         }
         try {
             String token = extractToken(authorizationHeader);
-            List roles = Arrays.asList(sessions.getPrivileges(token).keySet().toArray());
-            if (roles.contains(role)) {
-                return new AuthorizationResult(false, 200, "");
-            } else {
+            HashMap<String, Integer> privileges = sessions.getPrivileges(token);
+            if (!privileges.keySet().contains(role)) {
                 return new AuthorizationResult(true, 403, "User does not have role " + role);
+            } else {
+                if (privileges.get(role) == scope) {
+                    return new AuthorizationResult(false, 200, "");
+                } else {
+                    return new AuthorizationResult(true, 403, String.format("User has role %s but not the required scope %d",
+                                                                                                            role, scope));
+                }
             }
         } catch (Sessions.InvalidSessionException e) {
             return new AuthorizationResult(true, 401, "Invalid or expired session");
         }
+    }
+
+    /**
+     * Checks whether the bearer of the token has the supplied role
+     */
+    public AuthorizationResult authorize(String authorizationHeader, String role) {
+        return authorize(authorizationHeader, role, Privilege.SCOPE_NONE);
     }
 
     /**
