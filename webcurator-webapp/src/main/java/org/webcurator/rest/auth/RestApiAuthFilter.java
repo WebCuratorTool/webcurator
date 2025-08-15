@@ -42,6 +42,14 @@ public class RestApiAuthFilter implements Filter {
         chain.doFilter(request, response);
     }
 
+    // FIXME Maybe this will be useful? Also, note that we may have to do the more fine-grained authorisation inside the ReST controllers
+    /**
+     * Return the minimal privilege required to execute the request
+     */
+    private String getPrivilege(ServletRequest request) {
+        return null;
+    }
+
     @Override
     public void destroy() {
         Filter.super.destroy();

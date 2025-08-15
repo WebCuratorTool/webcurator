@@ -1,9 +1,9 @@
 package org.webcurator.rest.auth;
 
+import it.unimi.dsi.fastutil.Hash;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -17,7 +17,7 @@ public class Sessions {
     /**
      * Add session and remove any expired sessions while we're at it
      */
-    public void addSession(String id, List<String> roles, long expireInterval) {
+    public void addSession(String id, HashMap<String, Integer> privileges, long expireInterval) {
         if (sessionMap.containsKey(id)) {
             // Can't happen
             throw new RuntimeException(String.format("Session id %s already exists", id));
@@ -27,7 +27,11 @@ public class Sessions {
                 removeSession(id);
             }
         }
-        sessionMap.put(id, new SessionInfo(roles, expireInterval));
+        sessionMap.put(id, new SessionInfo(privileges, expireInterval));
+    }
+
+    public boolean exists(String id) {
+        return sessionMap.containsKey(id);
     }
 
     public void removeSession(String id) {
@@ -36,6 +40,7 @@ public class Sessions {
 
     /**
      * Get the roles for this session if it's still valid and, if so, update the timestamp of last access
+     * // FIXME remove this once this is no longer used by the Token endpoint (a future change coming from another branch)
      */
     public List<String> getRoles(String id) throws InvalidSessionException {
         if (!sessionMap.containsKey(id) || sessionMap.get(id).expired()) {
@@ -43,7 +48,23 @@ public class Sessions {
             throw new InvalidSessionException(id);
         }
         sessionMap.get(id).touch();
-        return sessionMap.get(id).roles;
+        List<String> roles = new ArrayList<>();
+        for (String r : sessionMap.get(id).privileges.keySet()) {
+            roles.add(r);
+        }
+        return roles;
+    }
+
+    /**
+     * Get the privileges for this session if it's still valid and, if so, update the timestamp of last access
+     */
+    public HashMap<String, Integer> getPrivileges(String id) throws InvalidSessionException {
+        if (!sessionMap.containsKey(id) || sessionMap.get(id).expired()) {
+            sessionMap.remove(id);
+            throw new InvalidSessionException(id);
+        }
+        sessionMap.get(id).touch();
+        return sessionMap.get(id).privileges;
     }
 
     public class InvalidSessionException extends Exception {
@@ -56,12 +77,12 @@ public class Sessions {
     // Struct used as the value in the kv pair representing a session
     class SessionInfo {
         Date modified;
-        List<String> roles;
+        HashMap<String, Integer> privileges;
         long expireInterval;
 
-        public SessionInfo(List<String> roles, long expireInterval) {
+        public SessionInfo(HashMap<String, Integer> privileges, long expireInterval) {
             modified = new Date();
-            this.roles = roles;
+            this.privileges = privileges;
             this.expireInterval = expireInterval;
         }
 

@@ -1,7 +1,9 @@
 package org.webcurator.rest.auth;
 
+import it.unimi.dsi.fastutil.Hash;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.jcajce.provider.digest.MD2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,8 +12,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.RolePrivilege;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -29,6 +35,9 @@ public class SessionManager {
     Sessions sessions;
 
     @Autowired
+    UserRoleDAO userRoleDAO;
+
+    @Autowired
     AuthenticationManager authenticationManager;
 
     /**
@@ -38,19 +47,20 @@ public class SessionManager {
 
         // Check credentials
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
-        Authentication authentication = authenticationManager.authenticate(authRequest);
+        authenticationManager.authenticate(authRequest);
 
-        // Get roles
-        List<String> roles = new ArrayList<>();
-        for(GrantedAuthority authority : authentication.getAuthorities()) {
-            roles.add(authority.getAuthority());
+        // Get the privileges so we can store them in the newly created session
+        List<RolePrivilege> rolePrivileges = userRoleDAO.getUserPrivileges(username);
+        HashMap<String, Integer> privileges = new HashMap<>();
+        for (RolePrivilege r : rolePrivileges) {
+            privileges.put(r.getPrivilege(), r.getPrivilegeScope());
         }
 
         // Create token
         String token = TokenUtils.createToken();
 
         // Add the session
-        sessions.addSession(token, roles, maxIdleTime);
+        sessions.addSession(token, privileges, maxIdleTime);
 
         return token;
     }
@@ -64,8 +74,8 @@ public class SessionManager {
         }
         try {
             String token = extractToken(authorizationHeader);
-            List roles = sessions.getRoles(token);
-            if (roles.contains("ROLE_" + role)) {
+            List roles = Arrays.asList(sessions.getPrivileges(token).keySet().toArray());
+            if (roles.contains(role)) {
                 return new AuthorizationResult(false, 200, "");
             } else {
                 return new AuthorizationResult(true, 403, "User does not have role " + role);
@@ -75,7 +85,15 @@ public class SessionManager {
         }
     }
 
-    /**I
+    /**
+     * Does this token point to a valid session?
+     * // FIXME the GET /token/{token} call (that will be coming downstream from another branch) should use this method instead of using Sessions directly
+     */
+    public boolean isValid(String token) {
+        return sessions.exists(token);
+    }
+
+    /**
      * Ends the session
      */
     public void invalidate(String token) {
