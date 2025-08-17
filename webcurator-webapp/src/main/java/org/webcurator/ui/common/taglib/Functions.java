@@ -62,7 +62,7 @@ public class Functions {
      * @return true if the current time (now) is more than xHours after the input date; otherwise false.
      */
     public static boolean xHoursElapsed(int xHours, Date theDate) {
-        log.info("xHours={}, theDate={}", xHours, theDate);
+        log.debug("xHours={}, theDate={}", xHours, theDate);
         Calendar dateToTest = Calendar.getInstance();
         dateToTest.setTime(theDate);
         dateToTest.add(Calendar.HOUR, xHours);
@@ -79,7 +79,7 @@ public class Functions {
      * @return true if the current time (now) is more than xSeconds after the input date; otherwise false.
      */
     public static boolean xSecondsElapsed(int xSeconds, Date theDate) {
-        log.info("xSeconds={}, theDate={}", xSeconds, theDate);
+        log.debug("xSeconds={}, theDate={}", xSeconds, theDate);
         Calendar dateToTest = Calendar.getInstance();
         dateToTest.setTime(theDate);
         dateToTest.add(Calendar.SECOND, xSeconds);

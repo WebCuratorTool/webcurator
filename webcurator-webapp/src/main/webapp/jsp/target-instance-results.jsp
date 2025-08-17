@@ -8,8 +8,8 @@
 <%@ page import="org.slf4j.Logger, org.slf4j.LoggerFactory" %>
 <%
     Logger log = LoggerFactory.getLogger("MyJspDebug");
-    log.info("hoursElapsedRejectStuckIndex = {}",  request.getAttribute("hoursElapsedRejectStuckIndex"));
-    log.info("hoursElapsedReindexPatched = {}",  request.getAttribute("hoursElapsedReindexPatched"));
+    log.debug("hoursElapsedRejectStuckIndex = {}",  request.getAttribute("hoursElapsedRejectStuckIndex"));
+    log.debug("hoursElapsedReindexPatched = {}",  request.getAttribute("hoursElapsedReindexPatched"));
 %>
 
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_OID%>" value="<c:out value="${command.targetInstanceId}"/>"/>
