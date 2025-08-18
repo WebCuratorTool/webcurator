@@ -57,7 +57,7 @@ const showAddPermission = (seed: any) => {
 
 const showAddSeed = () => {
   addSeedModal.open(AddSeedModal, {
-    props: { header: 'Add Seed', modal: true, dismissableMask: true, style: { width: '20vw' } }
+    props: { header: 'Add Seed', modal: true, dismissableMask: true, style: { width: '30vw' } }
   });
 };
 
