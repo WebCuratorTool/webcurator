@@ -31,7 +31,6 @@ const _login = async (username: string, password: string) => {
     ok: true,
     title: '',
     detail: '',
-    token: ''
   } as LoginResponse;
 
   if (!rsp.ok) {

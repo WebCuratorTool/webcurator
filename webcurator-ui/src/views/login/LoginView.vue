@@ -3,5 +3,5 @@ import LoginWidget from './LoginWidget.vue';
 </script>
 
 <template>
-  <LoginWidget mode="page" />
+  <LoginWidget :redirectToLoginPage="true" />
 </template>

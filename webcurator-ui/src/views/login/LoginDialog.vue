@@ -4,6 +4,6 @@ import LoginWidget from './LoginWidget.vue';
 
 <template>
   <div style="width: 100vw; height: 100vh; background: var(--p-content-background)">
-    <LoginWidget mode="api" />
+    <LoginWidget :redirectToLoginPage="false" />
   </div>
 </template>

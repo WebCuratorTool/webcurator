@@ -3,7 +3,7 @@ import { useApiAuthStore, usePageAuthStore, type LoginResponse } from '@/utils/r
 import { ref } from 'vue';
 
 const props = defineProps<{
-  mode: string;
+  redirectToLoginPage: boolean;
 }>();
 
 const authApi = useApiAuthStore();
@@ -15,12 +15,11 @@ const feedback = ref<LoginResponse>({
   ok: true,
   title: '',
   detail: '',
-  token: ''
 });
 
 const msgKey = ref(0);
 const login = async () => {
-  if (props.mode === 'page') {
+  if (props.redirectToLoginPage) {
     feedback.value = await authPage.login(username.value, password.value);
   } else {
     feedback.value = await authApi.authenticate(username.value, password.value);
