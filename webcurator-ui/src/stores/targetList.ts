@@ -47,38 +47,9 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
   const users = useUsersStore()
   const targetList = ref([])
   const loadingTargetList = ref(false)
-  const filteredTargetList = ref()
   const searchTerms = useTargetListSearchStore()
   const filters = useTargetListFiltertore()
   const rest: UseFetchApis = useFetch()
-
-  // const filter = () => {
-  //   const ret = []
-  //   for (let idx = 0; idx < targetList.value.length; idx++) {
-  //     const target: any = targetList.value[idx]
-  //     if (filters.selectedAgency.code !== '' && target.agency !== filters.selectedAgency.name) {
-  //       continue
-  //     }
-
-  //     if (filters.selectedUser.code !== '' && target.owner !== filters.selectedUser.code) {
-  //       continue
-  //     }
-
-  //     let isInSelectedStates = false
-  //     for (const idx in filters.selectedState) {
-  //       const stateOption: any = filters.selectedState[idx]
-  //       if (target.state === stateOption.code) {
-  //         isInSelectedStates = true
-  //         break
-  //       }
-  //     }
-  //     if (filters.selectedState.length > 0 && !isInSelectedStates) {
-  //       continue
-  //     }
-  //     ret.push(target)
-  //   }
-  //   filteredTargetList.value = ret
-  // }
 
   const resetFilter = () => {
     filters.selectedUser = {
@@ -104,8 +75,6 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
     searchTerms.targetState = [];
 
     search();
-
-    // filter();
   }
 
     const search = () => {
@@ -117,13 +86,13 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
         groupName: searchTerms.targetMemberOf,
         nonDisplayOnly: searchTerms.nonDisplayOnly,
         agency: searchTerms.targetAgency?.name,
-        userId: searchTerms.targetUser?.id,
-        state: [] as any
+        userId: searchTerms.targetUser?.code,
+        states: [] as any
       }
 
       if (searchTerms.targetState?.length > 0) {
         for (const i in searchTerms.targetState) {
-          searchConditions.state.push(searchTerms.targetState[i].code)
+          searchConditions.states.push(searchTerms.targetState[i].code)
         }
       }
     
@@ -138,18 +107,16 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
       rest
         .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
         .then((data: any) => {
-          console.log(data)
-          targetList.value = data['targets']
-          filteredTargetList.value = targetList.value
+          targetList.value = data['targets'];
         })
         .catch((err: any) => {
           console.log(err.message)
         }).finally(()=>{
-          loadingTargetList.value = false
+          loadingTargetList.value = false;
         });
     }
 
       search();
 
-      return {targetList, loadingTargetList, filteredTargetList, filters, searchTerms, resetFilter, search}
+      return { targetList, loadingTargetList, filters, searchTerms, resetFilter, search }
 })
