@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
+import org.webcurator.domain.model.auth.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,11 +58,14 @@ public class SessionManager {
             privileges.put(r.getPrivilege(), r.getPrivilegeScope());
         }
 
+        // We also need to store the agency name for authorization checks
+        String agency = userRoleDAO.getUserByName(username).getAgency().getName();
+
         // Create token
         String token = TokenUtils.createToken();
 
         // Add the session
-        sessions.addSession(token, privileges, maxIdleTime);
+        sessions.addSession(token, privileges, username, agency, maxIdleTime);
 
         return token;
     }
