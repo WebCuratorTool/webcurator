@@ -17,7 +17,7 @@ public class Sessions {
     /**
      * Add session and remove any expired sessions while we're at it
      */
-    public void addSession(String id, HashMap<String, Integer> privileges, long expireInterval) {
+    public void addSession(String id, HashMap<String, Integer> privileges, String user, String agency, long expireInterval) {
         if (sessionMap.containsKey(id)) {
             // Can't happen
             throw new RuntimeException(String.format("Session id %s already exists", id));
@@ -27,7 +27,7 @@ public class Sessions {
                 removeSession(id);
             }
         }
-        sessionMap.put(id, new SessionInfo(privileges, expireInterval));
+        sessionMap.put(id, new SessionInfo(privileges, user, agency, expireInterval));
     }
 
     public boolean exists(String id) {
@@ -79,10 +79,14 @@ public class Sessions {
         Date modified;
         HashMap<String, Integer> privileges;
         long expireInterval;
+        String user;
+        String agency;
 
-        public SessionInfo(HashMap<String, Integer> privileges, long expireInterval) {
+        public SessionInfo(HashMap<String, Integer> privileges, String user, String agency, long expireInterval) {
             modified = new Date();
             this.privileges = privileges;
+            this.user = user;
+            this.agency = agency;
             this.expireInterval = expireInterval;
         }
 
