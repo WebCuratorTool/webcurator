@@ -19,10 +19,10 @@
 <script setup lang="ts">
 import { useLayout } from '@/layout/composables/layout';
 import { useUserProfileStore } from '@/stores/users';
-import { usePageAuthStore } from '@/utils/rest.api';
+import { useAuthStore } from '@/utils/rest.api';
 import { toggleThemeMode } from '@/utils/themes';
 
-const authStore = usePageAuthStore();
+const authStore = useAuthStore();
 
 const { layoutConfig } = useLayout();
 

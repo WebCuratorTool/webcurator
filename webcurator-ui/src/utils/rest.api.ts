@@ -5,6 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 
 export const RootPath = '/wct';
+export const LoginPagePath = RootPath + '/login';
 const RootContextPath = RootPath + '/api/v1';
 const ToastLife = 30 * 1000;
 const RetryDelay = 3 * 1000;
@@ -30,7 +31,7 @@ const _login = async (username: string, password: string) => {
   const feedback = {
     ok: true,
     title: '',
-    detail: '',
+    detail: ''
   } as LoginResponse;
 
   if (!rsp.ok) {
@@ -58,7 +59,9 @@ const _login = async (username: string, password: string) => {
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-export const usePageAuthStore = defineStore('PageAuthStore', () => {
+export const useAuthStore = defineStore('AuthStore', () => {
+  const isAuthenticating = ref(false);
+
   const userProfile = useUserProfileStore();
   const redirectPath = ref();
   const setRedirectPath = (path: string) => {
@@ -75,19 +78,31 @@ export const usePageAuthStore = defineStore('PageAuthStore', () => {
     return rsp.ok;
   };
 
-  const login = async (username: string, password: string) => {
+  const authenticate = async (routePath: string, username: string, password: string) => {
     const feedback = await _login(username, password);
     if (!feedback.ok) {
       return feedback;
     }
 
-    if (redirectPath.value) {
-      router.push(redirectPath.value);
+    /**
+     * If it's opened from the independent page, then go to the previous page after the authentication.
+     * Otherwise, close the login dialog and continue the process of the related rest api.
+     * */
+    if (routePath === LoginPagePath) {
+      if (redirectPath.value) {
+        router.push(redirectPath.value);
+      } else {
+        router.push(RootPath);
+      }
     } else {
-      router.push(RootPath);
+      isAuthenticating.value = false;
     }
 
     return feedback;
+  };
+
+  const startLogin = () => {
+    isAuthenticating.value = true;
   };
 
   const logout = async () => {
@@ -104,29 +119,10 @@ export const usePageAuthStore = defineStore('PageAuthStore', () => {
       });
     }
     setRedirectPath(RootPath);
-    router.push(RootPath + '/login');
+    router.push(LoginPagePath);
   };
 
-  return { isAuthenticated, login, logout, setRedirectPath };
-});
-
-export const useApiAuthStore = defineStore('ApiAuthStore', () => {
-  const isAuthenticating = ref(false);
-
-  const startLogin = () => {
-    isAuthenticating.value = true;
-  };
-
-  const authenticate = async (username: string, password: string) => {
-    const feedback = await _login(username, password);
-    if (!feedback.ok) {
-      return feedback;
-    }
-    isAuthenticating.value = false;
-    return feedback;
-  };
-
-  return { startLogin, authenticate, isAuthenticating };
+  return { startLogin, authenticate, isAuthenticating, isAuthenticated, logout, setRedirectPath };
 });
 
 export interface UseFetchApis {
@@ -159,7 +155,7 @@ export function useFetch() {
   function setMethod(methodValue: HttpMethod) {
     return async (path: string, payload: any = null, customHeader: any = null) => {
       const userProfile = useUserProfileStore();
-      const loginStore = useApiAuthStore();
+      const loginStore = useAuthStore();
 
       let ret = null;
 

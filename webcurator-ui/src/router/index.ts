@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../views/Dashboard.vue';
-import { usePageAuthStore, RootPath } from '@/utils/rest.api';
+import { useAuthStore, RootPath, LoginPagePath } from '@/utils/rest.api';
 export const routes = {
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -11,6 +11,11 @@ export const routes = {
           path: 'login',
           name: 'login',
           component: () => import('@/views/login/LoginView.vue')
+        },
+        {
+          path: 'index.html',
+          name: 'index',
+          component: () => import('@/layout/MainLayoutView.vue')
         },
         {
           path: '',
@@ -48,12 +53,12 @@ export const routes = {
 };
 
 const router = createRouter(routes);
-router.beforeEach(async (to) => {
-  const auth = usePageAuthStore();
+router.beforeEach(async (to: any) => {
+  const auth = useAuthStore();
   const loggedIn = await auth.isAuthenticated();
-  if (to.path !== RootPath + '/login' && !loggedIn) {
+  if (to.path !== LoginPagePath && !loggedIn) {
     auth.setRedirectPath(to.fullPath);
-    return { path: RootPath + '/login' };
+    return { path: LoginPagePath };
   }
 });
 
