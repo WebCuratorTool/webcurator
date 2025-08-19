@@ -268,14 +268,6 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
   };
 
   const getData = () => {
-    targetProfile.value.overrides.forEach((override) => {
-      // Ensure blockedUrls and includedUrls are arrays
-      if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
-        if (!Array.isArray(override.value)) {
-          override.value = override.value.toString().split(',');
-        }
-      }
-    });
 
     return targetProfile.value;
   };
@@ -287,6 +279,7 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
   };
 
   const setData = (data: TargetProfile) => {
+
     targetProfile.value = data;
   };
 

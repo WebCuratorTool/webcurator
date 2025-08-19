@@ -56,14 +56,23 @@ const fetchTargetDetails = () => {
 }
 
 const save = () => {
-    const dataReq = {
-        general: targetGeneral.getData(),
-        profile: targetProfile.getData(),
-        description: targetDescription.getData(),
-        groups: targetGroups.getData(),
-        seeds: targetSeeds.getData(),
-        schedule: targetHarvests.getData()
-    }    
+  const dataReq = {
+    general: targetGeneral.getData(),
+    profile: targetProfile.getData(),
+    description: targetDescription.getData(),
+    groups: targetGroups.getData(),
+    seeds: targetSeeds.getData(),
+    schedule: targetHarvests.getData()
+  }
+
+  dataReq.profile.overrides.forEach((override) => {
+    // Ensure blockedUrls and includedUrls are arrays
+    if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+      if (!Array.isArray(override.value)) {
+        override.value = override.value.toString().split('\n');
+      }
+    }
+  });
 
   rest.put('targets/' + targetGeneral.id, dataReq)
   .then((response: any) => {

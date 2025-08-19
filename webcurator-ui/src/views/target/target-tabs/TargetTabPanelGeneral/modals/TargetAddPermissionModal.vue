@@ -146,7 +146,8 @@ fetch();
       :pt="{
         // Use 'pcPaginator' to target the internal Paginator component to align to the right side
         pcPaginator: {
-          root: '!flex !justify-end !items-center !p-4 w-full'
+          root: '!flex !justify-end !items-center !p-4 w-full',
+          paginatorContainer: '!border-none'
         },
         wrapper: {
           root: 'h-26rem'

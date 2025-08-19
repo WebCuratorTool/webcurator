@@ -8,9 +8,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Badge: typeof import('primevue/badge')['default']
     BlockViewer: typeof import('./src/components/BlockViewer.vue')['default']
     Button: typeof import('primevue/button')['default']
     Calendar: typeof import('primevue/calendar')['default']
+    Card: typeof import('primevue/card')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     Chip: typeof import('primevue/chip')['default']
     Column: typeof import('primevue/column')['default']
@@ -37,7 +39,6 @@ declare module 'vue' {
     MultiSelect: typeof import('primevue/multiselect')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
-    PageHeader: typeof import('./src/components/PageHeader.vue')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -50,6 +51,7 @@ declare module 'vue' {
     Tabs: typeof import('primevue/tabs')['default']
     TabView: typeof import('primevue/tabview')['default']
     Textarea: typeof import('primevue/textarea')['default']
+    Timeline: typeof import('primevue/timeline')['default']
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
