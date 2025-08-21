@@ -24,11 +24,11 @@ defineProps<{
 }
 .wct-form-col-left {
   @extend .wct-form-field;
-  width: 20%;
+  width: 30%;
 }
 .wct-form-col-right {
   @extend .wct-form-field;
-  width: 80%;
+  width: 70%;
 }
 
 // label {

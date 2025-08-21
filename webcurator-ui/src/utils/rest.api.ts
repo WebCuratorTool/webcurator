@@ -1,106 +1,128 @@
+import router from '@/router';
 import { useUserProfileStore } from '@/stores/users';
 import { defineStore } from 'pinia';
 import { useToast } from 'primevue/usetoast';
-import { computed, reactive, ref } from 'vue';
+import { ref } from 'vue';
 
-const RootContextPath = '/wct/api/v1';
+export const RootPath = '/wct';
+export const LoginPagePath = RootPath + '/login';
+const RootContextPath = RootPath + '/api/v1';
 const ToastLife = 30 * 1000;
 const RetryDelay = 3 * 1000;
+
+interface LoginResponse {
+  ok: boolean;
+  title: string;
+  detail: string;
+}
+export type { LoginResponse };
+
+const _login = async (username: string, password: string) => {
+  const credentials = 'username=' + username + '&password=' + password;
+  const rsp = await fetch(RootPath + '/auth/v1/token', {
+    method: 'POST',
+    redirect: 'error',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: credentials
+  });
+
+  const feedback = {
+    ok: true,
+    title: '',
+    detail: ''
+  } as LoginResponse;
+
+  if (!rsp.ok) {
+    const status = rsp.status;
+    let statusText = rsp.statusText;
+    if (!statusText || statusText.length === 0) {
+      if (status === 401) {
+        statusText = 'Unknown username or password, please try again.';
+      } else {
+        statusText = 'Unknown error.';
+      }
+    }
+    feedback.ok = false;
+    feedback.title = 'Error: ' + status;
+    feedback.detail = statusText;
+  }
+
+  const token = await rsp.text();
+  const userProfile = useUserProfileStore();
+  userProfile.setToken(username, token);
+
+  return feedback;
+};
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-export const useLoginStore = defineStore('LoginStore', () => {
-  const feedback = reactive({
-    ok: true,
-    title: '',
-    detail: ''
-  });
-  const username = ref('');
-  const password = ref('');
-  const userProfile = useUserProfileStore();
+export const useAuthStore = defineStore('AuthStore', () => {
   const isAuthenticating = ref(false);
-  const isInitialed = ref(true);
-  const startLogin = () => {
-    if (!isAuthenticating.value) {
-      isAuthenticating.value = true;
-    }
+
+  const userProfile = useUserProfileStore();
+  const redirectPath = ref();
+  const setRedirectPath = (path: string) => {
+    redirectPath.value = path;
   };
 
-  const logout = () => {
-    username.value = '';
-    password.value = '';
-    userProfile.clear();
-    startLogin();
+  const isAuthenticated = async () => {
+    userProfile.load();
+    const token = userProfile.token;
+    if (!token) {
+      return false;
+    }
+    const rsp = await fetch(RootPath + '/auth/v1/token/' + token);
+    return rsp.ok;
   };
 
-  const authenticate = async () => {
-    feedback.ok = true;
-    feedback.title = '';
-    feedback.detail = '';
-
-    const credentials = 'username=' + username.value + '&password=' + password.value;
-    const rsp = await fetch('/wct/auth/v1/token', {
-      method: 'POST',
-      redirect: 'error',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: credentials
-    }).catch((err: any) => {
-      feedback.ok = false;
-      feedback.title = 'Error';
-      feedback.detail = err.message;
-    });
-
-    //Exception has happened
-    if (!rsp) {
-      console.log(feedback);
-      return;
+  const authenticate = async (routePath: string, username: string, password: string) => {
+    const feedback = await _login(username, password);
+    if (!feedback.ok) {
+      return feedback;
     }
 
-    if (!rsp.ok) {
-      const status = rsp.status;
-      let statusText = rsp.statusText;
-      if (!statusText || statusText.length === 0) {
-        if (status === 401) {
-          statusText = 'Unknown username or password, please try again.';
-        } else {
-          statusText = 'Unknown error.';
-        }
+    /**
+     * If it's opened from the independent page, then go to the previous page after the authentication.
+     * Otherwise, close the login dialog and continue the process of the related rest api.
+     * */
+    if (routePath === LoginPagePath) {
+      if (redirectPath.value) {
+        router.push(redirectPath.value);
+      } else {
+        router.push(RootPath);
       }
-      feedback.ok = false;
-      feedback.title = 'Error: ' + status;
-      feedback.detail = statusText;
-      return;
+    } else {
+      isAuthenticating.value = false;
     }
 
-    const token = await rsp.text();
-    userProfile.setToken(username.value, token);
-
-    isAuthenticating.value = false;
-    isInitialed.value = true;
+    return feedback;
   };
 
-  const visibleLoginWindow = computed(() => {
-    if (!isInitialed.value) {
-      return true;
+  const startLogin = () => {
+    isAuthenticating.value = true;
+  };
+
+  const logout = async () => {
+    userProfile.load();
+    const token = userProfile.token;
+    userProfile.clear();
+    if (token) {
+      await fetch(RootPath + '/auth/v1/token/' + token, {
+        method: 'DELETE',
+        redirect: 'error',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
     }
-    return isAuthenticating.value;
-  });
-
-  return {
-    startLogin,
-    authenticate,
-    logout,
-    visibleLoginWindow,
-    isAuthenticating,
-    isInitialed,
-    feedback,
-    username,
-    password
+    setRedirectPath(RootPath);
+    router.push(LoginPagePath);
   };
+
+  return { startLogin, authenticate, isAuthenticating, isAuthenticated, logout, setRedirectPath };
 });
 
 export interface UseFetchApis {
@@ -133,7 +155,7 @@ export function useFetch() {
   function setMethod(methodValue: HttpMethod) {
     return async (path: string, payload: any = null, customHeader: any = null) => {
       const userProfile = useUserProfileStore();
-      const loginStore = useLoginStore();
+      const loginStore = useAuthStore();
 
       let ret = null;
 
@@ -145,6 +167,8 @@ export function useFetch() {
         while (loginStore.isAuthenticating) {
           await sleep(1000);
         }
+
+        userProfile.load(); //Update the info from local storage
 
         const requestHeaders: HeadersInit = new Headers();
         requestHeaders.set('Content-Type', 'application/json');
