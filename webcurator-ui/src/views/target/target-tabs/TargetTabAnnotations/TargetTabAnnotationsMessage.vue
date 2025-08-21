@@ -36,18 +36,20 @@ const cancelEditAnnotation = () => {
   <Card class="mt-3">
     <template #subtitle>
       <div class="flex justify-between items-center">
-        <div>
+        <div class="flex justify-between w-full">
           <div class="flex gap-2 items-center">
             <div>{{ annotation.user }} {{ formatDate(annotation.date) }}</div>
             <i v-if="annotation.alert && !editingAnnotation" class="pi pi-exclamation-triangle" />
             <div v-if="editingAnnotation" class="flex items-center gap-2">
-              <Checkbox v-model="annotation.alert" binary />
-              <label>Generate alert</label>
+              <label>
+                <Checkbox v-model="annotation.alert" binary />
+                Generate alert
+              </label>
             </div>
           </div>
           <div v-if="annotation.targetInstanceId">Target Instance {{ annotation.targetInstanceId }}</div>
         </div>
-        <div v-if="editing && !annotation.targetInstanceId && !editingAnnotation">
+        <div v-if="editing && !annotation.targetInstanceId && !editingAnnotation" class="flex">
           <Button 
             style="width: 2rem;" 
             icon="pi pi-trash" 

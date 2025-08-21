@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // libraries
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, Text } from 'vue';
 import { useDialog } from 'primevue/usedialog'; 
 import { useRoute } from 'vue-router';
 
@@ -15,6 +15,7 @@ import { useUserProfileStore } from '@/stores/users';
 import type { Annotation } from '@/types/annotation';
 // utils
 import { formatDate } from '@/utils/helper';
+import { Textarea } from 'primevue';
 
 const NewAnnotationModal = defineAsyncComponent(() => import('./modals/TargetNewAnnotationModal.vue'));
 const newAnnotationModal = useDialog();
@@ -28,6 +29,9 @@ const showNewAnnotationModal = () => {
     data: {
       annotation: newAnnotation,
       addAnnotation: addAnnotation
+    },
+    onClose: () => {
+      newAnnotation.value = <Annotation>{ alert: false, user: userProfile.name };
     }
   });
 }
@@ -107,24 +111,24 @@ if (targetId) {
       <div class="flex items-start justify-between gap-8 w-full">
         <div class="flex flex-col items-start gap-2 w-full">
           <WctFormField label="Selection date">
-            <p class="font-semibold">{{ formatDate(targetAnnotations.selection.date) }}</p>
+            <p class="font-semibold">{{ targetAnnotations.selection.date && formatDate(targetAnnotations.selection.date) }}</p>
           </WctFormField>
           <WctFormField label="Selection type">
-            <Select v-if="editing" v-model="targetAnnotations.selection.type" :options="selectionTypes" />
+            <Select v-if="editing" v-model="targetAnnotations.selection.type" :options="selectionTypes" showClear  />
             <p v-else class="font-semibold">{{ targetAnnotations.selection.type }}</p>
           </WctFormField>
           <WctFormField label="Selection note">
-            <InputText v-if="editing" v-model="targetAnnotations.selection.note" :disabled="!editing" />
+            <Textarea v-if="editing" v-model="targetAnnotations.selection.note" :disabled="!editing"  />
             <p v-else class="font-semibold">{{ targetAnnotations.selection.note }}</p>
           </WctFormField>
         </div>
         <div class="flex flex-col items-start gap-2 w-full">
           <WctFormField label="Evaluation note">
-            <InputText v-if="editing" v-model="targetAnnotations.evaluationNote" :disabled="!editing" />
+            <Textarea v-if="editing" v-model="targetAnnotations.evaluationNote" :disabled="!editing" />
             <p v-else class="font-semibold">{{ targetAnnotations.evaluationNote }}</p>
           </WctFormField>
           <WctFormField label="Harvest type">
-            <Select v-if="editing" v-model="targetAnnotations.harvestType" :options="harvestTypes" />
+            <Select v-if="editing" v-model="targetAnnotations.harvestType" :options="harvestTypes" showClear />
             <p v-else class="font-semibold">{{ targetAnnotations.harvestType }}</p>
           </WctFormField>
         </div>
