@@ -12,11 +12,9 @@ const customizedClass = computed(() => {
 </script>
 
 <template>
-  <div :class="customizedClass" id="wct-input">
+  <div :class="customizedClass">
     <span>{{ label }}</span>
-    <!-- <div class="border"> -->
     <slot></slot>
-    <!-- </div> -->
   </div>
 </template>
 
