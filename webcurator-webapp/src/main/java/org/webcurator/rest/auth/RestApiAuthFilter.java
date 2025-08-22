@@ -31,7 +31,6 @@ public class RestApiAuthFilter implements Filter {
         String url = req.getRequestURI().substring(contentUri.length());
         if (url.startsWith("/api")) {
             String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-            // FIXME now someone with only LOGIN privilege can still do everything (including DELETE, POST and PUT)
             AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
             if (authorizationResult.failed) {
                 rsp.setStatus(authorizationResult.status);
@@ -40,14 +39,6 @@ public class RestApiAuthFilter implements Filter {
             }
         }
         chain.doFilter(request, response);
-    }
-
-    // FIXME Maybe this will be useful? Also, note that we may have to do the more fine-grained authorisation inside the ReST controllers
-    /**
-     * Return the minimal privilege required to execute the request
-     */
-    private String getPrivilege(ServletRequest request) {
-        return null;
     }
 
     @Override
