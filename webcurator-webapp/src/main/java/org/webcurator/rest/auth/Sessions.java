@@ -67,6 +67,14 @@ public class Sessions {
         return sessionMap.get(id).privileges;
     }
 
+    public String getAgency(String id) {
+        return sessionMap.get(id).agency;
+    }
+
+    public String getUser(String id) {
+        return sessionMap.get(id).user;
+    }
+
     public class InvalidSessionException extends Exception {
         public InvalidSessionException(String id) {
             super(String.format("Session with %s has expired", id));
