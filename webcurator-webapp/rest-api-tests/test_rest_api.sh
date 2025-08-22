@@ -49,10 +49,6 @@ echo "Getting harvest authorisations"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/harvest-authorisations" 
 first_authorisation_id=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/harvest-authorisations | jq '.harvestAuthorisations[0].id'`
 
-echo "Getting users"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/users" 
-first_user_name=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/users | jq -r '.users[0].name'`
-
 echo "Getting profiles"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/profiles" 
 first_profile_id=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/profiles | jq '.profiles[0].id'`
@@ -69,7 +65,7 @@ fi
 
 # Replace placeholders with values we've just found
 date=`date -Iseconds`
-cat $post_target_file_template | sed s/\$username/$first_user_name/g \
+cat $post_target_file_template | sed s/\$username/$user/g \
 					| sed s/\$groupId/$first_group_id/g \
 					| sed s/\$authorisationId/$first_authorisation_id/g \
 					| sed s/\$profileId/$first_profile_id/g \
