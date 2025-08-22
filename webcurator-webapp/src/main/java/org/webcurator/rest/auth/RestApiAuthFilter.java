@@ -32,7 +32,7 @@ public class RestApiAuthFilter implements Filter {
         if (url.startsWith("/api")) {
             String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
             // FIXME now someone with only LOGIN privilege can still do everything (including DELETE, POST and PUT)
-            SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
+            AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
             if (authorizationResult.failed) {
                 rsp.setStatus(authorizationResult.status);
                 rsp.getOutputStream().print(authorizationResult.message);

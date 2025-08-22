@@ -1,24 +1,17 @@
 package org.webcurator.rest.auth;
 
-import it.unimi.dsi.fastutil.Hash;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.jcajce.provider.digest.MD2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
-import org.webcurator.domain.model.auth.User;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -71,6 +64,53 @@ public class SessionManager {
     }
 
     /**
+     * Check whether the user in the current session has sufficient privilege scope to alter the data for the supplied
+     * user and/or agency and role
+     */
+    public void checkScope(String authorizationHeader, String owner, String agency, String role)
+                                                                                    throws AuthorizationException {
+
+        if (authorizationHeader == null) {
+            throw new AuthorizationException("Unauthorized, no token was supplied", 401);
+        }
+        try {
+            String token = extractToken(authorizationHeader);
+            HashMap<String, Integer> privileges = sessions.getPrivileges(token);
+            if (!privileges.containsKey(role)) {
+                throw new AuthorizationException("User does not have role " + role, 403);
+            } else {
+                int scope = privileges.get(role);
+                switch (scope) {
+                    case Privilege.SCOPE_NONE:
+                        return;
+                    case Privilege.SCOPE_ALL:
+                        return;
+                    case Privilege.SCOPE_AGENCY:
+                        if (sessions.getAgency(token).equals(agency)) {
+                            return;
+                        } else {
+                            throw new AuthorizationException(String.format(
+                                    "User has role %s but it's limited to objects belonging to the user's agency %s (not %s)",
+                                    role, sessions.getAgency(token), agency), 403);
+
+                        }
+                    case Privilege.SCOPE_OWNER:
+                        if (sessions.getUser(token).equals(owner)) {
+                            return;
+                        } else {
+                            throw new AuthorizationException(String.format(
+                                                        "User has role %s but it's limited to objects the user owns", role), 403);
+                        }
+                    default:
+                        throw new AuthorizationException("Unknown authorization error", 403);
+                }
+            }
+        } catch (Sessions.InvalidSessionException e) {
+            throw new AuthorizationException("Invalid or expired session", 401);
+        }
+    }
+
+    /**
      * Checks whether the bearer of the token has the supplied role with the supplied scope
      */
     public AuthorizationResult authorize(String authorizationHeader, String role, int scope) {
@@ -119,17 +159,6 @@ public class SessionManager {
 
     private String extractToken(String authorizationHeader) {
         return authorizationHeader.replaceAll("^Bearer\\s+", "");
-    }
-
-    public class AuthorizationResult {
-        public boolean failed;
-        public int status;
-        public String message;
-        public AuthorizationResult(boolean failed, int status, String message) {
-            this.failed = failed;
-            this.status = status;
-            this.message = message;
-        }
     }
 
 }

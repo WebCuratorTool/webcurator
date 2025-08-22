@@ -36,7 +36,7 @@ public class Profiles {
     }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
         }
@@ -47,15 +47,14 @@ public class Profiles {
             responseMap.put("filter", filter);
             responseMap.put("profiles", searchResult.profiles);
             responseMap.put("amount", searchResult.amount);
-            ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
-            return response;
+            return ResponseEntity.ok().body(responseMap);
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(states);
     }
 
