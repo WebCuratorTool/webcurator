@@ -183,7 +183,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             </Column>
             <Column field="agency" header="Agency" sortable class="w-30" />
             <Column field="owner" header="Owner" sortable filterField="owner" class="w-30" />
-            <Column field="state" header="Status" sortable class="w-30">
+            <Column field="state" header="State" sortable class="w-30">
               <template #body="{ data }">
                 {{ formatTargetState(data.state) }}
               </template>
