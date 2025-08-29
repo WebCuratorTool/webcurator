@@ -20,19 +20,11 @@ public class Token {
     @Autowired
     SessionManager sessionManager;
 
-    @Autowired
-    Sessions sessions;
-
     @GetMapping(path = "/{token}")
     public ResponseEntity<?> get(@PathVariable String token) {
-        try {
-            List<String> roles = sessions.getRoles(token);
-            if (!roles.isEmpty()) {
-                return ResponseEntity.ok("valid");
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-            }
-        } catch (Sessions.InvalidSessionException e) {
+        if (sessionManager.isValid(token)) {
+            return ResponseEntity.ok("valid");
+        } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
     }
