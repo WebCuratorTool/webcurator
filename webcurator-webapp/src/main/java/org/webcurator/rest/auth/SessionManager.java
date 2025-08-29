@@ -67,7 +67,7 @@ public class SessionManager {
      * Check whether the user in the current session has sufficient privilege scope to alter the data for the supplied
      * user and/or agency and role
      */
-    public void checkScope(String authorizationHeader, String owner, String agency, String role)
+    public void authorize(String authorizationHeader, String owner, String agency, String role)
                                                                                     throws AuthorizationException {
 
         if (authorizationHeader == null) {
@@ -78,32 +78,30 @@ public class SessionManager {
             HashMap<String, Integer> privileges = sessions.getPrivileges(token);
             if (!privileges.containsKey(role)) {
                 throw new AuthorizationException("User does not have role " + role, 403);
-            } else {
-                int scope = privileges.get(role);
-                switch (scope) {
-                    case Privilege.SCOPE_NONE:
+            }
+            int scope = privileges.get(role);
+            switch (scope) {
+                case Privilege.SCOPE_NONE:
+                case Privilege.SCOPE_ALL:
+                    return;
+                case Privilege.SCOPE_AGENCY:
+                    if (sessions.getAgency(token).equals(agency)) {
                         return;
-                    case Privilege.SCOPE_ALL:
-                        return;
-                    case Privilege.SCOPE_AGENCY:
-                        if (sessions.getAgency(token).equals(agency)) {
-                            return;
-                        } else {
-                            throw new AuthorizationException(String.format(
-                                    "User has role %s but it's limited to objects belonging to the user's agency %s (not %s)",
-                                    role, sessions.getAgency(token), agency), 403);
+                    } else {
+                        throw new AuthorizationException(String.format(
+                                "User has role %s but it's limited to objects belonging to the user's agency %s (not %s)",
+                                role, sessions.getAgency(token), agency), 403);
 
-                        }
-                    case Privilege.SCOPE_OWNER:
-                        if (sessions.getUser(token).equals(owner)) {
-                            return;
-                        } else {
-                            throw new AuthorizationException(String.format(
-                                                        "User has role %s but it's limited to objects the user owns", role), 403);
-                        }
-                    default:
-                        throw new AuthorizationException("Unknown authorization error", 403);
-                }
+                    }
+                case Privilege.SCOPE_OWNER:
+                    if (sessions.getUser(token).equals(owner)) {
+                        return;
+                    } else {
+                        throw new AuthorizationException(String.format(
+                                "User has role %s but it's limited to objects the user owns", role), 403);
+                    }
+                default:
+                    throw new AuthorizationException(String.format("Unknown scope %d for role %s", scope, role), 403);
             }
         } catch (Sessions.InvalidSessionException e) {
             throw new AuthorizationException("Invalid or expired session", 401);
@@ -111,40 +109,7 @@ public class SessionManager {
     }
 
     /**
-     * Checks whether the bearer of the token has the supplied role with the supplied scope
-     */
-    public AuthorizationResult authorize(String authorizationHeader, String role, int scope) {
-        if (authorizationHeader == null) {
-            return new AuthorizationResult(true, 401, "Unauthorized, no token was supplied");
-        }
-        try {
-            String token = extractToken(authorizationHeader);
-            HashMap<String, Integer> privileges = sessions.getPrivileges(token);
-            if (!privileges.keySet().contains(role)) {
-                return new AuthorizationResult(true, 403, "User does not have role " + role);
-            } else {
-                if (privileges.get(role) == scope) {
-                    return new AuthorizationResult(false, 200, "");
-                } else {
-                    return new AuthorizationResult(true, 403, String.format("User has role %s but not the required scope %d",
-                                                                                                            role, scope));
-                }
-            }
-        } catch (Sessions.InvalidSessionException e) {
-            return new AuthorizationResult(true, 401, "Invalid or expired session");
-        }
-    }
-
-    /**
-     * Checks whether the bearer of the token has the supplied role
-     */
-    public AuthorizationResult authorize(String authorizationHeader, String role) {
-        return authorize(authorizationHeader, role, Privilege.SCOPE_NONE);
-    }
-
-    /**
      * Does this token point to a valid session?
-     * // FIXME the GET /token/{token} call (that will be coming downstream from another branch) should use this method instead of using Sessions directly
      */
     public boolean isValid(String token) {
         return sessions.exists(token);

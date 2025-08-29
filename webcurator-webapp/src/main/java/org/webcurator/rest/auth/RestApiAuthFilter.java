@@ -31,10 +31,12 @@ public class RestApiAuthFilter implements Filter {
         String url = req.getRequestURI().substring(contentUri.length());
         if (url.startsWith("/api")) {
             String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-            AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
-            if (authorizationResult.failed) {
-                rsp.setStatus(authorizationResult.status);
-                rsp.getOutputStream().print(authorizationResult.message);
+            try {
+                // More authorisation rules are checked at the endpoints
+                sessionManager.authorize(authorizationHeader, null, null, Privilege.LOGIN);
+            } catch (AuthorizationException e) {
+                rsp.setStatus(e.getStatus());
+                rsp.getOutputStream().print(e.getMessage());
                 return;
             }
         }

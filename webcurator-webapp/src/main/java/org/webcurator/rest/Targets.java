@@ -185,7 +185,7 @@ public class Targets {
             String owner = target.getOwner().getUsername();
             String agency = target.getOwner().getAgency().getName();
             try {
-                sessionManager.checkScope(authorizationHeader, owner, agency, Privilege.DELETE_TARGET);
+                sessionManager.authorize(authorizationHeader, owner, agency, Privilege.DELETE_TARGET);
             } catch (AuthorizationException e) {
                 return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
             }
@@ -511,21 +511,21 @@ public class Targets {
          */
         String agency = owner.getAgency().getName();
         if (isUpdate) {
-            sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.MODIFY_TARGET);
+            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.MODIFY_TARGET);
         } else {
-            sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.CREATE_TARGET);
+            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.CREATE_TARGET);
         }
         if (target.getState() != Target.STATE_APPROVED && targetDTO.getGeneral().getState() == Target.STATE_APPROVED) {
             if (target.getState() == Target.STATE_COMPLETED) {
-                sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.REINSTATE_TARGET);
+                sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.REINSTATE_TARGET);
             }
-            sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.APPROVE_TARGET);
+            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.APPROVE_TARGET);
         }
         if (target.getState() != Target.STATE_CANCELLED && targetDTO.getGeneral().getState() == Target.STATE_CANCELLED) {
-            sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.CANCEL_TARGET);
+            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.CANCEL_TARGET);
         }
         if (!targetDTO.getSchedule().getSchedules().isEmpty()) {
-            sessionManager.checkScope(authorizationHeader, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
+            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
         }
 
         // Persist the target

@@ -238,7 +238,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -286,7 +286,7 @@ public class TargetInstances {
         // Is the user allowed to manually start a target instance?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -326,7 +326,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -353,7 +353,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -382,7 +382,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -409,7 +409,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -436,7 +436,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -472,7 +472,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -521,7 +521,7 @@ public class TargetInstances {
                 User owner = targetInstance.getOwner();
                 if (harvestResult.getState() != HarvestResult.STATE_ENDORSED && h.getState() == HarvestResult.STATE_ENDORSED) {
                     try {
-                        sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+                        sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                                 Privilege.ENDORSE_HARVEST);
                     } catch (AuthorizationException e) {
                         return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -529,7 +529,7 @@ public class TargetInstances {
                 }
                 if (harvestResult.getState() == HarvestResult.STATE_ENDORSED && h.getState() != HarvestResult.STATE_ENDORSED) {
                     try {
-                        sessionManager.checkScope(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+                        sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
                                 Privilege.UNENDORSE_HARVEST);
                     } catch (AuthorizationException e) {
                         return ResponseEntity.status(e.getStatus()).body(e.getMessage());
