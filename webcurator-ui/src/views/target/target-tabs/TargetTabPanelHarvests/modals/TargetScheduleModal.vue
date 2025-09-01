@@ -175,8 +175,8 @@ fetch();
 
 <template>
   <Loading v-if="loading" />
-  <div v-else-if="targetSchedule && !loading" class="h-full mt-3 flex">
-    <div :class="editing && scheduleType == 'Custom' ? 'w-7' : 'w-full'">
+  <div v-else-if="targetSchedule && !loading" class="h-full mt-3 flex gap-4" :style="{ width: editing && scheduleType === 'Custom' ? '30vw' : '20vw' }">
+    <div :class="editing && scheduleType == 'Custom' ? 'w-2/3' : 'w-full'">
       <p v-if="editing && validationErrors" class="text-red-600 font-semibold">Missing fields</p>
       <!-- From Date -->
       <WctFormField label="From Date">
@@ -257,14 +257,9 @@ fetch();
           <p v-else class="font-semibold">{{ cronFields.year }}</p>
         </WctFormField>
       </div>
-
-      <div v-if="editing" class="flex items-center justify-end w-full mt-4">
-        <Button class="wct-primary-button" label="Save" @click="saveSchedule" />
-        <Button label="Cancel" text class="ml-2" @click="closeDialog" />
-      </div>
     </div>
 
-    <div v-if="scheduleType == 'Custom' && editing">
+    <div v-if="scheduleType == 'Custom' && editing" class="">
       <p>Next 10 scheduled times</p>
       <Button label="Test" outlined @click="getNextCustomTimes" />
       <div v-if="customScheduledTimes.length" class="pt-4">
@@ -273,5 +268,10 @@ fetch();
         </p>
       </div>
     </div>
+  </div>
+
+  <div v-if="editing" class="flex items-center justify-end w-full mt-4">
+    <Button class="wct-primary-button" label="Save" @click="saveSchedule" />
+    <Button label="Cancel" text class="ml-2" @click="closeDialog" />
   </div>
 </template>

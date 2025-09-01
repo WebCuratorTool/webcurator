@@ -42,7 +42,7 @@ defineProps<{
 
 const showScheduleModal = (targetSchedule: any, editingSchedule: boolean, isNewSchedule: boolean) => {
   scheduleModal.open(ScheduleModal, {
-    props: { header: 'Schedule', modal: true, dismissableMask: true, style: { width: '20vw' } },
+    props: { header: 'Schedule', modal: true, dismissableMask: true  },
     data: {
       targetSchedule: targetSchedule,
       editingSchedule: editingSchedule,
@@ -86,7 +86,7 @@ onMounted(async () => {
           <template #body="{ data }">
             <Button class="p-button-text" style="width: 2rem" icon="pi pi-eye" v-tooltip.bottom="'View Schedule'" text @click="showScheduleModal(data, false, false)" />
             <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Schedule'" text @click="showScheduleModal(data, true, false)" />
-            <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-trash" v-tooltip.bottom="'Remove Schedule'" text @click="targetHarvests.removeSchedule(data.id)" />
+            <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-trash" v-tooltip.bottom="'Remove Schedule'" text @click="targetHarvests.removeSchedule(data)" />
           </template>
         </Column>
       </DataTable>

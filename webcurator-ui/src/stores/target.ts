@@ -417,8 +417,14 @@ export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
     targetSchedule.value.schedules.push(schedule);
   };
 
-  const removeSchedule = (scheduleId: number) => {
-    targetSchedule.value.schedules = targetSchedule.value.schedules.filter((s) => s.id != scheduleId);
+  const removeSchedule = (schedule: any) => {
+    if (schedule.id == null) {
+      targetSchedule.value.schedules = targetSchedule.value.schedules.filter((s) => !(s.cron === schedule.cron &&
+        s.nextExecutionDate === schedule.nextExecutionDate &&
+        s.type === schedule.type));
+    } else {
+      targetSchedule.value.schedules = targetSchedule.value.schedules.filter((s) => s.id != schedule.id);
+    }
   };
 
   const replaceSchedule = (replacementSchedule: any) => {
