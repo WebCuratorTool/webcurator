@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -80,6 +81,14 @@ public class SessionManager {
      */
     public void invalidate(String token) {
         sessions.removeSession(token);
+    }
+
+    /**
+     * Get the roles and their associated scope for the session identified by the token
+     */
+    public HashMap<String, Integer> getPrivileges(String token) {
+        // TODO implement (requires commits from 131 branch)
+        return null;
     }
 
     private String extractToken(String authorizationHeader) {
