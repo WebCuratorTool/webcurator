@@ -3,7 +3,20 @@ import { RouterView } from 'vue-router';
 import LoginView from '@/views/login/LoginView.vue';
 import NavBar from '@/components/NavBar.vue';
 import { useAuthStore } from '@/utils/rest.api';
+import { ref } from 'vue';
+import { useToast } from 'primevue';
 const authStore = useAuthStore();
+
+const toast = useToast();
+const visible = ref(true);
+const onReply = () => {
+  toast.removeGroup('bc');
+  visible.value = false;
+};
+
+const onClose = () => {
+  visible.value = false;
+};
 </script>
 
 <template>
@@ -15,7 +28,6 @@ const authStore = useAuthStore();
     <div class="main-container">
       <router-view />
     </div>
-    <DynamicDialog />
   </div>
 </template>
 
