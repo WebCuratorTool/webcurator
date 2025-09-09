@@ -63,7 +63,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
 </script>
 
 <template>
-  <Toast />
+  <!-- <Toast /> -->
   <ConfirmDialog></ConfirmDialog>
 
   <div class="targets">
