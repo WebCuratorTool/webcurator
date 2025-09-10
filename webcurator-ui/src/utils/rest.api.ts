@@ -276,6 +276,9 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(rawHtml, 'text/html');
         err = doc.body.textContent || 'Unknown error';
+      } else if (contentType.startsWith('application/json')) {
+        const errMessage = await rsp.json();
+        err = errMessage.error;
       } else {
         err = await rsp.text();
       }
@@ -285,14 +288,14 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
   if (!err) {
     // If not able to get the response content, then try to guess the status text from the status code
     err = HttpStatus[rsp.status];
-    if (!err) {
-      if (rsp.status >= 500 && rsp.status <= 599) {
-        err = 'System error';
-      } else if (rsp.status >= 400 && rsp.status <= 499) {
-        err = 'User request error';
-      } else {
-        err = 'Unknown error';
-      }
+  }
+  if (!err) {
+    if (rsp.status >= 500 && rsp.status <= 599) {
+      err = 'System error';
+    } else if (rsp.status >= 400 && rsp.status <= 499) {
+      err = 'User request error';
+    } else {
+      err = 'Unknown error';
     }
   }
   return `[${rsp.status}] ${err}`;

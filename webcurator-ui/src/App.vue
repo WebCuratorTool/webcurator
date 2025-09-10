@@ -17,7 +17,7 @@ togglePreset('indigo');
     <template #message="slotProps">
       <div class="flex flex-col items-start flex-auto">
         <div class="flex items-center gap-2">
-          <IconInfo style="width: 24px; height: 24px" />
+          <i class="pi pi-info-circle" />
           <span class="font-bold">{{ slotProps.message.summary }}</span>
         </div>
         <div class="p-2">{{ slotProps.message.detail }}</div>
@@ -28,11 +28,10 @@ togglePreset('indigo');
     <template #message="slotProps">
       <div class="flex flex-col items-start flex-auto">
         <div class="flex items-center gap-2">
-          <IconWarning style="width: 24px; height: 24px" />
+          <i class="pi pi-exclamation-triangle" />
           <span class="font-bold">{{ slotProps.message.summary }}</span>
         </div>
         <div class="font-medium text-lg my-4">{{ slotProps.message.detail }}</div>
-        <!-- <div v-html="slotProps.message.detail"></div> -->
       </div>
     </template>
   </Toast>
@@ -59,7 +58,6 @@ togglePreset('indigo');
             <p class="m-0">{{ message.message }}</p>
           </div>
         </div>
-        <!-- <div v-html="message.message"></div> -->
       </Panel>
     </template>
   </ConfirmDialog>
