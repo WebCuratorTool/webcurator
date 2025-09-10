@@ -51,6 +51,10 @@ export const routes = {
           ]
         }
       ]
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: RootPath
     }
   ]
 };
