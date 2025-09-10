@@ -2,15 +2,15 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useToast } from 'primevue/usetoast';
 import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
+import { useAlertStore } from '@/utils/alertStore';
 
 const route = useRoute();
 const targetId = route.params.id as string;
 
 const rest: UseFetchApis = useFetch();
-const toast = useToast();
+const alertStore = useAlertStore();
 
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
@@ -51,26 +51,30 @@ const fetchTargetDetails = () => {
 };
 
 const save = () => {
-  const dataReq = {
-    general: targetGeneral.getData(),
-    profile: targetProfile.getData(),
-    description: targetDescription.getData(),
-    groups: targetGroups.getData(),
-    seeds: targetSeeds.getData(),
-    schedule: targetHarvests.getData()
-  };
+  try {
+    const dataReq = {
+      general: targetGeneral.getData(),
+      profile: targetProfile.getData(),
+      description: targetDescription.getData(),
+      groups: targetGroups.getData(),
+      seeds: targetSeeds.getData(),
+      schedule: targetHarvests.getData()
+    };
 
-  rest
-    .put('targets/' + targetGeneral.id, dataReq)
-    .then((response: any) => {
-      if (response == 200) {
-        showSuccessMessage();
-        editing.value = false;
-      }
-    })
-    .catch((err: any) => {
-      showErrorMessage(err.message);
-    });
+    rest
+      .put('targets/' + targetGeneral.id, dataReq)
+      .then((response: any) => {
+        if (response == 200) {
+          showSuccessMessage();
+          editing.value = false;
+        }
+      })
+      .catch((err: any) => {
+        showErrorMessage(err.message);
+      });
+  } catch (err: any) {
+    showErrorMessage(err.message);
+  }
 };
 
 const setEditing = (isEditing: boolean) => {
@@ -81,16 +85,15 @@ const setEditing = (isEditing: boolean) => {
 };
 
 const showErrorMessage = (message: string) => {
-  toast.add({ severity: 'error', summary: 'Target not saved', detail: message, life: 3000 });
+  alertStore.error(message, 'Target not saved');
 };
 
 const showSuccessMessage = () => {
-  toast.add({ severity: 'success', summary: 'Target succesfully saved', life: 3000 });
+  alertStore.info('Target succesfully saved');
 };
 fetchTargetDetails();
 </script>
 
 <template>
-  <!-- <Toast /> -->
   <TargetTabView :editing="editing" :isTargetAvailable="isTargetAvailable" :loading="loading" @setEditing="setEditing" @save="save" />
 </template>

@@ -8,13 +8,13 @@ import { useUserProfileStore, useUsersStore } from '@/stores/users';
 import { formatDatetime } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { useConfirm } from 'primevue/useconfirm';
-import { useToast } from 'primevue/usetoast';
+import { useAlertStore } from '@/utils/alertStore';
 import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const confirm = useConfirm();
-const toast = useToast();
+const alertStore = useAlertStore();
 
 const rest: UseFetchApis = useFetch();
 const userProfile = useUserProfileStore();
@@ -41,16 +41,11 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          toast.add({
-            severity: 'info',
-            summary: 'Confirmed',
-            detail: `Target ${id} deleted`,
-            life: 3000
-          });
+          alertStore.info(`Target ${id} deleted`, 'Confirmed');
           targetListData.search();
         })
         .catch((err: any) => {
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
+          alertStore.error(err.message);
         });
     }
   });
@@ -63,7 +58,6 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
 </script>
 
 <template>
-  <!-- <Toast /> -->
   <ConfirmDialog></ConfirmDialog>
 
   <div class="targets">
