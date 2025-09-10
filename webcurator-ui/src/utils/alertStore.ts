@@ -1,18 +1,15 @@
 import { defineStore } from 'pinia';
 import { useConfirm, useToast } from 'primevue';
 
-const ToastLifeSuccess = 3 * 1000;
-const ToastLifeInfo = 5 * 1000;
-const ToastLifeWarning = 30 * 1000;
+const ToastLifeInfo = 3 * 1000;
+const ToastLifeWarning = 5 * 1000;
 
 export const useAlertStore = defineStore('AlertStore', () => {
   const toast = useToast();
   const confirm = useConfirm();
 
-  const success = (detail: string, header = 'Success') => {
-    console.debug(`${header}: ${detail}`);
-    // toast.removeGroup('toast-info');
-    // toast.add({ group: 'toast-info', severity: 'secondary', summary: header, detail: detail, life: ToastLifeSuccess });
+  const trace = (detail: string, header = 'Trace') => {
+    console.trace(`${header}: ${detail}`);
   };
 
   const info = (detail: string, header = 'Info') => {
@@ -37,5 +34,5 @@ export const useAlertStore = defineStore('AlertStore', () => {
     });
   };
 
-  return { success, info, warning, error };
+  return { trace, info, warning, error };
 });

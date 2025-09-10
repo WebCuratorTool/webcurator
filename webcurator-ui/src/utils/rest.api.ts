@@ -252,7 +252,7 @@ export function useFetch() {
         } else {
           ret = await rsp.text();
         }
-        confirm.success(`Succeed to [${methodValue}] ${reqPath}`);
+        confirm.trace(`Succeed to [${methodValue}] ${reqPath}`);
         isFinished.value = true;
       }
 

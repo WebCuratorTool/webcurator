@@ -57,14 +57,14 @@ export const routes = {
 
 const router = createRouter(routes);
 router.beforeEach(async (to: any) => {
-  // if (HomePaths.includes(to.path)) {
-  const auth = useAuthStore();
-  const loggedIn = await auth.isAuthenticated();
-  if (to.path !== LoginPagePath && !loggedIn) {
-    auth.setRedirectPath(to.fullPath);
-    return { path: LoginPagePath };
+  if (HomePaths.includes(to.path)) {
+    const auth = useAuthStore();
+    const loggedIn = await auth.isAuthenticated();
+    if (to.path !== LoginPagePath && !loggedIn) {
+      auth.setRedirectPath(to.fullPath);
+      return { path: LoginPagePath };
+    }
   }
-  // }
 });
 
 export default router;
