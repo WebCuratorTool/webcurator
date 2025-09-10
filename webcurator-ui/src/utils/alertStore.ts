@@ -10,9 +10,9 @@ export const useAlertStore = defineStore('AlertStore', () => {
   const confirm = useConfirm();
 
   const success = (detail: string, header = 'Success') => {
+    console.debug(`${header}: ${detail}`);
     // toast.removeGroup('toast-info');
     // toast.add({ group: 'toast-info', severity: 'secondary', summary: header, detail: detail, life: ToastLifeSuccess });
-    console.debug(`${header}: ${detail}`);
   };
 
   const info = (detail: string, header = 'Info') => {

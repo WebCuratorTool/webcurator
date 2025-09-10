@@ -3,6 +3,7 @@ import { useUserProfileStore } from '@/stores/users';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAlertStore } from './alertStore';
+import { HttpStatus } from './rest.http.status';
 
 export const RootPath = '/wct';
 export const LoginPagePath = RootPath + '/login';
@@ -229,6 +230,10 @@ export function useFetch() {
         } else if (rsp.status === 401) {
           loginStore.startLogin();
           continue;
+        } else if (rsp.status === 403) {
+          const err = await extractErrorMessageFromResponse(rsp);
+          confirm.error(`User does not have role to [${methodValue}] ${reqPath}: ${err}`);
+          continue;
         } else if (!rsp.ok) {
           const err = await extractErrorMessageFromResponse(rsp);
           confirm.error(`Failed to [${methodValue}] ${reqPath}: ${err}`);
@@ -247,7 +252,7 @@ export function useFetch() {
         } else {
           ret = await rsp.text();
         }
-        confirm.success(`Succeed to [${methodValue}] ${reqPath} ${contentType} ${contentLength}`);
+        confirm.success(`Succeed to [${methodValue}] ${reqPath}`);
         isFinished.value = true;
       }
 
@@ -278,6 +283,8 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
   }
 
   if (!err) {
+    // If not able to get the response content, then try to guess the status text from the status code
+    err = HttpStatus[rsp.status];
     if (!err) {
       if (rsp.status >= 500 && rsp.status <= 599) {
         err = 'System error';
