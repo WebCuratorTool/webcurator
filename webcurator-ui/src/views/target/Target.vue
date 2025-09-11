@@ -4,14 +4,16 @@ import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { useToast } from "primevue/usetoast";
 import {
-    setTarget,
-    useTargetDescriptionDTO,
-    useTargetGeneralDTO,
-    useTargetGropusDTO,
-    useTargetProfileDTO,
-    useTargetSeedsDTO,
-    useTargetHarvestsDTO, 
-    useNextStateStore 
+  setTarget,
+  useTargetAccessDTO,
+  useTargetAnnotationsDTO,
+  useTargetDescriptionDTO,
+  useTargetGeneralDTO,
+  useTargetGropusDTO,
+  useTargetProfileDTO,
+  useTargetSeedsDTO,
+  useTargetHarvestsDTO, 
+  useNextStateStore 
 } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
@@ -21,12 +23,14 @@ const targetId = route.params.id as string
 const rest: UseFetchApis = useFetch();
 const toast = useToast();
 
-const targetGeneral = useTargetGeneralDTO();
-const targetProfile = useTargetProfileDTO();
+const targetAccess = useTargetAccessDTO();
+const targetAnnotations = useTargetAnnotationsDTO();
 const targetDescription = useTargetDescriptionDTO();
-const targetSeeds = useTargetSeedsDTO();
+const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetHarvests = useTargetHarvestsDTO();
+const targetProfile = useTargetProfileDTO();
+const targetSeeds = useTargetSeedsDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
@@ -40,30 +44,32 @@ const initData = () => {
 }
 
 const fetchTargetDetails = () => {
-    isTargetAvailable.value = false;
-    loading.value = true;
+  isTargetAvailable.value = false;
+  loading.value = true;
 
-    rest.get('targets/' + targetId).then((data: any) => {        
-        isTargetAvailable.value = true;
-        setTarget(data);
-        nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
-    }).catch((err: any) => {
-        console.log(err.message);
-        initData();
-    }).finally(() => {
-        loading.value = false;
-    });
+  rest.get('targets/' + targetId).then((data: any) => {        
+    isTargetAvailable.value = true;
+    setTarget(data);
+    nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
+  }).catch((err: any) => {
+    console.log(err.message);
+    initData();
+  }).finally(() => {
+    loading.value = false;
+  });
 }
 
 const save = () => {
-    const dataReq = {
-        general: targetGeneral.getData(),
-        profile: targetProfile.getData(),
-        description: targetDescription.getData(),
-        groups: targetGroups.getData(),
-        seeds: targetSeeds.getData(),
-        schedule: targetHarvests.getData()
-    }    
+  const dataReq = {
+    access: targetAccess.getData(),
+    annotations: targetAnnotations.getData(),
+    general: targetGeneral.getData(),
+    profile: targetProfile.getData(),
+    description: targetDescription.getData(),
+    groups: targetGroups.getData(),
+    seeds: targetSeeds.getData(),
+    schedule: targetHarvests.getData()
+  }    
 
   rest.put('targets/' + targetGeneral.id, dataReq)
   .then((response: any) => {
