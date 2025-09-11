@@ -137,7 +137,11 @@ processResources {
 tasks.register('cleanUI', Delete) {
     group = "BuildUI"
     description = "Remove the dist folder"
-    delete '../webcurator-ui/dist'
+    def dirsToDelete = [
+        '../webcurator-ui/dist',
+        'src/main/resources/static'
+    ]
+    delete dirsToDelete
     followSymlinks = true
     doLast {
         println 'UI cleaning done!'
