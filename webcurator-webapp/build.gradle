@@ -183,7 +183,7 @@ tasks.register('copyUI', Copy) {
     description = "Copy the files from dist folder to webapp folder"
     dependsOn tasks.buildUI
     from '../webcurator-ui/dist'
-    into './src/main/webapp/'
+    into './src/main/resources/static/'
     doLast {
         println 'UI copying done!'
         println 'All UI tasks done!'
