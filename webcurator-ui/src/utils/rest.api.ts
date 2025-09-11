@@ -5,9 +5,11 @@ import { ref } from 'vue';
 import { useAlertStore } from './alertStore';
 import { HttpStatus } from './rest.http.status';
 
-export const RootPath = '/wct';
-export const LoginPagePath = RootPath + '/login';
-const RootContextPath = RootPath + '/api/v1';
+export const BasePath = '/wct';
+export const HomePagePath = '/';
+export const LoginPagePath = '/login';
+export const ApiRootPath = '/wct';
+const ApiContextPath = ApiRootPath + '/api/v1';
 const RetryDelay = 20 * 1000;
 const MaxRetryTimes = 3;
 
@@ -20,7 +22,7 @@ export type { LoginResponse };
 
 const _login = async (username: string, password: string) => {
   const credentials = 'username=' + username + '&password=' + password;
-  const rsp = await fetch(RootPath + '/auth/v1/token', {
+  const rsp = await fetch(ApiRootPath + '/auth/v1/token', {
     method: 'POST',
     redirect: 'error',
     headers: {
@@ -75,7 +77,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
     if (!token) {
       return false;
     }
-    const rsp = await fetch(RootPath + '/auth/v1/token/' + token);
+    const rsp = await fetch(ApiRootPath + '/auth/v1/token/' + token);
     return rsp.ok;
   };
 
@@ -93,7 +95,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
       if (redirectPath.value) {
         router.push(redirectPath.value);
       } else {
-        router.push(RootPath);
+        router.push(HomePagePath);
       }
     } else {
       isAuthenticating.value = false;
@@ -111,7 +113,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
     const token = userProfile.token;
     userProfile.clear();
     if (token) {
-      await fetch(RootPath + '/auth/v1/token/' + token, {
+      await fetch(ApiRootPath + '/auth/v1/token/' + token, {
         method: 'DELETE',
         redirect: 'error',
         headers: {
@@ -119,7 +121,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
         }
       });
     }
-    setRedirectPath(RootPath);
+    setRedirectPath(HomePagePath);
     router.push(LoginPagePath);
   };
 
@@ -191,9 +193,9 @@ export function useFetch() {
 
         let reqPath;
         if (path.startsWith('/')) {
-          reqPath = RootContextPath + path;
+          reqPath = ApiContextPath + path;
         } else {
-          reqPath = RootContextPath + '/' + path;
+          reqPath = ApiContextPath + '/' + path;
         }
 
         let rsp;

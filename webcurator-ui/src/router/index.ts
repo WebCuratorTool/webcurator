@@ -1,14 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../views/Dashboard.vue';
-import { useAuthStore, RootPath, LoginPagePath } from '@/utils/rest.api';
-
-const HomePaths = [RootPath, `${RootPath}/`, `${RootPath}/index.html`];
+import { useAuthStore, LoginPagePath } from '@/utils/rest.api';
 
 export const routes = {
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: RootPath,
+      path: '/',
       children: [
         {
           path: 'login',
@@ -54,20 +52,18 @@ export const routes = {
     },
     {
       path: '/:pathMatch(.*)*',
-      redirect: RootPath
+      redirect: '/'
     }
   ]
 };
 
 const router = createRouter(routes);
 router.beforeEach(async (to: any) => {
-  if (HomePaths.includes(to.path)) {
-    const auth = useAuthStore();
-    const loggedIn = await auth.isAuthenticated();
-    if (to.path !== LoginPagePath && !loggedIn) {
-      auth.setRedirectPath(to.fullPath);
-      return { path: LoginPagePath };
-    }
+  const auth = useAuthStore();
+  const loggedIn = await auth.isAuthenticated();
+  if (to.path !== LoginPagePath && !loggedIn) {
+    auth.setRedirectPath(to.fullPath);
+    return { path: LoginPagePath };
   }
 });
 

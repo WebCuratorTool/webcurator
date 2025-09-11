@@ -24,7 +24,7 @@ const emit = defineEmits(['setEditing', 'save']);
 
 const navigateBack = () => {
   if (router) {
-    router.push('/wct/targets/');
+    router.push('/targets/');
   }
 };
 </script>
@@ -95,4 +95,3 @@ const navigateBack = () => {
   outline-style: none !important;
 }
 </style>
-
