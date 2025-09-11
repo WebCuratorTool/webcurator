@@ -70,23 +70,23 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
 
   <p class="title pt-8">Targets</p>
 
-  <div class="flex flex-col justify-start 2xl:w-5/6">
+  <div class="flex flex-col justify-start w-full">
     <h5>Query</h5>
     <div class="flex items-end justify-between w-full mb-4">
-      <div class="flex items-center justify-start w-3/4 2xl:w-5/6 gap-4" id="grid-search">
-        <WctTopLabel label="Target ID" class="w-16">
+      <div class="flex items-center justify-start sm:w-5/6 gap-4" id="grid-search">
+        <WctTopLabel label="Target ID" class="w-26">
           <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" pt:pcInputText:root:class="max-w-full" />
         </WctTopLabel>
-        <WctTopLabel label="Target Name" class="md:w-xs">
+        <WctTopLabel label="Target Name" class="flex-grow">
           <InputText v-model="targetListData.searchTerms.targetName" type="text" />
         </WctTopLabel>
-        <WctTopLabel label="Seed" class="md:w-xs">
+        <WctTopLabel label="Seed" class="flex-grow">
           <InputText v-model="targetListData.searchTerms.targetSeed" type="text" />
         </WctTopLabel>
-        <WctTopLabel label="Description" class="md:w-xs ">
+        <WctTopLabel label="Description" class="flex-grow">
           <InputText v-model="targetListData.searchTerms.targetDescription" type="text" />
         </WctTopLabel>
-        <WctTopLabel label="Member of">
+        <WctTopLabel label="Member of" class="flex-grow">
           <InputText v-model="targetListData.searchTerms.targetMemberOf" type="text" />
         </WctTopLabel>
       </div>
@@ -94,7 +94,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
     </div>
 
     <div class="flex items-center justify-between w-full mb-8" >
-      <div class="flex items-center justify-start w-3/4 2xl:w-5/6 gap-4" id="grid-search">
+      <div class="flex items-center justify-start sm:w-5/6 gap-4" id="grid-search">
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">Agency</InputGroupAddon>
           <Select
@@ -130,7 +130,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           />
         </InputGroup>
   
-        <div class="flex items-center justify-between border rounded-md w-2/3" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
+        <div class="flex items-center justify-between flex-grow border rounded-md w-2/3" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
           <label for="non-display-only">Non-Display Only</label>
           <Checkbox v-model="targetListData.searchTerms.nonDisplayOnly" :binary="true" inputId="non-display-only" />
         </div>
@@ -170,7 +170,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
               }
             }"
           >
-            <Column field="id" sortable header="Id" dataType="numeric" class="w-15"/>
+            <Column field="id" sortable header="Id" dataType="numeric" class="w-26"/>
             <Column field="creationDate" header="Date" sortable dataType="date" class="w-30">
               <template #body="{ data }">
                 {{ formatDate(data.creationDate) }}
