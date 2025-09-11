@@ -23,7 +23,7 @@ export const useAlertStore = defineStore('AlertStore', () => {
     }
   };
 
-  const debug = (detail: string, header = 'Trace') => {
+  const debug = (detail: string, header = 'Debug') => {
     if (curLogLevel <= LogLevel.DEBUG) {
       console.debug(`${header}: ${detail}`);
     }
