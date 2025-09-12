@@ -194,24 +194,10 @@ tasks.register('copyUI', Copy) {
     }
 }
 
-bootWar {
-    dependsOn tasks.copyUI
-}
-
-war {
-    dependsOn tasks.copyUI
-}
-
-bootRun {
-    dependsOn tasks.copyUI
-}
-
 clean {
     dependsOn tasks.cleanUI
 }
 
-build {
+processResources {
     dependsOn tasks.copyUI
 }
-
-
