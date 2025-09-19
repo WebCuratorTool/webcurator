@@ -823,54 +823,44 @@ The following are common configuration options for the Webapp adjusted via the *
 
    The **QualityReviewToolController** settings control whether the
    standard browse tool, and external access tool, or both are available to
-   the user. The **ArchiveUrl** setting specifies the location of the
-   archive access tool, to allow the user to view copies of the target
-   already stored in the archive. The **ArchiveName** is the name displayed
-   on the review screen. The **archive.alternative** allows the use of a
-   second review tool, with it’s corresponding name. The alternative can be
-   commented out in the configuration if it is not required ::
+   the user. The **accessTool** properties are used to specify the url and name
+   of the standard access tool to be used for viewing the harvest. The 
+   **archive1.url** setting specifies the location of the archive access tool, 
+   to allow the user to view copies of the target already stored in the archive. 
+   Of course this setting can also be used to configure additional replay tools 
+   for the harvest. The **archive1.name** is the name displayed on the review 
+   screen. The **archive2** settings allow the use of a second review tool, 
+   with it’s corresponding url and name. The **archive2** settings can be commented 
+   out in the configuration if a second archive replay tool is not required. ::
 
       qualityReviewToolController.enableBrowseTool=true
       qualityReviewToolController.enableAccessTool=false
-      qualityReviewToolController.archiveUrl=http://web.archive.org/web/*/
-      qualityReviewToolController.archiveName=Wayback
-      qualityReviewToolController.archive.alternative=http://web.archive.org/web/*/
-      qualityReviewToolController.archive.alternative.name=Another Wayback
+      qualityReviewToolController.accessTool.url=http://localhost:8090/{$TargetInstance.Oid}-{$HarvestResult.HarvestNumber}/
+      qualityReviewToolController.accessTool.name=Pywb
+      qualityReviewToolController.archive1.url=http://web.archive.org/web/*/
+      qualityReviewToolController.archive1.name=Wayback
+      qualityReviewToolController.archive2.url=http://web.archive.org/web/*/
+      qualityReviewToolController.archive2.name=Another Wayback
 
-   The **harvestResourceUrlMapper** is responsible for writing the access
-   tool URLs using a custom url and replacing elements of that url with the 
-   correct items in the harvest resource.
+   It's possible to use placeholders (corresponding to their eponymous database fields) 
+   in any of these replay urls. The following placeholders are supported. ::
 
-   The urlMap property of the **harvestResourceUrlMapper** can have any of
-   the following substituted value from the harvest resource ::
-
-      {$HarvestResource.Name}
-      {$HarvestResource.Length}
-      {$HarvestResource.Oid}
-      {$HarvestResource.StatusCode}
-      {$ArcHarvestResource.FileDate}
+      {$HarvestResult.Oid}
       {$HarvestResult.CreationDate[,DateFormat]}
       {$HarvestResult.DerivedFrom}
       {$HarvestResult.HarvestNumber}
-      {$HarvestResult.Oid}
       {$HarvestResult.ProvenanceNote}
       {$HarvestResult.State}
+      {$TargetInstance.Oid}
 
    The HarvestResult.CreationDate substitution's format can be controlled
    by supplying a valid `simple date
    format <https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html>`__
    after a comma within the curly brackets e.g.
-   {$HarvestResult.CreationDate,ddMMyy } for 1 Nov 2008 will show "011108" ::
+   {$HarvestResult.CreationDate,ddMMyy} for 1 Nov 2008 will show "011108" ::
 
-      harvestResourceUrlMapper.urlMap=http://localhost:8090/wayback/{$ArcHarvestResource.FileDate}/{$HarvestResource.Name}
-
-   The **QualityReviewController.enableAccessTool** and **HarvestResourceUrlMapper** settings can be used
-   to allow Wayback to be used as an access tool for the WCT; either instead of, or in addition to the
-   standard Browse tool. See :doc:`Wayback Integration Guide <wayback-integration-guide>`.
-
-   *Note, that if Wayback is being used as an access tool, the
-   WaybackIndexer must be enabled and configured (see Digital Asset Store configuration
-   below and* :doc:`Wayback Integration Guide <wayback-integration-guide>`.
+   Note, that if Wayback is being used as an access tool, the WaybackIndexer must be enabled and 
+   configured (see Digital Asset Store configuration below and :doc:`Wayback Integration Guide <wayback-integration-guide>`).
 
 -  Heritrix 3
 
@@ -1592,10 +1582,8 @@ Appendix B: Example application.properties overrides
         inTrayManager.sender=wct-noreply@org.nz
 
         #QualityReviewToolController settings
-        qualityReviewToolController.archiveUrl=http://local-server.org.nz:8080/wayback/*/
-
-        # HarvestResourceUrlMapper settings
-        harvestResourceUrlMapper.urlMap=http://local-server.org.nz:8080/wayback/{$ArcHarvestResource.FileDate}/{$HarvestResource.Name}
+        qualityReviewToolController.archive1.url=http://local-server.org.nz:8080/wayback/*/
+        qualityReviewToolController.accessTool.url=http://local-server.org.nz:8080/wayback/{$TargetInstance.Oid}-{HarvestResult.HarvestNumber}/
 
 
         # Heritrix settings

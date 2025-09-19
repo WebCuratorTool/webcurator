@@ -40,6 +40,7 @@ import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
+import org.webcurator.ui.util.PlaceholderProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -100,11 +101,11 @@ public class HarvestModificationHandler {
     @Value("${core.base.dir}")
     private String baseDir;
 
-    @Value("${qualityReviewToolController.archiveUrl}")
+    @Value("${qualityReviewToolController.archive1.url}")
     private String archiveUrl;
 
-    @Autowired
-    private HarvestResourceUrlMapper harvestResourceUrlMapper;
+    @Value("${qualityReviewToolController.accessTool.url}")
+    private String accessToolUrlWithPlaceholders;
 
     @Autowired
     private BrowseHelper browseHelper;
@@ -608,9 +609,9 @@ public class HarvestModificationHandler {
         map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
         map.put("globalVersion", versionDTO.getGlobalVersion());
         map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("archiveUrl", archiveUrl);
         HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
-        map.put("accessToolUrl", harvestResourceUrlMapper.generateUrl(harvestResult));
+        map.put("archiveUrl", PlaceholderProcessor.generateUrl(archiveUrl, harvestResult));
+        map.put("accessToolUrl", PlaceholderProcessor.generateUrl(accessToolUrlWithPlaceholders, harvestResult));
         return map;
     }
 

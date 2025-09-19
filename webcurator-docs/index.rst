@@ -24,6 +24,7 @@ Web Curator Tool Documentation
 
    guides/upgrade-guide-3-0
    guides/upgrade-guide-3-1
+   guides/upgrade-guide-3-2-4
 
 .. toctree::
    :maxdepth: 1

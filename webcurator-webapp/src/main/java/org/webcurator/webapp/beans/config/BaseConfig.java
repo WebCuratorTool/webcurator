@@ -73,7 +73,6 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.ui.tools.controller.QualityReviewToolControllerAttribute;
 
 import javax.sql.DataSource;
@@ -230,8 +229,11 @@ public class BaseConfig {
     @Value("${groupTypes.subgroupSeparator}")
     private String groupTypesSubgroupSeparator;
 
-    @Value("${harvestResourceUrlMapper.urlMap}")
-    private String harvestResourceUrlMapperUrlMap;
+    @Value("${qualityReviewToolController.accessTool.url}")
+    private String qualityReviewToolControllerAccessToolUrl;
+
+    @Value("${qualityReviewToolController.accessTool.name}")
+    private String qualityReviewToolControllerAccessToolName;
 
     @Value("${qualityReviewToolController.enableAccessTool}")
     private boolean qualityReviewToolControllerEnableAccessTool;
@@ -242,17 +244,17 @@ public class BaseConfig {
     @Value("${harvestCoordinator.autoQAUrl}")
     private String harvestCoordinatorAutoQAUrl;
 
-    @Value("${qualityReviewToolController.archiveUrl}")
-    private String qualityReviewToolControllerArchiveUrl;
+    @Value("${qualityReviewToolController.archive1.url:}")
+    private String qualityReviewToolControllerArchive1Url;
 
-    @Value("${qualityReviewToolController.archiveName}")
-    private String qualityReviewToolControllerArchiveName;
+    @Value("${qualityReviewToolController.archive1.name:}")
+    private String qualityReviewToolControllerArchive1Name;
 
-    @Value("${qualityReviewToolController.archive.alternative}")
-    private String qualityReviewToolControllerArchiveUrlAlternative;
+    @Value("${qualityReviewToolController.archive2.url:}")
+    private String qualityReviewToolControllerArchive2Url;
 
-    @Value("${qualityReviewToolController.archive.alternative.name}")
-    private String qualityReviewToolControllerArchiveAlternativeName;
+    @Value("${qualityReviewToolController.archive2.name:}")
+    private String qualityReviewToolControllerArchive2Name;
 
     @Value("${qualityReviewToolController.enableBrowseTool}")
     private boolean qualityReviewToolControllerEnableBrowseTool;
@@ -1132,25 +1134,18 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestResourceUrlMapper harvestResourceUrlMapper() {
-        HarvestResourceUrlMapper bean = new HarvestResourceUrlMapper();
-        bean.setUrlMap(harvestResourceUrlMapperUrlMap);
-
-        return bean;
-    }
-
-    @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public QualityReviewToolControllerAttribute qualityReviewToolControllerAttribute() {
         QualityReviewToolControllerAttribute bean = new QualityReviewToolControllerAttribute();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
-        bean.setArchiveUrl(qualityReviewToolControllerArchiveUrl);
-        bean.setArchiveName(qualityReviewToolControllerArchiveName);
-        bean.setArchiveUrlAlternative(qualityReviewToolControllerArchiveUrlAlternative);
-        bean.setArchiveUrlAlternativeName(qualityReviewToolControllerArchiveAlternativeName);
-        bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
+        bean.setArchive1Url(qualityReviewToolControllerArchive1Url);
+        bean.setArchive1Name(qualityReviewToolControllerArchive1Name);
+        bean.setArchive2Url(qualityReviewToolControllerArchive2Url);
+        bean.setArchive2Name(qualityReviewToolControllerArchive2Name);
+        bean.setAccessToolUrl(qualityReviewToolControllerAccessToolUrl);
+        bean.setAccessToolName(qualityReviewToolControllerAccessToolName);
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setEnableBrowseTool(qualityReviewToolControllerEnableBrowseTool);
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);

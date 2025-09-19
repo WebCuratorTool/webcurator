@@ -173,23 +173,19 @@ First take note of the url that OpenWayback is running from inside Tomcat. This 
 property we saw above in `wayback.xml`. In our example it is http://localhost:8080/wayback/.
 
 Open your WCT Webapp `application.properties` file and make the following changes. (`application.properties` is located in
-`webcurator-webapp.war\WEB-INF\classes\application.properties`)::
+`webcurator-webapp.war/WEB-INF/classes/application.properties`)::
 
-    harvestResourceUrlMapper.urlMap=http://localhost:8080/wayback/{$ArcHarvestResource.FileDate}/{$HarvestResource.Name}
     qualityReviewToolController.enableBrowseTool=true
     qualityReviewToolController.enableAccessTool=true
-    qualityReviewToolController.archiveUrl=http://localhost:8080/wayback/*/
+    qualityReviewToolController.accessTool.url=http://localhost:8080/wayback/{HarvestResult.CreationDate}/
+    qualityReviewToolController.archive1.url=http://localhost:8080/wayback/*/
 
 Using Multiple Review Tools in WCT
 ==================================
 
-Within the Target Summary for the harvest you will have options for different Quality Review Tools.  There will
-be a link to Review in Access Tool plus other links to other archives which you can specify the name of.  All
-of these links are configurable via WCT Webapp `application.properties`.
-
--   Review in Access Tool uses the value set in harvestResourceUrlMapper.urlMap
--   qualityReviewToolController.archiveName uses the value set in qualityReviewToolController.archiveUrl
--   qualityReviewToolController.archive.alternative.name uses the value set in qualityReviewToolController.archive.alternative
+Within the Target Summary for the harvest you will have options for different Quality Review Tools. Besides the link
+to the access tool you can configure additional links for two archives (or alternative replay tools), using the properties
+qualityReviewToolController.archive1 and qualityReviewToolController.archive2 in WCT Webapp `application.properties`.
 
 |Review_Tools|
 
