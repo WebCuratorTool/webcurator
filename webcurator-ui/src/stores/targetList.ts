@@ -1,7 +1,11 @@
-import { useUserProfileStore, useUsersStore } from '@/stores/users'
-import { type UseFetchApis, useFetch } from '@/utils/rest.api'
-import { defineStore } from 'pinia'
+// libraries
 import { ref } from 'vue'
+import { defineStore } from 'pinia'
+
+// stores
+import { useUserProfileStore, useUsersStore } from '@/stores/users'
+// utils
+import { type UseFetchApis, useFetch } from '@/utils/rest.api'
 
 export const useTargetListSearchStore = defineStore('TargetListSearchStore', () => {
 
@@ -77,46 +81,46 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
     search();
   }
 
-    const search = () => {
-      const searchConditions = {
-        targetId: searchTerms.targetId,
-        name: searchTerms.targetName,
-        seed: searchTerms.targetSeed,
-        description: searchTerms.targetDescription,
-        groupName: searchTerms.targetMemberOf,
-        nonDisplayOnly: searchTerms.nonDisplayOnly,
-        agency: searchTerms.targetAgency?.name,
-        userId: searchTerms.targetUser?.code,
-        states: [] as any
-      }
-
-      if (searchTerms.targetState?.length > 0) {
-        for (const i in searchTerms.targetState) {
-          searchConditions.states.push(searchTerms.targetState[i].code)
-        }
-      }
-    
-      const searchParams = {
-        filter: searchConditions,
-        offset: 0,
-        limit: 10,
-        sortBy: 'creationDate,asc'
-      }
-    
-      loadingTargetList.value = true
-      rest
-        .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-        .then((data: any) => {
-          targetList.value = data['targets'];
-        })
-        .catch((err: any) => {
-          console.log(err.message)
-        }).finally(()=>{
-          loadingTargetList.value = false;
-        });
+  const search = () => {
+    const searchConditions = {
+      targetId: searchTerms.targetId,
+      name: searchTerms.targetName,
+      seed: searchTerms.targetSeed,
+      description: searchTerms.targetDescription,
+      groupName: searchTerms.targetMemberOf,
+      nonDisplayOnly: searchTerms.nonDisplayOnly,
+      agency: searchTerms.targetAgency?.name,
+      userId: searchTerms.targetUser?.code,
+      states: [] as any
     }
 
-      search();
+    if (searchTerms.targetState?.length > 0) {
+      for (const i in searchTerms.targetState) {
+        searchConditions.states.push(searchTerms.targetState[i].code)
+      }
+    }
+  
+    const searchParams = {
+      filter: searchConditions,
+      offset: 0,
+      limit: 10,
+      sortBy: 'creationDate,asc'
+    }
+  
+    loadingTargetList.value = true
+    rest
+      .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
+      .then((data: any) => {
+        targetList.value = data['targets'];
+      })
+      .catch((err: any) => {
+        console.log(err.message)
+      }).finally(()=>{
+        loadingTargetList.value = false;
+      });
+  }
 
-      return { targetList, loadingTargetList, filters, searchTerms, resetFilter, search }
+  search();
+
+  return { targetList, loadingTargetList, filters, searchTerms, resetFilter, search }
 })

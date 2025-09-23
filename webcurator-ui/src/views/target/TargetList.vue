@@ -1,16 +1,20 @@
 <script setup lang="ts">
+// libraries
 import { watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useConfirm } from 'primevue/useconfirm';
+import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 
+// components
 import Loading from '@/components/Loading.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import WctTopLabel from '@/components/WctTopLabel.vue';
+// stores
 import { useAgenciesStore } from '@/stores/agencies';
 import { formatTargetState, showTargetAction, stateList } from '@/stores/target';
 import { useTargetListDataStore } from '@/stores/targetList';
 import { useUserProfileStore, useUsersStore } from '@/stores/users';
+// utils
 import { formatDate } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
@@ -59,8 +63,9 @@ const deleteTarget = (id: number) => {
 };
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
-  console.log(userProfile);
-  targetListData.resetFilter();
+  if (!oldUserProfile || newUserProfile.id !== oldUserProfile.id) {
+    targetListData.resetFilter();
+  }
 });
 </script>
 
