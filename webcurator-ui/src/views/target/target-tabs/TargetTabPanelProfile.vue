@@ -6,9 +6,9 @@ import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { computed, ref, watch } from 'vue';
 
 import Loading from '@/components/Loading.vue';
-import WctFormField from '@/components/WctFormField.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import type { Profile } from '@/types/profile';
+import { Textarea } from 'primevue';
 
 const rest: UseFetchApis = useFetch();
 
@@ -59,6 +59,11 @@ watch(
   async (newEditing) => {
     if (newEditing) {
       await fetchProfile();
+      targetProfile.overrides.forEach((override) => {
+        if (Array.isArray(override.value)) {
+          override.value = override.value.join('\n');
+        }
+      });
     }
   }
 );
@@ -69,14 +74,16 @@ watch(
   <div v-else>
     <h4 class="mt-4">Base Profile</h4>
     <WctTabViewPanel>
-      <WctFormField label="Harvester Type">
+      <div class="grid grid-cols-5 p-1">
+        <p>Harvester Type</p>
         <Select v-if="editing" v-model="selectedHarvesterType" :options="harvesterTypes" :disabled="!editing" />
         <p v-else class="font-semibold">{{ targetProfile.harvesterType }}</p>
-      </WctFormField>
-      <WctFormField label="Base Profile">
+      </div>
+      <div class="grid grid-cols-5 p-1">
+        <p>Base Profile</p>
         <Select v-if="editing" v-model="selectedProfile" :options="baseProfileOptions" optionLabel="name" :disabled="!editing" @change="onChangeProfile" />
         <p v-else class="font-semibold">{{ targetProfile.name }}</p>
-      </WctFormField>
+      </div>
     </WctTabViewPanel>
 
     <h4 class="mt-4">Profile Overrides</h4>
@@ -93,12 +100,12 @@ watch(
               <Checkbox v-if="editing" v-model="data.value" :binary="true" :disabled="!editing" />
               <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
             </div>
-            <div v-else-if="Array.isArray(data.value) || typeof data.value == 'string'">
-              <InputText v-if="editing" v-model="data.value" :disabled="!editing" />
-              <p v-else class="font-semibold">{{ data.value.toString() }}</p>
+            <div v-else-if="data.id == 'blockedUrls' || data.id == 'includedUrls'">
+              <Textarea :key="editing" v-if="editing" v-model="data.value" :disabled="!editing" class="w-2/3" />
+              <p v-else v-for="item in data.value" class="font-semibold w-2/3 !mb-1">{{ item }}</p>
             </div>
-            <div v-else style="min-width: 30rem">
-              <div v-if="editing" class="flex justify-start w-full">
+            <div v-else>
+              <div v-if="editing" class="flex justify-start">
                 <InputNumber
                   class="w-6"
                   v-model="data.value"
@@ -119,9 +126,11 @@ watch(
             </div>
           </template>
         </Column>
-        <Column field="enabled" header="Enable Override">
+        <Column field="enabled" header="Enable Override" :headerStyle="editing ? 'display: flex; justify-content: center' : ''">
           <template #body="{ data }">
-            <Checkbox v-if="editing" id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
+            <div v-if="editing" class="flex justify-center">
+              <Checkbox v-if="editing" id="checkOption1" name="option1" value="Run on Approval" v-model="data.enabled" :binary="true" :disabled="!editing" />
+            </div>
             <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
           </template>
         </Column>

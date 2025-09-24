@@ -114,6 +114,7 @@ export const useUsersStore = defineStore('users', () => {
     for (let i = 0; i < data.value.length; i++) {
       const user: any = data.value[i];
       formatedData.push({
+        id: user.id,
         name: user.firstName + ' ' + user.lastName + ' (' + user.name + ')',
         code: user.name
       });
@@ -130,6 +131,7 @@ export const useUsersStore = defineStore('users', () => {
         continue;
       }
       formatedData.push({
+        id: user.id,
         name: user.firstName + ' ' + user.lastName + ' (' + user.name + ')',
         code: user.name
       });
