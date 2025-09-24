@@ -140,7 +140,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           <Checkbox v-model="targetListData.searchTerms.nonDisplayOnly" :binary="true" inputId="non-display-only" />
         </div>
       </div>
-      <Button @click="targetListData.resetFilter" class="max-w-25" label="Clear" icon="pi pi-times" outlined fluid />
+      <Button @click="targetListData.resetFilter()" class="max-w-25" label="Clear" icon="pi pi-times" outlined fluid />
     </div>
 
     <Divider type="solid" />

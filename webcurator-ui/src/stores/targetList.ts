@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 // stores
-import { useUserProfileStore, useUsersStore } from '@/stores/users'
+import { useUserProfileStore } from '@/stores/users'
 // utils
 import { type UseFetchApis, useFetch } from '@/utils/rest.api'
 
@@ -32,41 +32,24 @@ export const useTargetListSearchStore = defineStore('TargetListSearchStore', () 
   }
 })
 
-export const useTargetListFiltertore = defineStore('TargetListFilterStore', () => {
-  // Filter conditions
-  const selectedAgency = ref({ name: '', code: '' })
-  const selectedUser = ref({ name: '', code: '' })
-
-  const selectedState = ref([])
-
-  return {
-    selectedAgency,
-    selectedUser,
-    selectedState
-  }
-})
 
 export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
   const userProfile = useUserProfileStore()
-  const users = useUsersStore()
   const targetList = ref([])
   const loadingTargetList = ref(false)
   const searchTerms = useTargetListSearchStore()
-  const filters = useTargetListFiltertore()
   const rest: UseFetchApis = useFetch()
 
   const resetFilter = () => {
-    filters.selectedUser = {
+    searchTerms.targetUser = {
       name: userProfile.currUserName,
       code: userProfile.name
     }
 
-    filters.selectedAgency = {
+    searchTerms.targetAgency = {
       name: userProfile.agency,
       code: userProfile.agency
     }
-
-    filters.selectedState = [];
 
     searchTerms.targetId = null;
     searchTerms.targetName = '';
@@ -74,8 +57,6 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
     searchTerms.targetDescription = '';
     searchTerms.targetMemberOf = '';
     searchTerms.nonDisplayOnly = false;
-    searchTerms.targetAgency = null;
-    searchTerms.targetUser = null;
     searchTerms.targetState = [];
 
     search();
@@ -122,5 +103,5 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
 
   search();
 
-  return { targetList, loadingTargetList, filters, searchTerms, resetFilter, search }
+  return { targetList, loadingTargetList, searchTerms, resetFilter, search }
 })
