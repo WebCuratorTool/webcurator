@@ -18,13 +18,12 @@ package org.webcurator.core.harvester.agent;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.archive.crawler.framework.CrawlController;
-import org.netarchivesuite.heritrix3wrapper.Heritrix3Wrapper;
 import org.netarchivesuite.heritrix3wrapper.ScriptResult;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.agent.filter.*;
+import org.webcurator.core.harvester.agent.filter.FileFilter;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -34,9 +33,7 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -193,9 +190,9 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                             // get status of h3 job
                             String h3JobState = h3JobNames.get(jobName);
 
-                            // FIXME Why are we filtering on these states specifically? (Cf. CrawlController.State in Heritrix)
-                            if (h3JobState != null && (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED"))) {
-                                // Heritrix was still running while we were down: simply load our datastructures with the latest status info from Heritrix
+                            if (h3JobState != null) {
+                                // Heritrix was still running while we were down: simply load our datastructures
+                                // with the latest status info from Heritrix
                                 log.info("Harvest Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
                                 super.initiateHarvest(jobName, null);
                                 harvester = getHarvester(jobName);
@@ -403,7 +400,9 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         // Send the log files to the DAS.
         if (aFailureStep <= FAILED_ON_SEND_LOGS) {
             try {
-                File[] fileList = getFileArray(((HarvesterH3)harvester).getHarvestLogDirs(), NotEmptyFileFilter.notEmpty(new RegexNameFilter(Constants.REGEX_LOGS)));
+                List<File> logDirs = ((HarvesterH3)harvester).getHarvestLogDirs();
+                concatenateCpLogs(logDirs); // concatenate log files rotated by checkpointing
+                File[] fileList = getFileArray(logDirs, NotEmptyFileFilter.notEmpty(new RegexNameFilter(Constants.REGEX_LOGS)));
                 log.info("Sending harvest logs to digital asset store for job " + aJob);
                 digitalAssetStore.save(createHarvestDTOs(aJob, Constants.DIR_LOGS, fileList));
             } catch (Exception e) {
@@ -727,6 +726,68 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     public void setProvenanceNote(String provenanceNote) {
         this.provenanceNote = provenanceNote;
+    }
+
+    /**
+     * For every dir: concatenate the rotated checkpoint logs of the same type
+     * (e.g. crawl.log.cp00002-20250925115726 gets appended to crawl.log.cp00001-20250925115726,
+     * and crawl.log, being the most recent, gets appended last)
+     */
+    private void concatenateCpLogs(List<File> dirs) throws IOException {
+
+        for (File dir : dirs) {
+            File[] logFiles = dir.listFiles(new FilenameFilter() {
+                public boolean accept(File file, String s) {
+                    return s.endsWith(".log");
+                }
+            });
+
+            for (int i = 0; i < logFiles.length; i++) {
+                String logFileName = logFiles[i].getName();
+                File[] rotatedLogFiles = dir.listFiles(new FilenameFilter() {
+                    public boolean accept(File file, String s) {
+                        return s.startsWith(logFileName) && !s.equals(logFileName);
+                    }
+                });
+                if (rotatedLogFiles.length == 0) {
+                    continue;
+                }
+                // For this to work, the rotated log files must be sorted
+                Arrays.sort(rotatedLogFiles, new Comparator<File>() {
+                    public int compare(File f1, File f2) {
+                        return f1.getName().compareTo(f2.getName());
+                    }
+                });
+
+                // Append the other rotated log files to the first rotated log file
+                // and delete them
+                for (int j = 1; j < rotatedLogFiles.length; j++) {
+                    append(rotatedLogFiles[j], rotatedLogFiles[0]);
+                    if (!rotatedLogFiles[j].delete()) {
+                        log.warn(String.format("Could not delete %s", rotatedLogFiles[j].getName()));
+                    }
+                }
+                // Finally, append the current non-rotated file (e.g. crawl.log) to the first
+                // rotated file and rename the latter to the first
+                append(logFiles[i], rotatedLogFiles[0]);
+                rotatedLogFiles[0].renameTo(logFiles[i]);
+            }
+        }
+    }
+
+
+    /**
+     * Append File f1 to File f2
+     */
+    private void append(File f1, File f2) throws IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(f1));
+             BufferedWriter bw = new BufferedWriter(new FileWriter(f2, true))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                bw.write(line);
+                bw.newLine();
+            }
+        }
     }
 
 

@@ -156,35 +156,11 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         return arcDigitalAssetStoreService.getCustomDepositFormDetails(criteria);
     }
 
-//    @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
-//    public void save(@RequestBody Object request) throws DigitalAssetStoreException {
-//        if (request == null) {
-//            throw new DigitalAssetStoreException("Request without a payload");
-//        } else if (request instanceof List) {
-//            try {
-//                List<HarvestDTO> dtos = (List<HarvestDTO>) request;
-//                save(dtos);
-//            } catch (ClassCastException e) {
-//                throw new DigitalAssetStoreException("Request with unrecognized payload", e);
-//            }
-//        } else if (request instanceof HarvestDTO) {
-//            save((HarvestDTO) request);
-//        } else {
-//            throw new DigitalAssetStoreException("Request with unrecognized payload");
-//        }
-//    }
-
     @Override
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
     public void save(@RequestBody List<HarvestDTO> dtos) throws DigitalAssetStoreException {
         arcDigitalAssetStoreService.save(dtos);
     }
-
-//    @Override
-//    public void save(@RequestBody HarvestDTO dto) throws DigitalAssetStoreException {
-//        log.debug("Save harvest, {}", dto.toString());
-//        arcDigitalAssetStoreService.save(dto);
-//    }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)

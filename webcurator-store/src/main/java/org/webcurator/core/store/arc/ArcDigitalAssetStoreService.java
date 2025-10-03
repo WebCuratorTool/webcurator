@@ -163,12 +163,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return targetDir.exists();
     }
 
-//    @Override
-//    public void save(@RequestBody HarvestDTO dto) throws DigitalAssetStoreException {
-//        List<HarvestDTO> dtos = new ArrayList<>();
-//        dtos.add(dto);
-//        save(dtos);
-//    }
 
     @Override
     public void save(@RequestBody List<HarvestDTO> dtos) throws DigitalAssetStoreException {
@@ -195,7 +189,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 if (firstDotPos == -1) {
                     firstDotPos = targetFilename.length();
                 }
-                targetFilename = targetFilename.substring(0, firstDotPos) + "-" + filenameCount.get(filename) + targetFilename.substring(firstDotPos);
+                Integer counter = filenameCount.get(filename) + 1;
+                targetFilename = targetFilename.substring(0, firstDotPos) + "-" + counter.toString() + targetFilename.substring(firstDotPos);
             }
             filenameCount.merge(filename, 1, Integer::sum);
 
