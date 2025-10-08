@@ -46,7 +46,7 @@ public class Token {
             String token = sessionManager.authenticate(username, password);
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Authentication failed");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
         }
     }
 
