@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 import { useAlertStore } from '@/utils/alertStore';
 
+const router = useRouter();
 const route = useRoute();
 const targetId = route.params.id as string;
 
@@ -30,24 +31,22 @@ const initData = () => {
   nextStates.initData();
 };
 
-const fetchTargetDetails = () => {
+const fetchTargetDetails = async () => {
   isTargetAvailable.value = false;
   loading.value = true;
 
-  rest
-    .get('targets/' + targetId)
-    .then((data: any) => {
+  try {
+    const data = await rest.get('targets/' + targetId);
+    if (data) {
       isTargetAvailable.value = true;
       setTarget(data);
       nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-      initData();
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+    } else {
+      router.push('/targets/');
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 const save = () => {
@@ -85,15 +84,18 @@ const setEditing = (isEditing: boolean) => {
 };
 
 const showErrorMessage = (message: string) => {
-  alertStore.error(message, 'Target not saved');
+  alertStore.error(message, message, 'Target not saved');
 };
 
 const showSuccessMessage = () => {
   alertStore.info('Target succesfully saved');
 };
-fetchTargetDetails();
+
+onMounted(() => {
+  fetchTargetDetails();
+});
 </script>
 
 <template>
-  <TargetTabView :editing="editing" :isTargetAvailable="isTargetAvailable" :loading="loading" @setEditing="setEditing" @save="save" />
+  <TargetTabView v-if="isTargetAvailable" :editing="editing" :isTargetAvailable="isTargetAvailable" :loading="loading" @setEditing="setEditing" @save="save" />
 </template>

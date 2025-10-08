@@ -41,7 +41,8 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          alertStore.info(`Target ${id} deleted`, 'Confirmed');
+          const message = `Target ${id} deleted`;
+          alertStore.info(message, message, 'Confirmed');
           targetListData.search();
         })
         .catch((err: any) => {

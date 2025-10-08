@@ -71,7 +71,8 @@ const showViewPermission = (permissionId: number) => {
 };
 
 const showErrorMessage = () => {
-  alertStore.error('The seed already exists on the target', 'Seed not added');
+  const message = 'The seed already exists on the target';
+  alertStore.error(message, message, 'Seed not added');
 };
 
 // If the Target is switched out of editing mode, clear the editing seed value too
