@@ -204,10 +204,12 @@ export function useFetch() {
         } catch (err: any) {
           retriedTimes.value++;
           if (retriedTimes.value >= MaxRetryTimes) {
-            confirm.error(`Failed to [${methodValue}] ${reqPath}: ${err.message}`);
+            const errMsg = err.message;
+            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
             break;
           } else {
-            confirm.warning(`Failed to [${methodValue}] ${reqPath}: ${err.message}.  Will retry in ${RetryDelay / 1000} seconds.`);
+            const errMsg = `${err.message}. Will retry in ${RetryDelay / 1000} seconds.`;
+            confirm.warning(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
             await sleep(RetryDelay);
             continue;
           }
@@ -215,17 +217,19 @@ export function useFetch() {
 
         if (!rsp) {
           //Exception has happened
-          confirm.error('Failed to [' + methodValue + '] ' + reqPath);
+          const errMsg = 'Unknown exception happened.';
+          await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}`);
           break;
         } else if (rsp.status === 502 || rsp.status === 504) {
           //Upstream error
-          const err = await extractErrorMessageFromResponse(rsp);
+          const errMsg = await extractErrorMessageFromResponse(rsp);
           retriedTimes.value++;
           if (retriedTimes.value >= MaxRetryTimes) {
-            confirm.error(`Failed to [${methodValue}] ${reqPath}: ${err}`);
+            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
             break;
           } else {
-            confirm.warning(`${err}. Will retry in ${RetryDelay / 1000} seconds.`);
+            const errForRetry = `${errMsg}. Will retry in ${RetryDelay / 1000} seconds.`;
+            confirm.warning(errForRetry, `Failed to [${methodValue}] ${reqPath}: ${errForRetry}`);
             await sleep(RetryDelay);
             continue;
           }
@@ -233,12 +237,12 @@ export function useFetch() {
           loginStore.startLogin();
           continue;
         } else if (rsp.status === 403) {
-          const err = await extractErrorMessageFromResponse(rsp);
-          confirm.error(`User does not have role to [${methodValue}] ${reqPath}: ${err}`);
+          const errMsg = await extractErrorMessageFromResponse(rsp);
+          await confirm.error(errMsg, `User does not have role to [${methodValue}] ${reqPath}: ${errMsg}`);
           continue;
         } else if (!rsp.ok) {
-          const err = await extractErrorMessageFromResponse(rsp);
-          confirm.error(`Failed to [${methodValue}] ${reqPath}: ${err}`);
+          const errMsg = await extractErrorMessageFromResponse(rsp);
+          await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
           break;
         }
 
@@ -267,24 +271,24 @@ export function useFetch() {
 }
 
 const extractErrorMessageFromResponse = async (rsp: any) => {
-  let err = rsp.statusText;
+  let err = null;
 
-  if (!err) {
-    //If not able to get the status text, then try to get the error message from the response body.
-    const contentType = rsp.headers.get('content-type') || '';
-    if (contentType) {
-      if (contentType.startsWith('text/html')) {
-        const rawHtml = await rsp.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(rawHtml, 'text/html');
-        err = doc.body.textContent || 'Unknown error';
-      } else if (contentType.startsWith('application/json')) {
-        const errMessage = await rsp.json();
-        err = errMessage.error;
-      } else {
-        err = await rsp.text();
-      }
+  //If not able to get the status text, then try to get the error message from the response body.
+  const contentType = rsp.headers.get('content-type') || '';
+  if (contentType) {
+    if (contentType.startsWith('text/html')) {
+      const rawHtml = await rsp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawHtml, 'text/html');
+      err = doc.body.textContent || 'Unknown error';
+    } else if (contentType.startsWith('application/json')) {
+      const errMessage = await rsp.json();
+      err = errMessage.error;
+    } else {
+      err = await rsp.text();
     }
+  } else {
+    err = rsp.statusText;
   }
 
   if (!err) {
@@ -300,5 +304,5 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
       err = 'Unknown error';
     }
   }
-  return `[${rsp.status}] ${err}`;
+  return err;
 };
