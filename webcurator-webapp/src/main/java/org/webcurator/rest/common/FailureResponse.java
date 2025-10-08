@@ -63,7 +63,12 @@ public class FailureResponse {
     }
 
     public static ResponseEntity<?> error(HttpStatus status, String error) {
+        return error(status, error, null);
+    }
+
+    public static ResponseEntity<?> error(HttpStatus status, String error, String path) {
         FailureResponse rsp = new FailureResponse(status.value(), error);
+        rsp.setPath(path);
         return ResponseEntity.status(status.value()).body(rsp);
     }
 }
