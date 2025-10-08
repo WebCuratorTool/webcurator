@@ -12,7 +12,7 @@ togglePreset('indigo');
     <router-view />
   </div>
   <DynamicDialog />
-  <Toast group="toast-info" position="bottom-left">
+  <Toast group="toast-info" position="top-right">
     <template #message="slotProps">
       <div class="flex flex-col items-start flex-auto">
         <div class="flex items-center gap-2">
@@ -23,7 +23,7 @@ togglePreset('indigo');
       </div>
     </template>
   </Toast>
-  <Toast group="toast-error" position="bottom-left">
+  <Toast group="toast-error" position="top-right">
     <template #message="slotProps">
       <div class="flex flex-col items-start flex-auto">
         <div class="flex items-center gap-2">
