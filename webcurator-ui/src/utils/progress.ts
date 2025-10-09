@@ -1,10 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
-// export const progress = reactive({
-//   visible: false
-// });
-
 export const useProgressStore = defineStore('ProgressStore', () => {
   const timer = ref();
   const _visible = ref(false);
@@ -13,9 +9,6 @@ export const useProgressStore = defineStore('ProgressStore', () => {
     end();
     _visible.value = true;
     timer.value = setTimeout(() => {
-      // if (visible.value != _visible.value) {
-      //   visible.value = _visible.value;
-      // }
       visible.value = _visible.value;
     }, 100);
   };
