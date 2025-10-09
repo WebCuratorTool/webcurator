@@ -157,6 +157,8 @@ export function useFetch() {
 
   function setMethod(methodValue: HttpMethod) {
     return async (path: string, payload: any = null, customHeader: any = null) => {
+      // await sleep(1000);
+
       const userProfile = useUserProfileStore();
       const loginStore = useAuthStore();
 

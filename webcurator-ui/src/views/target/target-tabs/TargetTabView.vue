@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Loading from '@/components/Loading.vue';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 import { formatDatetime } from '@/utils/helper';
 import { useRouter } from 'vue-router';
@@ -15,7 +14,6 @@ const router = useRouter();
 defineProps<{
   editing: boolean;
   isTargetAvailable: boolean;
-  loading: boolean;
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
@@ -56,8 +54,7 @@ const navigateBack = () => {
     </div>
   </div>
   <div class="main-content">
-    <Loading v-if="loading" />
-    <Tabs v-else value="0" class="tabview-custom">
+    <Tabs value="0" class="tabview-custom">
       <TabList>
         <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>

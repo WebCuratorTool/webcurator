@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { formatDatetime } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-import Loading from '@/components/Loading.vue';
+import { useProgressStore } from '@/utils/progress';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 
 const rest: UseFetchApis = useFetch();
+const progress = useProgressStore();
 
 const route = useRoute();
 const targetId = route.params.id as string;
 
 const targetInstances = ref();
-const loading = ref(true);
 const emptyMessage = ref('');
 
 const props = defineProps<{
@@ -22,45 +22,43 @@ const props = defineProps<{
   targetInstanceStates: { [key: string]: string };
 }>();
 
-const fetchTargetInstances = () => {
-  loading.value = true;
+const fetchTargetInstances = async () => {
+  progress.start();
+  try {
+    const now = new Date();
+    const searchParams = {
+      filter: {
+        targetId: targetId,
+        to: props.type == 'latest' ? now : null,
+        from: props.type == 'upcoming' ? now : null
+      },
+      limit: props.type == 'latest' ? 5 : 15
+    };
 
-  const now = new Date();
-  const searchParams = {
-    filter: {
-      targetId: targetId,
-      to: props.type == 'latest' ? now : null,
-      from: props.type == 'upcoming' ? now : null
-    },
-    limit: props.type == 'latest' ? 5 : 15
-  };
-
-  rest
-    .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-    .then((data: any) => {
+    const data = await rest.post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' });
+    if (data) {
       targetInstances.value = data.targetInstances;
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-    })
-    .finally(() => {
-      if (targetInstances.value && targetInstances.value.length == 0) {
-        if (props.type == 'latest') {
-          emptyMessage.value = 'No recent target instances';
-        } else {
-          emptyMessage.value = 'No upcoming target instances';
-        }
+    }
+  } catch (err: any) {
+    console.log(err.message);
+  } finally {
+    progress.end();
+    if (targetInstances.value && targetInstances.value.length == 0) {
+      if (props.type == 'latest') {
+        emptyMessage.value = 'No recent target instances';
+      } else {
+        emptyMessage.value = 'No upcoming target instances';
       }
-      loading.value = false;
-    });
+    }
+  }
 };
-
-fetchTargetInstances();
+onMounted(() => {
+  fetchTargetInstances();
+});
 </script>
 
 <template>
-  <Loading v-if="loading" />
-  <div v-else class="mt-4">
+  <div class="mt-4">
     <h4>{{ header }}</h4>
     <WctTabViewPanel>
       <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="loading">

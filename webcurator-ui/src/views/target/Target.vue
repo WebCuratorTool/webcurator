@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { type UseFetchApis, useFetch, sleep } from '@/utils/rest.api';
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 import { useAlertStore } from '@/utils/alertStore';
-import { progressVisible } from '@/utils/progress';
+import { useProgressStore } from '@/utils/progress';
 
 const router = useRouter();
 const route = useRoute();
 const rest: UseFetchApis = useFetch();
 const alertStore = useAlertStore();
-
+const progress = useProgressStore();
 const targetId = route.params.id as string;
 
 const targetGeneral = useTargetGeneralDTO();
@@ -33,8 +33,7 @@ const initData = () => {
 
 const fetchTargetDetails = async () => {
   isTargetAvailable.value = false;
-  progressVisible.value = true;
-  await sleep(5000);
+  progress.start();
   try {
     const data = await rest.get('targets/' + targetId);
     if (data) {
@@ -45,11 +44,12 @@ const fetchTargetDetails = async () => {
       router.push('/targets/');
     }
   } finally {
-    progressVisible.value = false;
+    progress.end();
   }
 };
 
-const save = () => {
+const save = async () => {
+  progress.start();
   try {
     const dataReq = {
       general: targetGeneral.getData(),
@@ -60,19 +60,15 @@ const save = () => {
       schedule: targetHarvests.getData()
     };
 
-    rest
-      .put('targets/' + targetGeneral.id, dataReq)
-      .then((response: any) => {
-        if (response == 200) {
-          showSuccessMessage();
-          editing.value = false;
-        }
-      })
-      .catch((err: any) => {
-        showErrorMessage(err.message);
-      });
+    const response = await rest.put('targets/' + targetGeneral.id, dataReq);
+    if (response == 200) {
+      showSuccessMessage();
+      editing.value = false;
+    }
   } catch (err: any) {
     showErrorMessage(err.message);
+  } finally {
+    progress.end();
   }
 };
 
@@ -97,5 +93,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <TargetTabView v-if="isTargetAvailable" :editing="editing" :isTargetAvailable="isTargetAvailable" :loading="loading" @setEditing="setEditing" @save="save" />
+  <TargetTabView :editing="editing" :isTargetAvailable="isTargetAvailable" @setEditing="setEditing" @save="save" />
 </template>
