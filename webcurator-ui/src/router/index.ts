@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../views/Dashboard.vue';
 import { useAuthStore, LoginPagePath } from '@/utils/rest.api';
+import { progressVisible } from '@/utils/progress';
 
 export const routes = {
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,6 +60,7 @@ export const routes = {
 
 const router = createRouter(routes);
 router.beforeEach(async (to: any) => {
+  progressVisible.value = false;
   const auth = useAuthStore();
   const loggedIn = await auth.isAuthenticated();
   if (to.path !== LoginPagePath && !loggedIn) {

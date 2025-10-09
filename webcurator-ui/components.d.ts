@@ -16,6 +16,7 @@ declare module 'vue' {
     ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
+    Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
     DynamicDialog: typeof import('primevue/dynamicdialog')['default']
     Fluid: typeof import('primevue/fluid')['default']

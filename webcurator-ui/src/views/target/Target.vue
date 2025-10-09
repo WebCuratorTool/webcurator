@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { type UseFetchApis, useFetch, sleep } from '@/utils/rest.api';
 import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 import { useAlertStore } from '@/utils/alertStore';
+import { progressVisible } from '@/utils/progress';
 
 const router = useRouter();
 const route = useRoute();
-const targetId = route.params.id as string;
-
 const rest: UseFetchApis = useFetch();
 const alertStore = useAlertStore();
+
+const targetId = route.params.id as string;
 
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
@@ -23,7 +24,6 @@ const nextStates = useNextStateStore();
 
 const editing = ref(false);
 const isTargetAvailable = ref(false);
-const loading = ref(false);
 
 const initData = () => {
   isTargetAvailable.value = false;
@@ -33,8 +33,8 @@ const initData = () => {
 
 const fetchTargetDetails = async () => {
   isTargetAvailable.value = false;
-  loading.value = true;
-
+  progressVisible.value = true;
+  await sleep(5000);
   try {
     const data = await rest.get('targets/' + targetId);
     if (data) {
@@ -45,7 +45,7 @@ const fetchTargetDetails = async () => {
       router.push('/targets/');
     }
   } finally {
-    loading.value = false;
+    progressVisible.value = false;
   }
 };
 

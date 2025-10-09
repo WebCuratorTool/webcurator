@@ -61,7 +61,7 @@ const _login = async (username: string, password: string) => {
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const useAuthStore = defineStore('AuthStore', () => {
   const isAuthenticating = ref(false);
 
