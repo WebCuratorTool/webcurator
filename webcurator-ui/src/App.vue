@@ -45,7 +45,7 @@ togglePreset('indigo');
         <template #footer>
           <div class="flex flex-col items-center justify-center w-full">
             <Divider />
-            <Button label="OK" @click="acceptCallback" class="w-32" severity="secondary"></Button>
+            <Button label="OK" @click="acceptCallback" class="w-32" severity="primary"></Button>
           </div>
         </template>
         <template #icons>
@@ -53,7 +53,7 @@ togglePreset('indigo');
         </template>
         <div class="flex items-center gap-2">
           <IconWarning style="width: 30px; height: 30px" />
-          <div style="min-width: 30rem; max-width: 50rem">
+          <div class="flex items-center justify-start" style="min-width: 30rem; max-width: 50rem; min-height: 4rem; max-height: 10rem">
             <p class="m-0">{{ message.message }}</p>
           </div>
         </div>
