@@ -9,7 +9,9 @@ togglePreset('indigo');
 
 <template>
   <div class="app">
-    <router-view />
+    <Suspense>
+      <router-view />
+    </Suspense>
   </div>
   <DynamicDialog />
   <Toast group="toast-info" position="top-right">

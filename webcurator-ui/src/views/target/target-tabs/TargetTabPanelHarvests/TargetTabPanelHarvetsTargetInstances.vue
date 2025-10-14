@@ -61,7 +61,7 @@ onMounted(() => {
   <div class="mt-4">
     <h4>{{ header }}</h4>
     <WctTabViewPanel>
-      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="loading">
+      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="progress.visible">
         <Column field="id" header="Id" dataType="numeric" style="min-width: 2rem" />
         <Column field="name" header="Name" />
         <Column field="state" header="State">

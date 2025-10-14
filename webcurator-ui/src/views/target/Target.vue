@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
@@ -24,6 +24,7 @@ const nextStates = useNextStateStore();
 
 const editing = ref(false);
 const isTargetAvailable = ref(false);
+const isPageAvailable = ref(true);
 
 const initData = () => {
   isTargetAvailable.value = false;
@@ -41,6 +42,7 @@ const fetchTargetDetails = async () => {
       setTarget(data);
       nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
     } else {
+      isPageAvailable.value = false;
       router.push('/targets/');
     }
   } finally {
@@ -87,11 +89,9 @@ const showSuccessMessage = () => {
   alertStore.info('Target succesfully saved');
 };
 
-onMounted(() => {
-  fetchTargetDetails();
-});
+await fetchTargetDetails();
 </script>
 
 <template>
-  <TargetTabView :editing="editing" :isTargetAvailable="isTargetAvailable" @setEditing="setEditing" @save="save" />
+  <TargetTabView v-if="isPageAvailable" :editing="editing" :isTargetAvailable="isTargetAvailable" @setEditing="setEditing" @save="save" />
 </template>
