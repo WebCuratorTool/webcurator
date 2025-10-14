@@ -19,15 +19,12 @@ const progress = useProgressStore();
     </div>
   </div>
 
-  <!-- pt:mask:class="backdrop-blur-sm" -->
-  <ConfirmDialog v-model:visible="progress.visible" pt:mask:class="backdrop-blur-sm">
-    <template #container="{ message, acceptCallback, rejectCallback }">
-      <div class="flex items-center justify-center p-8">
-        <ProgressSpinner />
-        <!-- <i class="pi pi-spin pi-spinner" style="font-size: 6rem"></i> -->
-      </div>
-    </template>
-  </ConfirmDialog>
+  <div v-if="progress.visible" class="flex items-center justify-center p-progress-dialog" pt:mask:class="backdrop-blur-sm">
+    <!-- <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" /> -->
+    <div class="card">
+      <ProgressSpinner />
+    </div>
+  </div>
 </template>
 
 <style>
@@ -37,5 +34,15 @@ const progress = useProgressStore();
   background: var(--p-content-background);
   position: fixed;
   z-index: 9999;
+}
+
+.p-progress-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 10 !important;
 }
 </style>
