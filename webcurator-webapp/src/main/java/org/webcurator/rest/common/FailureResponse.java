@@ -1,5 +1,7 @@
 package org.webcurator.rest.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -9,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 //{"timestamp":"2025-10-07T23:24:47.461+00:00","status":400,"error":"Bad Request","path":"/wct/api/v1/targets/5t"}
 public class FailureResponse {
+    private static final Logger log = LoggerFactory.getLogger(FailureResponse.class);
     private String timestamp;
     private int status;
     private String error;
@@ -67,6 +70,7 @@ public class FailureResponse {
     }
 
     public static ResponseEntity<?> error(HttpStatus status, String error, String path) {
+        log.warn("Api Error: {}: [{}] {}", path, status, error);
         FailureResponse rsp = new FailureResponse(status.value(), error);
         rsp.setPath(path);
         return ResponseEntity.status(status.value()).body(rsp);
