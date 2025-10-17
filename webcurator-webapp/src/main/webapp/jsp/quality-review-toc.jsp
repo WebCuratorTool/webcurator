@@ -95,14 +95,11 @@
                     </c:otherwise>
                   </c:choose>
                   <c:choose>
-                    <c:when test="${seed.webArchiveTarget == ''}">
-                    | Web Archive not configured
-                    </c:when>
+                    <c:when test="${seed.archive3Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${seed.webArchiveTarget}" escapeXml="false"/><c:out value="${targetOid}"/>" target="_blank">Web Archive</a></td>
+                    | <a href="<c:out value="${seed.archive3Url}" escapeXml="false"/>" target="_blank"><c:out value="${archive3Name}"/></a>
                     </c:otherwise>
                   </c:choose>
-
                 </td>
 
                 <c:if test="${enableScreenshots && thumbnailRenderer eq 'screenshotTool'}">

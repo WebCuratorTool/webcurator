@@ -256,11 +256,14 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.archive2.name:}")
     private String qualityReviewToolControllerArchive2Name;
 
+    @Value("${qualityReviewToolController.archive3.url:}")
+    private String qualityReviewToolControllerArchive3Url;
+
+    @Value("${qualityReviewToolController.archive3.name:}")
+    private String qualityReviewToolControllerArchive3Name;
+
     @Value("${qualityReviewToolController.enableBrowseTool}")
     private boolean qualityReviewToolControllerEnableBrowseTool;
-
-    @Value("${qualityReviewToolController.webArchiveTarget}")
-    private String qualityReviewToolControllerWebArchiveTarget;
 
     @Value("${crawlPoliteness.polite.delayFactor}")
     private double crawlPolitenessPoliteDelayFactor;
@@ -1144,12 +1147,13 @@ public class BaseConfig {
         bean.setArchive1Name(qualityReviewToolControllerArchive1Name);
         bean.setArchive2Url(qualityReviewToolControllerArchive2Url);
         bean.setArchive2Name(qualityReviewToolControllerArchive2Name);
+        bean.setArchive3Url(qualityReviewToolControllerArchive3Url);
+        bean.setArchive3Name(qualityReviewToolControllerArchive3Name);
         bean.setAccessToolUrl(qualityReviewToolControllerAccessToolUrl);
         bean.setAccessToolName(qualityReviewToolControllerAccessToolName);
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setEnableBrowseTool(qualityReviewToolControllerEnableBrowseTool);
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
-        bean.setWebArchiveTarget(qualityReviewToolControllerWebArchiveTarget);
         bean.setThumbnailRenderer(thumbnailRenderer);
         bean.setDasBaseUrl(digitalAssetStoreBaseUrl);
 

@@ -131,7 +131,7 @@ public class QualityReviewToolController {
         mav.addObject("targetInstanceOid", ti.getOid());
         mav.addObject("archive1Name", attr.archive1Name);
         mav.addObject("archive2Name", attr.archive2Name);
-        mav.addObject("webArchiveTarget", attr.webArchiveTarget);
+        mav.addObject("archive3Name", attr.archive3Name);
         mav.addObject("targetOid", ti.getTarget().getOid());
         mav.addObject("seedHistory", ti.getSeedHistory());
         mav.addObject("screenshotState", screenshotState);
@@ -169,8 +169,11 @@ public class QualityReviewToolController {
             } else {
                 m.put("archive2Url", PlaceholderProcessor.generateUrl(attr.archive2Url, result) + s.getSeed());
             }
-
-            m.put("webArchiveTarget", PlaceholderProcessor.generateUrl(attr.webArchiveTarget, result));
+            if (attr.archive3Url.isEmpty()) {
+                m.put("archive3Url", "");
+            } else {
+                m.put("archive3Url", PlaceholderProcessor.generateUrl(attr.archive3Url, result) + s.getSeed());
+            }
 
             sMap.add(m);
 

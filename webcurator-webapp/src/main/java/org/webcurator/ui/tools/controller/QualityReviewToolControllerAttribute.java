@@ -12,11 +12,12 @@ public class QualityReviewToolControllerAttribute {
     protected String archive1Name = null;
     protected String archive2Url = null;
     protected String archive2Name = null;
+    protected String archive3Url = null;
+    protected String archive3Name = null;
     protected String accessToolUrl;
     protected String accessToolName;
     protected boolean enableBrowseTool = true;
     protected boolean enableAccessTool = false;
-    protected String webArchiveTarget = null;
     protected String thumbnailRenderer = null;
     protected String dasBaseUrl = null;
 
@@ -48,6 +49,22 @@ public class QualityReviewToolControllerAttribute {
         this.archive2Name = archive2Name;
     }
 
+    public String getArchive3Url() {
+        return archive3Url;
+    }
+
+    public void setArchive3Url(String archive3Url) {
+        this.archive3Url = archive3Url;
+    }
+
+    public String getArchive3Name() {
+        return archive3Name;
+    }
+
+    public void setArchive3Name(String archive3Name) {
+        this.archive3Name = archive3Name;
+    }
+
     public String getAccessToolUrl() {
         return accessToolUrl;
     }
@@ -70,10 +87,6 @@ public class QualityReviewToolControllerAttribute {
 
     public void setEnableAccessTool(boolean enableAccessTool) {
         this.enableAccessTool = enableAccessTool;
-    }
-
-    public void setWebArchiveTarget(String webArchiveTarget) {
-        this.webArchiveTarget = webArchiveTarget;
     }
 
     public void setThumbnailRenderer(String thumbnailRenderer) {

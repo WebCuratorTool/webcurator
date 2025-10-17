@@ -829,18 +829,20 @@ The following are common configuration options for the Webapp adjusted via the *
    to allow the user to view copies of the target already stored in the archive. 
    Of course this setting can also be used to configure additional replay tools 
    for the harvest. The **archive1.name** is the name displayed on the review 
-   screen. The **archive2** settings allow the use of a second review tool, 
-   with it’s corresponding url and name. The **archive2** settings can be commented 
-   out in the configuration if a second archive replay tool is not required. ::
+   screen. The **archive2** and **archive3** settings allow the use of a second and 
+   third review tool, with its corresponding url and name. These settings can be commented 
+   out in the configuration if additional archives or replay tools are not required. ::
 
       qualityReviewToolController.enableBrowseTool=true
       qualityReviewToolController.enableAccessTool=false
       qualityReviewToolController.accessTool.url=http://localhost:8090/{$TargetInstance.Oid}-{$HarvestResult.HarvestNumber}/
       qualityReviewToolController.accessTool.name=Pywb
-      qualityReviewToolController.archive1.url=http://web.archive.org/web/*/
+      qualityReviewToolController.archive1.url=http://localhost:9090/my-web-archive/*/
       qualityReviewToolController.archive1.name=Wayback
       qualityReviewToolController.archive2.url=http://web.archive.org/web/*/
-      qualityReviewToolController.archive2.name=Another Wayback
+      qualityReviewToolController.archive2.name=Wayback Machine
+      qualityReviewToolController.archive3.url=https://arquivo.pt/wayback/*/
+      qualityReviewToolController.archive3.name=Portuguese Web Archive
 
    It's possible to use placeholders (corresponding to their eponymous database fields) 
    in any of these replay urls. The following placeholders are supported. ::

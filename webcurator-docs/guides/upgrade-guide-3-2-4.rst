@@ -35,6 +35,7 @@ qualityReviewToolController.archive.alternative      qualityReviewToolController
 qualityReviewToolController.archive.alternative.name qualityReviewToolController.archive2.name
 ==================================================== ==========================================
 
+Additionally, the UK webarchive link has been turned into a third optional archive link (analogous to the archive1 and archive2 options), that can be configured using the variables qualityReviewToolController.archive3.url, qualityReviewToolController.archive3.name.
 
 
 
