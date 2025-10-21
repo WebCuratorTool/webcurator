@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import { formatDatetime } from '@/utils/helper';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+// libraries
 import { onMounted, ref } from 'vue';
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { useRoute } from 'vue-router';
 
-import { useProgressStore } from '@/utils/progress';
+// components
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
+import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
+// types
+import type { TargetInstance } from '@/types/targetInstance';
+// utils
+import { formatDatetime } from '@/utils/helper';
+import { useProgressStore } from '@/utils/progress';
 
 const rest: UseFetchApis = useFetch();
 const progress = useProgressStore();
@@ -13,13 +20,14 @@ const progress = useProgressStore();
 const route = useRoute();
 const targetId = route.params.id as string;
 
-const targetInstances = ref();
+const targetInstances = ref(<Array<TargetInstance>>([]));
 const emptyMessage = ref('');
 
 const props = defineProps<{
   header: string;
   type: string;
   targetInstanceStates: { [key: string]: string };
+  targetId: string
 }>();
 
 const fetchTargetInstances = async () => {
@@ -35,10 +43,8 @@ const fetchTargetInstances = async () => {
       limit: props.type == 'latest' ? 5 : 15
     };
 
-    const data = await rest.post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' });
-    if (data) {
-      targetInstances.value = data.targetInstances;
-    }
+    targetInstances.value = await useTargetInstanceListStore().search(searchParams);
+    
   } catch (err: any) {
     console.log(err.message);
   } finally {

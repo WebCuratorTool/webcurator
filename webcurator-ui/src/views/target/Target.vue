@@ -2,7 +2,18 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { setTarget, useTargetDescriptionDTO, useTargetGeneralDTO, useTargetGropusDTO, useTargetProfileDTO, useTargetSeedsDTO, useTargetHarvestsDTO, useNextStateStore } from '@/stores/target';
+import {
+  setTarget,
+  useTargetAccessDTO,
+  useTargetAnnotationsDTO,
+  useTargetDescriptionDTO,
+  useTargetGeneralDTO,
+  useTargetGropusDTO,
+  useTargetProfileDTO,
+  useTargetSeedsDTO,
+  useTargetHarvestsDTO, 
+  useNextStateStore 
+} from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
 import { useAlertStore } from '@/utils/alertStore';
 import { useProgressStore } from '@/utils/progress';
@@ -14,12 +25,14 @@ const alertStore = useAlertStore();
 const progress = useProgressStore();
 const targetId = route.params.id as string;
 
-const targetGeneral = useTargetGeneralDTO();
-const targetProfile = useTargetProfileDTO();
+const targetAccess = useTargetAccessDTO();
+const targetAnnotations = useTargetAnnotationsDTO();
 const targetDescription = useTargetDescriptionDTO();
-const targetSeeds = useTargetSeedsDTO();
+const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetHarvests = useTargetHarvestsDTO();
+const targetProfile = useTargetProfileDTO();
+const targetSeeds = useTargetSeedsDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
@@ -54,13 +67,24 @@ const save = async () => {
   progress.start();
   try {
     const dataReq = {
+      access: targetAccess.getData(),
+      annotations: targetAnnotations.getData(),
       general: targetGeneral.getData(),
       profile: targetProfile.getData(),
       description: targetDescription.getData(),
       groups: targetGroups.getData(),
       seeds: targetSeeds.getData(),
       schedule: targetHarvests.getData()
-    };
+    }       
+    
+    dataReq.profile.overrides.forEach((override) => {
+      // Ensure blockedUrls and includedUrls are arrays
+      if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+        if (!Array.isArray(override.value)) {
+          override.value = override.value.toString().split('\n');
+        }
+      }
+    });
 
     const response = await rest.put('targets/' + targetGeneral.id, dataReq);
     if (response == 200) {
