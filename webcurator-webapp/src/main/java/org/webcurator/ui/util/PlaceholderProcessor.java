@@ -27,6 +27,7 @@ public class PlaceholderProcessor {
                 .replaceAll("\\{\\$HarvestResult\\.ProvenanceNote\\}", (result.getProvenanceNote() == null) ? "" : result.getProvenanceNote())
                 .replaceAll("\\{\\$HarvestResult\\.State\\}", String.valueOf(result.getState()))
                 .replaceAll("\\{\\$TargetInstance\\.Oid\\}", String.valueOf(result.getTargetInstance().getOid()))
+                .replaceAll("\\{\\$HarvestResult\\.Collection\\}", String.format("%d-%d",result.getTargetInstance().getOid(),result.getHarvestNumber()))
                 ;
 
 

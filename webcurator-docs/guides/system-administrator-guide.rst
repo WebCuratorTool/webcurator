@@ -855,6 +855,9 @@ The following are common configuration options for the Webapp adjusted via the *
       {$HarvestResult.State}
       {$TargetInstance.Oid}
 
+   You can also use the placeholder {HarvestResult.Collection}, which is a shorthand for {$TargetInstance.Oid}-{$HarvestResult.HarvestNumber},
+   which is useful for Pywb integration in individual collection mode.
+
    The HarvestResult.CreationDate substitution's format can be controlled
    by supplying a valid `simple date
    format <https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html>`__

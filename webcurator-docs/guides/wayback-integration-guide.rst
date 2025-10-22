@@ -184,8 +184,9 @@ Using Multiple Review Tools in WCT
 ==================================
 
 Within the Target Summary for the harvest you will have options for different Quality Review Tools. Besides the link
-to the access tool you can configure additional links for two archives (or alternative replay tools), using the properties
-qualityReviewToolController.archive1 and qualityReviewToolController.archive2 in WCT Webapp `application.properties`.
+to the access tool you can configure additional links for up to three archives (or alternative replay tools), using the properties
+qualityReviewToolController.archive1, qualityReviewToolController.archive2 and qualityReviewToolController.archive3 in 
+WCT Webapp `application.properties`.
 
 |Review_Tools|
 
