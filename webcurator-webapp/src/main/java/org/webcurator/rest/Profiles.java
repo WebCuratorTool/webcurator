@@ -69,6 +69,13 @@ public class Profiles {
         } else {
             result = profileDAO.getDTOs(!filter.showOnlyActive, filter.type);
         }
+
+        /*
+         * Note: if we decide to return the full profile here, and the user does not have
+         * the privilege VIEW_PROFILES or MANAGE_PROFILES, we should withhold the full
+         * profile content for profiles not belonging to the user's agency (perhaps with
+         * an indication that it's not being shown due to insufficient privileges)
+         */
         for (ProfileDTO p : result) {
             HashMap<String, Object> profile = new HashMap<>();
             profile.put("id", p.getOid());

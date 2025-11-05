@@ -386,9 +386,7 @@ public class Targets {
                 for (TargetDTO.Seed.Authorisation authorisation : s.getAuthorisations()) {
                     try {
                         Site site = siteDAO.load(authorisation.getId());
-                        for (Permission p : site.getPermissions()) {
-                            permissions.add(p);
-                        }
+                        permissions.addAll(site.getPermissions());
                     } catch (ObjectNotFoundException e) {
                         throw new BadRequestError(String.format("Unknown authorisation: %s", authorisation));
                     }
@@ -506,8 +504,8 @@ public class Targets {
         /*
          * Authorisations
          *
-         * Since we need access to information about modifications we have to do
-         * these checks right before we hit the database with the update
+         * All desired modifications have been collected, so now we can check whether
+         * we have the privileges required to apply them
          */
         String agency = owner.getAgency().getName();
         if (isUpdate) {
@@ -702,12 +700,12 @@ public class Targets {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
+    public Map<String, Object> errorMessage(MethodArgumentNotValidException ex) {
         String msg = null;
         // Return the first error (typically there will only be one anyway)
         if (ex.getBindingResult().getErrorCount() > 0) {
             FieldError error = (FieldError) ex.getBindingResult().getAllErrors().get(0);
-            String fieldName = ((FieldError) error).getField();
+            String fieldName = (error).getField();
             String errorMessage = error.getDefaultMessage();
             msg = fieldName + ": " + errorMessage;
         }
