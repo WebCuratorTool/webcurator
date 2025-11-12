@@ -41,10 +41,10 @@ public class BDBNetworkMapPool {
         //Clear the path
         String dbPath = this.getDbPath(job, harvestResultNumber);
         File dbDirectory = new File(dbPath);
-        if (dbDirectory.exists()) {
-            WctUtils.cleanDirectory(dbDirectory);
-        } else {
-            log.warn("Recover db files: {}", dbPath);
+
+        boolean normalDeleteResult = WctUtils.cleanDirectory(dbDirectory);
+        if (!normalDeleteResult) {
+            WctUtils.forceDeleteDirectory(dbDirectory);
         }
 
         BDBRepoHolder db;
@@ -53,8 +53,7 @@ public class BDBNetworkMapPool {
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
-            e.printStackTrace();
-            log.error("Failed to open db: {}-->{}, {}", dbPath, dbName, e.getMessage());
+            log.error("Failed to open db to create an instance: {}-->{}, {}", dbPath, dbName, e.getMessage());
             return null;
         }
 
@@ -87,8 +86,7 @@ public class BDBNetworkMapPool {
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
-            e.printStackTrace();
-            log.error("Failed to open db: {}-->{}, {}", dbPath, dbName, e.getMessage());
+            log.error("Failed to open db to generate an instance: {}-->{} {}", dbPath, dbName, e.getMessage());
             return null;
         }
 

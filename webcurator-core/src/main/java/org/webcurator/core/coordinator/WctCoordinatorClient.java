@@ -84,15 +84,16 @@ public class WctCoordinatorClient extends AbstractRestClient {
 
         OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
         InputStream inputStream = conn.getInputStream();
-        WctUtils.copy(inputStream,outputStream);
+        WctUtils.copy(inputStream, outputStream);
 
         return downloadedFile;
     }
 
-    public void finaliseIndex(long targetInstanceId, int harvestNumber) {
+    public void finaliseIndex(long targetInstanceId, int harvestNumber, boolean indexResult) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
                 .queryParam("targetInstanceId", targetInstanceId)
-                .queryParam("harvestNumber", harvestNumber);
+                .queryParam("harvestNumber", harvestNumber)
+                .queryParam("indexResult", indexResult);
         RestTemplate restTemplate = restTemplateBuilder.build();
         URI uri = uriComponentsBuilder.build().toUri();
         restTemplate.postForObject(uri, null, Void.class);

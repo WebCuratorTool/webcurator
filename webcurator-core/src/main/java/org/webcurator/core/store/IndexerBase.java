@@ -1,104 +1,111 @@
 package org.webcurator.core.store;
 
 import java.io.*;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.coordinator.WctCoordinatorPaths;
-import org.webcurator.core.rest.AbstractRestClient;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
-public abstract class IndexerBase extends AbstractRestClient implements RunnableIndex {
-	private static final Log log = LogFactory.getLog(IndexerBase.class);
+public abstract class IndexerBase implements RunnableIndex {
+    private static final Logger log = LoggerFactory.getLogger(IndexerBase.class);
+    private boolean defaultIndexer = false;
+    private Mode mode = Mode.INDEX;
+    private CompletableFuture<Boolean> future;
+    protected boolean isRunning = true;
+    protected HarvestResultDTO result;
+    protected File directory;
 
-	private boolean defaultIndexer = false;
-	private Mode mode = Mode.INDEX;
-
-	public class ARCFilter implements FilenameFilter {
-		public boolean accept(File dir, String name) {
-			return name.toLowerCase().endsWith(".arc") ||
-					name.toLowerCase().endsWith(".arc.gz") ||
-					name.toLowerCase().endsWith(".warc") ||
-					name.toLowerCase().endsWith(".warc.gz");
-		}
-	}
-
-	public IndexerBase() {
-		super();
-	}
-
-	public IndexerBase(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-		super(baseUrl, restTemplateBuilder);
-	}
-
-	protected IndexerBase(IndexerBase original) {
-		super(original.baseUrl, original.restTemplateBuilder);
-		this.defaultIndexer = original.defaultIndexer;
-	}
-
-	protected abstract HarvestResultDTO getResult();
-
-	@Override
-	public void setMode(Mode mode) {
-		this.mode = mode;
-	}
-
-	@Override
-	public void run() {
-		Long harvestResultOid = null;
-		try {
-			harvestResultOid = begin();
-			if (mode == Mode.REMOVE) {
-				removeIndex(harvestResultOid);
-			} else {
-				indexFiles(harvestResultOid);
-				markComplete(harvestResultOid);
-			}
-		} finally {
-			synchronized (Indexer.lock) {
-				Indexer.removeRunningIndex(getName(), harvestResultOid);
-			}
-		}
-	}
-
-    @Override
-    public final void markComplete(Long harvestResultOid) {
-
-        synchronized (Indexer.lock) {
-            if (Indexer.lastRunningIndex(this.getName(), harvestResultOid)) {
-                log.info("Marking harvest result for job " + getResult().getTargetInstanceOid() + " as ready");
-//                finaliseIndex(harvestResultOid);
-
-                log.info("Index for job " + getResult().getTargetInstanceOid() + " is now ready");
-            }
-
-            Indexer.removeRunningIndex(getName(), harvestResultOid);
+    public class ARCFilter implements FilenameFilter {
+        public boolean accept(File dir, String name) {
+            return name.toLowerCase().endsWith(".arc") ||
+                    name.toLowerCase().endsWith(".arc.gz") ||
+                    name.toLowerCase().endsWith(".warc") ||
+                    name.toLowerCase().endsWith(".warc.gz");
         }
     }
 
+    @Override
+    public void initialise(HarvestResultDTO result, File directory) {
+        this.result = result;
+        this.directory = directory;
+    }
 
-	@Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-	protected void finaliseIndex(Long harvestResultOid) {
-		RestTemplate restTemplate = restTemplateBuilder.build();
+    public IndexerBase() {
+        super();
+    }
 
-		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX));
+    protected IndexerBase(IndexerBase original) {
+        this.defaultIndexer = original.defaultIndexer;
+    }
 
-		Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-		restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-				null, Void.class);
-	}
+    public HarvestResultDTO getResult() {
+        return result;
+    }
 
-	@Override
-	public void removeIndex(Long harvestResultOid) {
-		//Default implementation is to do nothing
-	}
+    @Override
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    @Override
+    public CompletableFuture<Boolean> submitAsync() {
+        this.future = CompletableFuture.supplyAsync(() -> {
+            Long harvestResultOid = begin();
+            try {
+                if (mode == Mode.REMOVE) {
+                    removeIndex(harvestResultOid);
+                } else {
+                    indexFiles(harvestResultOid);
+                }
+                return true;
+            } catch (Exception ex) {
+                log.error("Failed to index or remove index: {}", harvestResultOid, ex);
+                return false;
+            }
+        });
+        return this.future;
+    }
+
+    @Override
+    public boolean cancel() {
+        this.isRunning = false;
+        this.close();
+        if (!this.future.isCancelled()) {
+            boolean ret = this.future.cancel(true);
+            log.info("The indexer: {} is canceled with status: {}", this.getName(), ret);
+            return ret;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isDone() {
+        boolean done = future.isDone();
+        if (done) {
+            log.info("{}, is done, {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber());
+        } else {
+            log.debug("{}, is running, {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber());
+        }
+        return done;
+    }
+
+    @Override
+    public boolean getValue() {
+        try {
+            return this.future.get();
+        } catch (InterruptedException | ExecutionException ex) {
+            log.error("{}, failed to get value: {} {}", this.getName(), result.getTargetInstanceOid(), result.getHarvestNumber(), ex);
+            return false;
+        }
+    }
+
+    @Override
+    public void removeIndex(Long harvestResultOid) {
+        //Default implementation is to do nothing
+    }
 
 }

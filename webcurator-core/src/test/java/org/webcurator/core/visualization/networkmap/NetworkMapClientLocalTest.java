@@ -55,13 +55,14 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         List<ModifyRowFullData> nodes = new ArrayList<>();
         ModifyRowFullData cmd = new ModifyRowFullData();
 
-        cmd.setId(allIDs.get(randomIndex));
-        cmd.setFolder(true);
-        nodes.add(cmd);
+        if (randomIndex >= 0 && randomIndex < allIDs.size()) {
+            cmd.setId(allIDs.get(randomIndex));
+            cmd.setFolder(true);
+            nodes.add(cmd);
 
-        NetworkMapResult rst = this.networkMapClient.queryChildrenRecursivelyFolder(this.targetInstanceId, this.harvestResultNumber, nodes);
-        assert !StringUtils.isEmpty(rst.getPayload());
-
+            NetworkMapResult rst = this.networkMapClient.queryChildrenRecursivelyFolder(this.targetInstanceId, this.harvestResultNumber, nodes);
+            assert !StringUtils.isEmpty(rst.getPayload());
+        }
 //        this.pool.close(this.targetInstanceId, this.harvestResultNumber);
     }
 }

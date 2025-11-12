@@ -19,7 +19,7 @@ public class RepoNetworkNodeDomain extends RepoNetworkNodeBasic {
 
     public NetworkMapDomain insert(NetworkMapDomain entity) {
         entity.setId(this.nextId());
-        return  primaryId.put(entity);
+        return primaryId.put(entity);
     }
 
     public NetworkMapDomain update(NetworkMapDomain entity) throws NullPointerException {
@@ -52,6 +52,8 @@ public class RepoNetworkNodeDomain extends RepoNetworkNodeBasic {
     }
 
     public void close() {
-        this.store.close();
+        if (this.store != null) {
+            this.store.close();
+        }
     }
 }

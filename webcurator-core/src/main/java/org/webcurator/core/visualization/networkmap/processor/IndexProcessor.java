@@ -176,9 +176,16 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
         //Using the transaction to improve the performance of bulk insert
+        if (this.status == HarvestResult.STATUS_TERMINATED) {
+            return;
+        }
         Transaction txn = db.env.beginTransaction(null, null);
         AtomicInteger batch_num = new AtomicInteger(0);
         for (NetworkMapNodeUrlDTO e : this.urls.values()) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                break;
+            }
+
             this.tryBlock();
             NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
             urlEntity.copy(e);
@@ -201,6 +208,10 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         txn.commit();
         this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
         this.urls.clear();
+
+        if (this.status == HarvestResult.STATUS_TERMINATED) {
+            return;
+        }
 
         //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
         long rootFolderNodeId = FolderTreeViewGenerator.classifyTreePaths(db);
@@ -295,6 +306,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
                 progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
             }
+
+            log.info("Finished url extracting of all the harvest files: {} {}", this.targetInstanceId, this.harvestResultNumber);
 
             this.statAndSave();
 

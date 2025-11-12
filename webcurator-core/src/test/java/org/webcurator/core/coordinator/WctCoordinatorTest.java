@@ -583,12 +583,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     public void testFinaliseIndex() {
         long tiId = 5000L;
         int hrNum = 1;
-        testInstance.finaliseIndex(tiId, hrNum);
+        testInstance.finaliseIndex(tiId, hrNum, true);
     }
 
     @Test
     public void testStop() {
-        HarvestAgentManager mockHarvestAgentManager= mock(HarvestAgentManager.class);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTi = mock(TargetInstance.class);
         testInstance.stop(mockTi);

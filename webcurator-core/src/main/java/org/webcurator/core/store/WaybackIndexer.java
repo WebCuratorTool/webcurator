@@ -2,9 +2,7 @@ package org.webcurator.core.store;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.WctUtils;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -20,12 +18,6 @@ public class WaybackIndexer extends IndexerBase {
 
     public static enum FileStatus {INITIAL, COPIED, INDEXED, REMOVED, FAILED}
 
-    ;
-
-    //Passed in variables
-    private HarvestResultDTO result;
-    private File directory;
-
     //Spring initialised variables (to be copied in copy constructor)
     private String waybackInputFolder;
     private String waybackMergedFolder;
@@ -39,12 +31,8 @@ public class WaybackIndexer extends IndexerBase {
     private List<MonitoredFile> indexFiles = new ArrayList<MonitoredFile>();
     private boolean allIndexed = false;
 
-    public WaybackIndexer(){
+    public WaybackIndexer() {
         super();
-    }
-
-    public WaybackIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
     }
 
     protected WaybackIndexer(WaybackIndexer original) {
@@ -60,11 +48,6 @@ public class WaybackIndexer extends IndexerBase {
     @Override
     public RunnableIndex getCopy() {
         return new WaybackIndexer(this);
-    }
-
-    @Override
-    protected HarvestResultDTO getResult() {
-        return result;
     }
 
     @Override
@@ -88,6 +71,10 @@ public class WaybackIndexer extends IndexerBase {
             log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
         } else {
             for (MonitoredFile f : indexFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 if (f.getStatus() == FileStatus.INITIAL) {
                     f.copyToInput();
                 }
@@ -99,6 +86,10 @@ public class WaybackIndexer extends IndexerBase {
         //Watch the Wayback merged/failed folders until the files appear
         long maxloops = timeout / waittime;
         for (long count = 0; count < maxloops && !allIndexed && !failed; count++) {
+            if (!this.isRunning) {
+                break;
+            }
+
             try {
                 Thread.sleep(waittime);
             } catch (InterruptedException e) {
@@ -107,6 +98,10 @@ public class WaybackIndexer extends IndexerBase {
             }
 
             for (MonitoredFile f : indexFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 allIndexed = true;
                 FileStatus status = f.getStatus();
                 if (status != FileStatus.INDEXED) {
@@ -142,15 +137,12 @@ public class WaybackIndexer extends IndexerBase {
             log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
         } else {
             for (MonitoredFile f : indexFiles) {
+                if (!this.isRunning) {
+                    break;
+                }
                 f.removeFromInput();
             }
         }
-    }
-
-    @Override
-    public void initialise(HarvestResultDTO result, File directory) {
-        this.result = result;
-        this.directory = directory;
     }
 
     public void setWaybackInputFolder(String waybackInputFolder) {
@@ -219,6 +211,11 @@ public class WaybackIndexer extends IndexerBase {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void close() {
+        this.isRunning = false;
     }
 
     protected class MonitoredFile {

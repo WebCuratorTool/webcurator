@@ -94,18 +94,35 @@ public class BDBRepoHolder {
 
     public void shutdownDB() {
         try {
-            this.tblAccessProp.close();
-            this.tblDomain.close();
-            this.tblUrl.close();
-            this.tblFolder.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            try {
+                this.tblAccessProp.close();
+            } catch (Exception e) {
+                log.error("Failed to close tblAccessProp store: {}", e.getMessage());
+            }
 
-        try {
-            this.env.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+            try {
+                this.tblDomain.close();
+            } catch (Exception e) {
+                log.error("Failed to close tblDomain store: {}", e.getMessage());
+            }
+
+            try {
+                this.tblUrl.close();
+            } catch (Exception e) {
+                log.error("Failed to close tblUrl store: {}", e.getMessage());
+            }
+
+            try {
+                this.tblFolder.close();
+            } catch (Exception e) {
+                log.error("Failed to close tblFolder store: {}", e.getMessage());
+            }
+        } finally {
+            try {
+                this.env.close();
+            } catch (Exception e) {
+                log.error("Failed to close sleepycat env: {}", e.getMessage());
+            }
         }
     }
 

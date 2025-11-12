@@ -85,7 +85,7 @@ public class IndexProcessorStandaloneTest {
         f.deleteOnExit(); //Clear the existing db
 
         indexer = new IndexProcessorWarc(pool, targetInstanceId, harvestResultNumber);
-        indexer.init(processorManager, directoryManager, wctClient, networkMapClient);
+        indexer.init(directoryManager, wctClient, networkMapClient);
     }
 
     @Ignore
