@@ -78,15 +78,4 @@ public class BadRequestRestApiController {
 
         return FailureResponse.error(HttpStatus.BAD_REQUEST, message, url);
     }
-
-    /*
-     * Catch-all for other bad requests or unexpected errors
-     **/
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<?> handleGeneric(Exception ex, HttpServletRequest req) throws IOException {
-//        String contentUri = req.getContextPath();
-//        String url = req.getRequestURI().substring(contentUri.length());
-//
-//        return FailureResponse.error(HttpStatus.BAD_REQUEST, "Unexpected error: " + ex.getMessage(), url);
-//    }
 }
