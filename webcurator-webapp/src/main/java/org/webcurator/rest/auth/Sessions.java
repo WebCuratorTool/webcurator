@@ -1,9 +1,9 @@
 package org.webcurator.rest.auth;
 
-import it.unimi.dsi.fastutil.Hash;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -24,7 +24,7 @@ public class Sessions {
         }
         for (String key : sessionMap.keySet()) {
             if (sessionMap.get(key).expired()) {
-                removeSession(id);
+                removeSession(key);
             }
         }
         sessionMap.put(id, new SessionInfo(privileges, user, agency, expireInterval));
@@ -38,22 +38,6 @@ public class Sessions {
         sessionMap.remove(id);
     }
 
-    /**
-     * Get the roles for this session if it's still valid and, if so, update the timestamp of last access
-     * // FIXME remove this once this is no longer used by the Token endpoint (a future change coming from another branch)
-     */
-    public List<String> getRoles(String id) throws InvalidSessionException {
-        if (!sessionMap.containsKey(id) || sessionMap.get(id).expired()) {
-            sessionMap.remove(id);
-            throw new InvalidSessionException(id);
-        }
-        sessionMap.get(id).touch();
-        List<String> roles = new ArrayList<>();
-        for (String r : sessionMap.get(id).privileges.keySet()) {
-            roles.add(r);
-        }
-        return roles;
-    }
 
     /**
      * Get the privileges for this session if it's still valid and, if so, update the timestamp of last access
@@ -73,12 +57,6 @@ public class Sessions {
 
     public String getUser(String id) {
         return sessionMap.get(id).user;
-    }
-
-    public class InvalidSessionException extends Exception {
-        public InvalidSessionException(String id) {
-            super(String.format("Session with %s has expired", id));
-        }
     }
 
 

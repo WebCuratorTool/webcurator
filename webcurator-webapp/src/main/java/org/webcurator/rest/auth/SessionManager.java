@@ -103,7 +103,7 @@ public class SessionManager {
                 default:
                     throw new AuthorizationException(String.format("Unknown scope %d for role %s", scope, role), 403);
             }
-        } catch (Sessions.InvalidSessionException e) {
+        } catch (InvalidSessionException e) {
             throw new AuthorizationException("Invalid or expired session", 401);
         }
     }
