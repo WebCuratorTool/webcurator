@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class UnknownRestApiController {
-    @RequestMapping(value = {"/api/{path:[^\\.]*}", "/api/**/{path:[^\\.]*}"})
+    @RequestMapping(value = {"/api/*", "/api/**"})
     public ResponseEntity<?> request(HttpServletRequest req) {
         String contentUri = req.getContextPath();
         String url = req.getRequestURI().substring(contentUri.length());
