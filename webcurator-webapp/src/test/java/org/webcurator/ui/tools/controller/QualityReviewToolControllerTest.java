@@ -35,7 +35,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
         //call the overridden method as well
         super.setUp();
 
-        mockQRTCA.setArchiveUrl("archiveURL");
+        mockQRTCA.setArchive1Url("archiveURL");
         mockQRTCA.setTargetManager(new MockTargetManager(testFile));
         mockQRTCA.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
         mockQRTCA.setTargetInstanceManager(new MockTargetInstanceManager(testFile));

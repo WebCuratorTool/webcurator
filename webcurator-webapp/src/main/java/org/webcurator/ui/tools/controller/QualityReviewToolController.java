@@ -32,6 +32,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.screenshot.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
+import org.webcurator.ui.util.PlaceholderProcessor;
 import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
 /**
@@ -128,11 +129,9 @@ public class QualityReviewToolController {
 
         ModelAndView mav = new ModelAndView("quality-review-toc", "command", cmd);
         mav.addObject("targetInstanceOid", ti.getOid());
-        mav.addObject("archiveUrl", attr.archiveUrl);
-        mav.addObject("archiveName", attr.archiveName);
-        mav.addObject("archiveAlternative", attr.archiveUrlAlternative);
-        mav.addObject("archiveAlternativeName", attr.archiveUrlAlternativeName);
-        mav.addObject("webArchiveTarget", attr.webArchiveTarget);
+        mav.addObject("archive1Name", attr.archive1Name);
+        mav.addObject("archive2Name", attr.archive2Name);
+        mav.addObject("archive3Name", attr.archive3Name);
         mav.addObject("targetOid", ti.getTarget().getOid());
         mav.addObject("seedHistory", ti.getSeedHistory());
         mav.addObject("screenshotState", screenshotState);
@@ -154,9 +153,26 @@ public class QualityReviewToolController {
             }
 
             if (attr.enableAccessTool) {
-                m.put("accessUrl", attr.harvestResourceUrlMapper.generateUrl(result) + s.getSeed());
+                m.put("accessUrl", PlaceholderProcessor.generateUrl(attr.accessToolUrl, result) + s.getSeed());
+                m.put("accessName", attr.accessToolName);
             } else {
                 m.put("accessUrl", "");
+            }
+
+            if (attr.archive1Url.isEmpty()) {
+                m.put("archive1Url", "");
+            } else {
+                m.put("archive1Url", PlaceholderProcessor.generateUrl(attr.archive1Url, result) + s.getSeed());
+            }
+            if (attr.archive2Url.isEmpty()) {
+                m.put("archive2Url", "");
+            } else {
+                m.put("archive2Url", PlaceholderProcessor.generateUrl(attr.archive2Url, result) + s.getSeed());
+            }
+            if (attr.archive3Url.isEmpty()) {
+                m.put("archive3Url", "");
+            } else {
+                m.put("archive3Url", PlaceholderProcessor.generateUrl(attr.archive3Url, result) + s.getSeed());
             }
 
             sMap.add(m);

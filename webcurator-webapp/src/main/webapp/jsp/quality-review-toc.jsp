@@ -68,36 +68,38 @@
                   |
                   </c:if>
                   <c:if test="${seed.accessUrl != ''}">
-                  <a href="<c:out value="${seed.accessUrl}"/>" target="_blank">Review in Access Tool</a>
+                    <a href="<c:out value="${seed.accessUrl}"/>" target="_blank">
+                    <c:choose>
+                        <c:when test="${seed.accessName != ''}"><c:out value="${seed.accessName}"/></c:when>
+                        <c:otherwise>Review in Access Tool</c:otherwise>
+                    </c:choose>
+                    </a>
                   |
                   </c:if>
                   <a href="<c:out value="${seed.seedUrl}"/>" target="_blank">Live Site</a>
                   <c:choose>
-                    <c:when test="${archiveUrl == ''}"></c:when>
+                    <c:when test="${seed.archive1Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${archiveUrl}" escapeXml="false"/><c:out value="${seed.seedUrl}"/>" target="_blank">
+                    | <a href="<c:out value="${seed.archive1Url}" escapeXml="false"/>" target="_blank">
                           <c:choose>
-                            <c:when test="${archiveName == ''}">Archives Harvested</c:when>
-                            <c:otherwise><c:out value="${archiveName}"/></c:otherwise>
+                            <c:when test="${archive1Name == ''}">Archives Harvested</c:when>
+                            <c:otherwise><c:out value="${archive1Name}"/></c:otherwise>
                           </c:choose>
                       </a>
                     </c:otherwise>
                   </c:choose>
                   <c:choose>
-                    <c:when test="${archiveAlternative == ''}"></c:when>
+                    <c:when test="${seed.archive2Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${archiveAlternative}" escapeXml="false"/><c:out value="${seed.seedUrl}"/>" target="_blank"><c:out value="${archiveAlternativeName}"/></a>
+                    | <a href="<c:out value="${seed.archive2Url}" escapeXml="false"/>" target="_blank"><c:out value="${archive2Name}"/></a>
                     </c:otherwise>
                   </c:choose>
                   <c:choose>
-                    <c:when test="${webArchiveTarget == ''}">
-                    | Web Archive not configured
-                    </c:when>
+                    <c:when test="${seed.archive3Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${webArchiveTarget}" escapeXml="false"/><c:out value="${targetOid}"/>" target="_blank">Web Archive</a></td>
+                    | <a href="<c:out value="${seed.archive3Url}" escapeXml="false"/>" target="_blank"><c:out value="${archive3Name}"/></a>
                     </c:otherwise>
                   </c:choose>
-
                 </td>
 
                 <c:if test="${enableScreenshots && thumbnailRenderer eq 'screenshotTool'}">
