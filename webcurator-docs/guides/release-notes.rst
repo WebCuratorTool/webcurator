@@ -15,6 +15,22 @@ accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
 
+3.2.4
+=====
+
+Patch release, November 2025:
+
+- Minor enhancements
+
+  - Improve and simplify the Harvest Result indexing process. Includes new buttons to stop and restart patching indexing.
+  - All replay links on Harvest Result QA review page now configurable. Includes new properties in the Webapp application.properties and
+    updates to documentation.
+
+- Bug fixes
+
+  - Escape quotes in profile names.
+  - Harvest Results stuck in 'Patching' status.
+
 3.2.1
 =====
 
