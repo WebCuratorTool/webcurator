@@ -12,7 +12,7 @@ import WctTopLabel from '@/components/WctTopLabel.vue';
 // stores
 import { useAgenciesStore } from '@/stores/agencies';
 import { formatTargetState, showTargetAction, stateList } from '@/stores/target';
-import { useTargetListDataStore } from '@/stores/targetList';
+import { targetListPageState, useTargetListDataStore } from '@/stores/targetList';
 import { useUserProfileStore, useUsersStore } from '@/stores/users';
 // utils
 import { formatDate } from '@/utils/helper';
@@ -95,46 +95,26 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
           <InputText v-model="targetListData.searchTerms.targetMemberOf" type="text" />
         </WctTopLabel>
       </div>
-      <Button class="wct-primary-button max-w-25" label="Search" icon="pi pi-search"  id="search-button" @click="targetListData.search()" />
+      <Button class="wct-primary-button max-w-25" label="Search" icon="pi pi-search" id="search-button" @click="targetListData.search()" />
     </div>
 
-    <div class="flex items-center justify-between w-full mb-8" >
+    <div class="flex items-center justify-between w-full mb-8">
       <div class="flex items-center justify-start sm:w-5/6 gap-4" id="grid-search">
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">Agency</InputGroupAddon>
-          <Select
-            id="agency"
-            v-model="targetListData.searchTerms.targetAgency"
-            :options="agencies.agencyListWithEmptyItem"
-            optionLabel="name"
-            placeholder="Select an Agency"
-            showClear
-          />
+          <Select id="agency" v-model="targetListData.searchTerms.targetAgency" :options="agencies.agencyListWithEmptyItem" optionLabel="name" placeholder="Select an Agency" showClear />
         </InputGroup>
-  
+
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">User</InputGroupAddon>
-          <Select 
-            id="user" 
-            v-model="targetListData.searchTerms.targetUser" 
-            :options="users.userListWithEmptyItem" 
-            optionLabel="name" 
-            placeholder="Select a User" 
-            showClear 
-          />
+          <Select id="user" v-model="targetListData.searchTerms.targetUser" :options="users.userListWithEmptyItem" optionLabel="name" placeholder="Select a User" showClear />
         </InputGroup>
-  
+
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">State</InputGroupAddon>
-          <MultiSelect 
-            v-model="targetListData.searchTerms.targetState" 
-            :options="stateList" optionLabel="name" 
-            placeholder="Select States" 
-            :maxSelectedLabels="3" 
-            showClear 
-          />
+          <MultiSelect v-model="targetListData.searchTerms.targetState" :options="stateList" optionLabel="name" placeholder="Select States" :maxSelectedLabels="3" showClear />
         </InputGroup>
-  
+
         <div class="flex items-center justify-between flex-grow border rounded-md w-2/3" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
           <label for="non-display-only">Non-Display Only</label>
           <Checkbox v-model="targetListData.searchTerms.nonDisplayOnly" :binary="true" inputId="non-display-only" />
@@ -158,24 +138,13 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             class="w-full"
             :value="targetListData.targetList"
             size="small"
-            :paginator="true"
-            :rows="10"
-            :rowsPerPageOptions="[10, 20, 50, 100]"
             dataKey="oid"
             :rowHover="true"
             filterDisplay="menu"
-            :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
-            resizableColumns
             columnResizeMode="fit"
-            :pt="{
-              // Use 'pcPaginator' to target the internal Paginator component to align to the right side
-              pcPaginator: {
-                root: '!flex !justify-end !items-center !p-4 w-full border-none',
-                paginatorContainer: '!border-none'
-              }
-            }"
+            resizableColumns
           >
-            <Column field="id" sortable header="Id" dataType="numeric" class="w-26"/>
+            <Column field="id" sortable header="Id" dataType="numeric" class="w-26" />
             <Column field="creationDate" header="Date" sortable dataType="date" class="w-30">
               <template #body="{ data }">
                 {{ formatDate(data.creationDate) }}
@@ -207,12 +176,26 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
                 <Button v-if="showTargetAction(data, 'delete')" icon="pi pi-trash" @click="deleteTarget(data.id)" text />
               </template>
             </Column>
+            <template #footer>
+              <div class="flex justify-end w-full">
+                <Paginator
+                  :pageLinkSize="3"
+                  :first="targetListPageState.first"
+                  :rows="targetListPageState.rows"
+                  :totalRecords="targetListPageState.totalRecords"
+                  :rowsPerPageOptions="[10, 20, 50, 100]"
+                  @page="targetListData.updatePage($event.first, $event.rows)"
+                  template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+                  currentPageReportTemplate="Results {first} to {last} of {totalRecords}"
+                >
+                </Paginator>
+              </div>
+            </template>
           </DataTable>
           <div v-else class="text-center">
             <p class="text-500">No targets found</p>
           </div>
         </div>
-       
       </WctTabViewPanel>
     </div>
   </div>
