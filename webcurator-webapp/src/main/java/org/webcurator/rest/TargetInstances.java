@@ -238,7 +238,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -274,7 +274,6 @@ public class TargetInstances {
     @PutMapping(path = "/{id}/start", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> start(@PathVariable long id, @RequestBody HarvestParams harvestParams,
                                    HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         String harvestAgentName = harvestParams.getHarvestAgentName();
         if (harvestAgentName == null) {
             return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
@@ -286,7 +285,7 @@ public class TargetInstances {
         // Is the user allowed to manually start a target instance?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -317,7 +316,6 @@ public class TargetInstances {
      */
     @PutMapping(path = "/{id}/pause")
     public ResponseEntity<?> pause(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
@@ -326,7 +324,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -345,7 +343,6 @@ public class TargetInstances {
      */
     @PutMapping(path = "/{id}/abort")
     public ResponseEntity<?> abort(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
@@ -353,7 +350,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -374,7 +371,6 @@ public class TargetInstances {
      */
     @PutMapping(path = "/{id}/stop")
     public ResponseEntity<?> stop(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
@@ -382,7 +378,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -401,7 +397,6 @@ public class TargetInstances {
      */
     @PutMapping(path = "/{id}/resume")
     public ResponseEntity<?> resume(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
@@ -409,7 +404,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -428,7 +423,6 @@ public class TargetInstances {
      */
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
@@ -436,7 +430,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -462,8 +456,6 @@ public class TargetInstances {
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody TargetInstanceDTO targetInstanceDTO, HttpServletRequest request) {
 
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target instance with id %s does not exist", id)));
@@ -472,7 +464,7 @@ public class TargetInstances {
         // Is the user allowed to manage target instances?
         try {
             User owner = targetInstance.getOwner();
-            sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                     Privilege.MANAGE_TARGET_INSTANCES);
         } catch (AuthorizationException e) {
             return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -521,7 +513,7 @@ public class TargetInstances {
                 User owner = targetInstance.getOwner();
                 if (harvestResult.getState() != HarvestResult.STATE_ENDORSED && h.getState() == HarvestResult.STATE_ENDORSED) {
                     try {
-                        sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+                        sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                                 Privilege.ENDORSE_HARVEST);
                     } catch (AuthorizationException e) {
                         return ResponseEntity.status(e.getStatus()).body(e.getMessage());
@@ -529,7 +521,7 @@ public class TargetInstances {
                 }
                 if (harvestResult.getState() == HarvestResult.STATE_ENDORSED && h.getState() != HarvestResult.STATE_ENDORSED) {
                     try {
-                        sessionManager.authorize(authorizationHeader, owner.getUsername(), owner.getAgency().getName(),
+                        sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
                                 Privilege.UNENDORSE_HARVEST);
                     } catch (AuthorizationException e) {
                         return ResponseEntity.status(e.getStatus()).body(e.getMessage());

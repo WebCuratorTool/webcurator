@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -12,6 +13,7 @@ import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -58,13 +60,10 @@ public class SessionManager {
      */
     // FIXME Add unit test
     // FIXME Instead of the authorization header, use the servlet request as first arg
-    public void authorize(String authorizationHeader, String owner, String agency, String role)
+    public void authorize(HttpServletRequest httpServletRequest, String owner, String agency, String role)
                                                                                     throws AuthorizationException {
 
-        if (authorizationHeader == null) {
-            throw new AuthorizationException("Unauthorized, no token was supplied", 401);
-        }
-        String token = extractToken(authorizationHeader);
+        String token = extractToken(httpServletRequest);
 
         boolean hasRole = false;
         int scope = Privilege.SCOPE_NONE;
@@ -120,7 +119,11 @@ public class SessionManager {
         sessions.removeSession(token);
     }
 
-    private String extractToken(String authorizationHeader) {
+    private String extractToken(HttpServletRequest httpServletRequest) throws AuthorizationException {
+        String authorizationHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authorizationHeader == null) {
+            throw new AuthorizationException("Unauthorized, no token was supplied", 401);
+        }
         return authorizationHeader.replaceAll("^Bearer\\s+", "");
     }
 

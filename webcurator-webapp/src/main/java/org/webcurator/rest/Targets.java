@@ -185,7 +185,7 @@ public class Targets {
             String owner = target.getOwner().getUsername();
             String agency = target.getOwner().getAgency().getName();
             try {
-                sessionManager.authorize(authorizationHeader, owner, agency, Privilege.DELETE_TARGET);
+                sessionManager.authorize(request, owner, agency, Privilege.DELETE_TARGET);
             } catch (AuthorizationException e) {
                 return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
             }
@@ -209,11 +209,10 @@ public class Targets {
      */
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         Target target = new Target();
         try {
-            upsert(target, targetDTO, authorizationHeader, false);
+            upsert(target, targetDTO, request, false);
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (AuthorizationException e) {
@@ -269,7 +268,7 @@ public class Targets {
 
         // Finally, map the DTO to the entity and update the database
         try {
-            upsert(target, targetDTO, authorizationHeader, true);
+            upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
@@ -311,7 +310,7 @@ public class Targets {
      * The actual mapping of TargetDTO to Target and upsert of the latter. Also does a number of
      * last-minute data-based authorisation checks
      */
-    private void upsert(Target target, TargetDTO targetDTO, String authorizationHeader, boolean isUpdate) throws BadRequestError, AuthorizationException {
+    private void upsert(Target target, TargetDTO targetDTO, HttpServletRequest request, boolean isUpdate) throws BadRequestError, AuthorizationException {
 
         String ownerStr = targetDTO.getGeneral().getOwner();
         User owner = userRoleDAO.getUserByName(ownerStr);
@@ -509,21 +508,21 @@ public class Targets {
          */
         String agency = owner.getAgency().getName();
         if (isUpdate) {
-            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.MODIFY_TARGET);
+            sessionManager.authorize(request, ownerStr, agency, Privilege.MODIFY_TARGET);
         } else {
-            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.CREATE_TARGET);
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CREATE_TARGET);
         }
         if (target.getState() != Target.STATE_APPROVED && targetDTO.getGeneral().getState() == Target.STATE_APPROVED) {
             if (target.getState() == Target.STATE_COMPLETED) {
-                sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.REINSTATE_TARGET);
+                sessionManager.authorize(request, ownerStr, agency, Privilege.REINSTATE_TARGET);
             }
-            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.APPROVE_TARGET);
+            sessionManager.authorize(request, ownerStr, agency, Privilege.APPROVE_TARGET);
         }
         if (target.getState() != Target.STATE_CANCELLED && targetDTO.getGeneral().getState() == Target.STATE_CANCELLED) {
-            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.CANCEL_TARGET);
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CANCEL_TARGET);
         }
         if (!targetDTO.getSchedule().getSchedules().isEmpty()) {
-            sessionManager.authorize(authorizationHeader, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
+            sessionManager.authorize(request, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
         }
 
         // Persist the target
