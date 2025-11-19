@@ -17,7 +17,7 @@ public class Sessions {
     /**
      * Add session and remove any expired sessions while we're at it
      */
-    public void addSession(String id, HashMap<String, Integer> privileges, String user, String agency, long expireInterval) {
+    public void addSession(String id, String user, long expireInterval) {
         if (sessionMap.containsKey(id)) {
             // Can't happen
             throw new RuntimeException(String.format("Session id %s already exists", id));
@@ -27,7 +27,7 @@ public class Sessions {
                 removeSession(key);
             }
         }
-        sessionMap.put(id, new SessionInfo(privileges, user, agency, expireInterval));
+        sessionMap.put(id, new SessionInfo(user, expireInterval));
     }
 
     public boolean exists(String id) {
@@ -39,22 +39,6 @@ public class Sessions {
     }
 
 
-    /**
-     * Get the privileges for this session if it's still valid and, if so, update the timestamp of last access
-     */
-    public HashMap<String, Integer> getPrivileges(String id) throws InvalidSessionException {
-        if (!sessionMap.containsKey(id) || sessionMap.get(id).expired()) {
-            sessionMap.remove(id);
-            throw new InvalidSessionException(id);
-        }
-        sessionMap.get(id).touch();
-        return sessionMap.get(id).privileges;
-    }
-
-    public String getAgency(String id) {
-        return sessionMap.get(id).agency;
-    }
-
     public String getUser(String id) {
         return sessionMap.get(id).user;
     }
@@ -63,16 +47,12 @@ public class Sessions {
     // Struct used as the value in the kv pair representing a session
     class SessionInfo {
         Date modified;
-        HashMap<String, Integer> privileges;
         long expireInterval;
         String user;
-        String agency;
 
-        public SessionInfo(HashMap<String, Integer> privileges, String user, String agency, long expireInterval) {
+        public SessionInfo(String user, long expireInterval) {
             modified = new Date();
-            this.privileges = privileges;
             this.user = user;
-            this.agency = agency;
             this.expireInterval = expireInterval;
         }
 

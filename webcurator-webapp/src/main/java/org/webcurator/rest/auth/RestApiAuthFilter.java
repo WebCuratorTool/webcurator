@@ -33,6 +33,7 @@ public class RestApiAuthFilter implements Filter {
             String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
             try {
                 // More authorisation rules are checked at the endpoints
+                // FIXME move this to the token endpoint and introduce a simple token validity check here
                 sessionManager.authorize(authorizationHeader, null, null, Privilege.LOGIN);
             } catch (AuthorizationException e) {
                 rsp.setStatus(e.getStatus());
