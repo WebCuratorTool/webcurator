@@ -74,6 +74,4 @@ local.properties
 
 /webcurator-ui/.node/
 
-/webcurator-webapp/src/main/webapp/assets/
-/webcurator-webapp/src/main/webapp/themes/
-/webcurator-webapp/src/main/webapp/index.html
+.vscode

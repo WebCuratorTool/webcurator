@@ -4,19 +4,16 @@ import { useTargetProfileDTO } from '@/stores/target';
 import { camelCaseToTitleCase } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { computed, ref, watch } from 'vue';
-
-import Loading from '@/components/Loading.vue';
+import { useProgressStore } from '@/utils/progress';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import type { Profile } from '@/types/profile';
 import { Textarea } from 'primevue';
 
 const rest: UseFetchApis = useFetch();
-
+const progress = useProgressStore();
 const props = defineProps<{
   editing: boolean;
 }>();
-
-const loading = ref(false);
 
 const targetProfile = useTargetProfileDTO().targetProfile;
 
@@ -35,18 +32,18 @@ const onChangeProfile = (event: any) => {
 };
 
 const fetchProfile = async () => {
-  loading.value = true;
+  progress.start();
   try {
     const datasets = await rest.get('profiles/');
     if (!datasets || !datasets.profiles) {
-      loading.value = false;
+      progress.end();
       console.log('Failed to load profiles');
       return;
     }
     profileStore.setProfiles(datasets);
     selectedProfile.value = datasets.profiles.find((profile: any) => profile.id == targetProfile.id);
   } finally {
-    loading.value = false;
+    progress.end();
   }
 };
 
@@ -70,8 +67,7 @@ watch(
 </script>
 
 <template>
-  <Loading v-if="loading" />
-  <div v-else>
+  <div v-if="!progress.visible">
     <h4 class="mt-4">Base Profile</h4>
     <WctTabViewPanel>
       <div class="grid grid-cols-5 p-1">

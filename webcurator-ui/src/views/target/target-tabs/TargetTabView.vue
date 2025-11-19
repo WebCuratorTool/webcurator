@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Loading from '@/components/Loading.vue';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 import { formatDate } from '@/utils/helper';
 import { useRouter } from 'vue-router';
@@ -15,7 +14,6 @@ const router = useRouter();
 defineProps<{
   editing: boolean;
   isTargetAvailable: boolean;
-  loading: boolean;
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
@@ -24,7 +22,7 @@ const emit = defineEmits(['setEditing', 'save']);
 
 const navigateBack = () => {
   if (router) {
-    router.push('/wct/targets/');
+    router.push('/targets/');
   }
 };
 </script>
@@ -66,8 +64,7 @@ const navigateBack = () => {
   </div>
 
   <div class="2xl:w-5/6">
-    <Loading v-if="loading" />
-    <Tabs v-else value="0" class="tabview-custom w-full">
+    <Tabs value="0" class="tabview-custom w-full">
       <TabList>
         <Tab value="0">General</Tab>
         <Tab value="1">Description</Tab>
@@ -105,4 +102,3 @@ const navigateBack = () => {
   outline-style: none !important;
 }
 </style>
-

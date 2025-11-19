@@ -3,7 +3,6 @@
 import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useRoute } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
 
 // components
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
@@ -20,14 +19,12 @@ const addPermissionsModal = useDialog();
 const addSeedModal = useDialog();
 const viewPermissionModal = useDialog();
 
-const toast = useToast();
-
 const props = defineProps<{
   editing: boolean;
 }>();
 
-const route = useRoute()
-const targetId = route.params.id as string
+const route = useRoute();
+const targetId = route.params.id as string;
 
 const targetSeeds = useTargetSeedsDTO();
 
@@ -62,18 +59,21 @@ const showAddSeed = () => {
 };
 
 const showViewPermission = (permissionId: number) => {
-  viewPermissionModal.open(ViewPermissionModal, { 
+  viewPermissionModal.open(ViewPermissionModal, {
     props: { modal: true, dismissableMask: true, closable: false, style: { width: '50vw' } },
     data: { permissionId: permissionId }
-  })
-}
+  });
+};
 
 // If the Target is switched out of editing mode, clear the editing seed value too
-watch(() => props.editing, async(updatedEditingState) => {
-  if (updatedEditingState == false) {
-    editingSeed.value = 0;
+watch(
+  () => props.editing,
+  async (updatedEditingState) => {
+    if (updatedEditingState == false) {
+      editingSeed.value = 0;
+    }
   }
-});
+);
 </script>
 
 <template>
@@ -114,8 +114,8 @@ watch(() => props.editing, async(updatedEditingState) => {
                   <td style="width: 16.67%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
                   <td style="width: 16.67%; padding: 0.5rem">
                     <div class="flex">
-                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)"/>
-                      <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removePermission(data, authorisation)" />
+                      <Button class="p-button-text" style="width: 2rem" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)" />
+                      <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removePermission(data, authorisation)" />
                     </div>
                   </td>
                 </tr>
@@ -124,9 +124,9 @@ watch(() => props.editing, async(updatedEditingState) => {
           </td>
           <td v-if="editing" style="width: 5%; padding: 0.5rem">
             <div v-if="editing && editingSeed != data.id" class="flex">
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Permission'" text @click="showAddPermission(data)" />
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Permission'" text @click="showAddPermission(data)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
             </div>
             <div v-else-if="editing && editingSeed == data.id" class="flex">
               <Button class="p-button-text" style="width: 2rem" icon="pi pi-save" v-tooltip.bottom="'Save'" text @click="editingSeed = 0" />

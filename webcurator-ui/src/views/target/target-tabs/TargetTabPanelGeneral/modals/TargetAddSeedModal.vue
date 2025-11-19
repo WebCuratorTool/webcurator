@@ -1,23 +1,28 @@
 <script setup lang="ts">
 // libraries
 import { inject, ref } from 'vue';
-import { useToast } from 'primevue/usetoast';
 
 // stores
 import { useTargetSeedsDTO } from '@/stores/target';
+// utils
+import { useAlertStore } from '@/utils/alertStore';
 
 const dialogRef: any = inject('dialogRef');
-const toast = useToast();
-
+const alertStore = useAlertStore();
 const targetSeeds = useTargetSeedsDTO();
 
 const newSeed = ref({ seed: '', authorisations: [], primary: false });
 const selectedAuthorisationOption = ref('Auto');
 
+const showErrorMessage = () => {
+  const message = 'The seed already exists on the target';
+  alertStore.error(message, message, 'Seed not added');
+};
+
 const addSeed = () => {
   if (newSeed.value.seed != '') {
     if (targetSeeds.targetSeeds.some((t) => t.seed == newSeed.value.seed)) {
-      toast.add({ severity: 'error', summary: 'Seed not added', detail: 'The seed already exists on the target', life: 3000 });
+      showErrorMessage();
     } else {
       targetSeeds.addSeed(newSeed.value);
       newSeed.value = { seed: '', authorisations: [], primary: false };

@@ -3,7 +3,6 @@
 import { watch } from 'vue';
 import { useConfirm } from 'primevue/useconfirm';
 import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
 
 // components
 import Loading from '@/components/Loading.vue';
@@ -17,10 +16,11 @@ import { useUserProfileStore, useUsersStore } from '@/stores/users';
 // utils
 import { formatDate } from '@/utils/helper';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { useAlertStore } from '@/utils/alertStore';
 
 const router = useRouter();
 const confirm = useConfirm();
-const toast = useToast();
+const alertStore = useAlertStore();
 
 const rest: UseFetchApis = useFetch();
 const userProfile = useUserProfileStore();
@@ -30,7 +30,7 @@ const targetListData = useTargetListDataStore();
 
 const createNew = () => {
   if (router) {
-    router.push('/wct/targets/new/');
+    router.push('/targets/new/');
   }
 };
 
@@ -47,16 +47,12 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          toast.add({
-            severity: 'info',
-            summary: 'Confirmed',
-            detail: `Target ${id} deleted`,
-            life: 3000
-          });
+          const message = `Target ${id} deleted`;
+          alertStore.info(message, message, 'Confirmed');
           targetListData.search();
         })
         .catch((err: any) => {
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
+          alertStore.error(err.message);
         });
     }
   });
@@ -152,7 +148,7 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             </Column>
             <Column field="name" header="Name" sortable>
               <template #body="{ data }">
-                <router-link :to="`/wct/targets/${data.id}`">{{ data.name }}</router-link>
+                <router-link :to="`/targets/${data.id}`">{{ data.name }}</router-link>
               </template>
             </Column>
             <Column field="agency" header="Agency" sortable class="w-30" />
