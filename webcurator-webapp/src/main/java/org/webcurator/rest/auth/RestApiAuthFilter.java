@@ -3,9 +3,7 @@ package org.webcurator.rest.auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.webcurator.domain.model.auth.Privilege;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -31,9 +29,7 @@ public class RestApiAuthFilter implements Filter {
         String url = req.getRequestURI().substring(contentUri.length());
         if (url.startsWith("/api")) {
             try {
-                // More authorisation rules are checked at the endpoints
-                // FIXME move this to the token endpoint and introduce a simple token validity check here
-                sessionManager.authorize(req, null, null, Privilege.LOGIN);
+                sessionManager.checkToken(req);
             } catch (AuthorizationException e) {
                 rsp.setStatus(e.getStatus());
                 rsp.getOutputStream().print(e.getMessage());

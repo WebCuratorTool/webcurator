@@ -54,16 +54,23 @@ public class SessionManager {
         return token;
     }
 
+
+    /**
+     * Check whether the request contains a valid token
+     */
+    public void checkToken(HttpServletRequest httpServletRequest) throws AuthorizationException {
+        String token = extractToken(httpServletRequest);
+        if (!sessions.exists(token)) {
+            throw new AuthorizationException("Token is invalid", 403);
+        }
+    }
+
     /**
      * Check whether the user in the current session has sufficient privilege scope to alter the data for the supplied
      * user and/or agency and role
      */
-    // FIXME Add unit test
-    // FIXME Instead of the authorization header, use the servlet request as first arg
-    public void authorize(HttpServletRequest httpServletRequest, String owner, String agency, String role)
-                                                                                    throws AuthorizationException {
-
-        String token = extractToken(httpServletRequest);
+    public void authorize(String token, String owner, String agency, String role)
+            throws AuthorizationException {
 
         boolean hasRole = false;
         int scope = Privilege.SCOPE_NONE;
@@ -103,6 +110,13 @@ public class SessionManager {
                 throw new AuthorizationException(String.format("Unknown scope %d for role %s", scope, role), 403);
         }
 
+    }
+
+
+    public void authorize(HttpServletRequest httpServletRequest, String owner, String agency, String role)
+                                                                                    throws AuthorizationException {
+        String token = extractToken(httpServletRequest);
+        authorize(token, owner, agency, role);
     }
 
     /**

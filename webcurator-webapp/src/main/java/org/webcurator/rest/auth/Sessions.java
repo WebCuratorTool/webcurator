@@ -31,7 +31,15 @@ public class Sessions {
     }
 
     public boolean exists(String id) {
-        return sessionMap.containsKey(id);
+        if (sessionMap.containsKey(id)) {
+            if (sessionMap.get(id).expired()) {
+                removeSession(id);
+            } else {
+                sessionMap.get(id).touch();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void removeSession(String id) {
