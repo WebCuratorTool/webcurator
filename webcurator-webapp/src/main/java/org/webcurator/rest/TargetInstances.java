@@ -220,7 +220,6 @@ public class TargetInstances {
     @PutMapping(path = "/{id}/patch-harvest", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> patchHarvest(@PathVariable long id, @RequestBody HarvestParams harvestParams,
                                           HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         String harvestAgentName = harvestParams.getHarvestAgentName();
         Long harvestResultId = harvestParams.getHarvestResultId();

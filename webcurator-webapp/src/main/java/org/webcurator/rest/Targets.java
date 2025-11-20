@@ -174,7 +174,6 @@ public class Targets {
      */
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable long id, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         Target target = targetDAO.load(id);
 
         if (target == null) {
@@ -238,7 +237,6 @@ public class Targets {
      */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
