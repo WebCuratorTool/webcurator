@@ -1,20 +1,22 @@
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
-const KEY_USER_PROFILE = 'wct-user-profile';
-export const useUserProfileStore = defineStore('userProfile', () => {
-  const token = ref('');
+const KEY_USER_PROFILE = "wct-user-profile";
+export const useUserProfileStore = defineStore("userProfile", () => {
+  const token = ref("");
   const id = ref(-1);
-  const name = ref('');
-  const firstName = ref('');
-  const lastName = ref('');
-  const agency = ref('');
+  const name = ref("");
+  const firstName = ref("");
+  const lastName = ref("");
+  const agency = ref("");
   const isActive = ref(true);
   const roles = ref([]);
   const priviledges = ref([]);
 
-  const currUserName = computed(() => firstName.value + ' ' + lastName.value + '(' + name.value + ')');
+  const currUserName = computed(
+    () => firstName.value + " " + lastName.value + "(" + name.value + ")",
+  );
 
   const load = () => {
     const cachedContent = localStorage.getItem(KEY_USER_PROFILE);
@@ -45,7 +47,7 @@ export const useUserProfileStore = defineStore('userProfile', () => {
       agency: agency.value,
       isActive: isActive.value,
       roles: roles.value,
-      priviledges: priviledges.value
+      priviledges: priviledges.value,
     };
 
     const cachedContent = JSON.stringify(data);
@@ -53,12 +55,12 @@ export const useUserProfileStore = defineStore('userProfile', () => {
   };
 
   const clear = () => {
-    token.value = '';
+    token.value = "";
     id.value = -1;
-    name.value = '';
-    firstName.value = '';
-    lastName.value = '';
-    agency.value = '';
+    name.value = "";
+    firstName.value = "";
+    lastName.value = "";
+    agency.value = "";
     isActive.value = true;
     roles.value = [];
     priviledges.value = [];
@@ -84,18 +86,32 @@ export const useUserProfileStore = defineStore('userProfile', () => {
 
   load();
 
-  return { token, id, name, firstName, lastName, roles, agency, priviledges, currUserName, load, setBasicData, setToken, clear };
+  return {
+    token,
+    id,
+    name,
+    firstName,
+    lastName,
+    roles,
+    agency,
+    priviledges,
+    currUserName,
+    load,
+    setBasicData,
+    setToken,
+    clear,
+  };
 });
 
-export const useUsersStore = defineStore('users', () => {
+export const useUsersStore = defineStore("users", () => {
   const data = ref([]);
   const initialFetch = () => {
     const userProfile = useUserProfileStore();
     const rest: UseFetchApis = useFetch();
     rest
-      .get('users')
+      .get("users")
       .then((rsp: any) => {
-        data.value = rsp['users'];
+        data.value = rsp["users"];
 
         for (let i = 0; i < data.value.length; i++) {
           const user: any = data.value[i];
@@ -115,8 +131,8 @@ export const useUsersStore = defineStore('users', () => {
       const user: any = data.value[i];
       formatedData.push({
         id: user.id,
-        name: user.firstName + ' ' + user.lastName + ' (' + user.name + ')',
-        code: user.name
+        name: user.firstName + " " + user.lastName + " (" + user.name + ")",
+        code: user.name,
       });
     }
     return formatedData;
@@ -127,13 +143,13 @@ export const useUsersStore = defineStore('users', () => {
 
     for (let i = 0; i < data.value.length; i++) {
       const user: any = data.value[i];
-      if (user.name === 'bootstrap') {
+      if (user.name === "bootstrap") {
         continue;
       }
       formatedData.push({
         id: user.id,
-        name: user.firstName + ' ' + user.lastName + ' (' + user.name + ')',
-        code: user.name
+        name: user.firstName + " " + user.lastName + " (" + user.name + ")",
+        code: user.name,
       });
     }
     return formatedData;
@@ -146,12 +162,12 @@ export const useUsersStore = defineStore('users', () => {
 
 export const getPresentationUserName = (selectedUser: string | any) => {
   if (!selectedUser) {
-    console.log('The input selectedUser is ' + selectedUser);
-    return '';
+    console.log("The input selectedUser is " + selectedUser);
+    return "";
   }
 
-  let userName = '';
-  if (typeof selectedUser === 'string') {
+  let userName = "";
+  if (typeof selectedUser === "string") {
     userName = selectedUser;
   } else {
     userName = selectedUser.code;
@@ -162,8 +178,8 @@ export const getPresentationUserName = (selectedUser: string | any) => {
   for (let i = 0; i < data.length; i++) {
     const user: any = data[i];
     if (user.name === userName) {
-      return user.firstName + ' ' + user.lastName + ' (' + user.name + ')';
+      return user.firstName + " " + user.lastName + " (" + user.name + ")";
     }
   }
-  return '';
+  return "";
 };

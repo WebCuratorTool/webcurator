@@ -1,12 +1,12 @@
 interface Profile {
-    agency: string,
-    name: string,
-    description: string,
-    id: number,
-    state: number,
-    type: string
+  agency: string;
+  name: string;
+  description: string;
+  id: number;
+  state: number;
+  type: string;
 }
 
-interface Profiles extends Array<Profile>{}
+interface Profiles extends Array<Profile> {}
 
-export type { Profile, Profiles }
+export type { Profile, Profiles };

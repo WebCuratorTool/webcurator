@@ -1,38 +1,45 @@
 // libraries
-import { reactive, ref } from 'vue';
-import { defineStore } from 'pinia';
+import { reactive, ref } from "vue";
+import { defineStore } from "pinia";
 
 // stores
-import { useUserProfileStore } from '@/stores/users';
+import { useUserProfileStore } from "@/stores/users";
 // utils
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { type UseFetchApis, useFetch } from "@/utils/rest.api";
 
-export const targetListPageState = reactive({ totalRecords: 1, rows: 10, first: 0 });
-export const useTargetListSearchStore = defineStore('TargetListSearchStore', () => {
-  // Search conditions
-  const targetId = ref(null);
-  const targetName = ref('');
-  const targetSeed = ref('');
-  const targetDescription = ref('');
-  const targetMemberOf = ref('');
-  const nonDisplayOnly = ref(false);
-  const targetAgency = ref();
-  const targetUser = ref();
-  const targetState = [] as any;
-  return {
-    targetId,
-    targetName,
-    targetSeed,
-    targetDescription,
-    targetMemberOf,
-    nonDisplayOnly,
-    targetAgency,
-    targetUser,
-    targetState
-  };
+export const targetListPageState = reactive({
+  totalRecords: 1,
+  rows: 10,
+  first: 0,
 });
+export const useTargetListSearchStore = defineStore(
+  "TargetListSearchStore",
+  () => {
+    // Search conditions
+    const targetId = ref(null);
+    const targetName = ref("");
+    const targetSeed = ref("");
+    const targetDescription = ref("");
+    const targetMemberOf = ref("");
+    const nonDisplayOnly = ref(false);
+    const targetAgency = ref();
+    const targetUser = ref();
+    const targetState = [] as any;
+    return {
+      targetId,
+      targetName,
+      targetSeed,
+      targetDescription,
+      targetMemberOf,
+      nonDisplayOnly,
+      targetAgency,
+      targetUser,
+      targetState,
+    };
+  },
+);
 
-export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
+export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
   const userProfile = useUserProfileStore();
   const targetList = ref([]);
   const loadingTargetList = ref(false);
@@ -43,19 +50,19 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
   const resetFilter = () => {
     searchTerms.targetUser = {
       name: userProfile.currUserName,
-      code: userProfile.name
+      code: userProfile.name,
     };
 
     searchTerms.targetAgency = {
       name: userProfile.agency,
-      code: userProfile.agency
+      code: userProfile.agency,
     };
 
     searchTerms.targetId = null;
-    searchTerms.targetName = '';
-    searchTerms.targetSeed = '';
-    searchTerms.targetDescription = '';
-    searchTerms.targetMemberOf = '';
+    searchTerms.targetName = "";
+    searchTerms.targetSeed = "";
+    searchTerms.targetDescription = "";
+    searchTerms.targetMemberOf = "";
     searchTerms.nonDisplayOnly = false;
     searchTerms.targetState = [];
 
@@ -72,7 +79,7 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
       nonDisplayOnly: searchTerms.nonDisplayOnly,
       agency: searchTerms.targetAgency?.name,
       userId: searchTerms.targetUser?.code,
-      states: [] as any
+      states: [] as any,
     };
 
     if (searchTerms.targetState?.length > 0) {
@@ -92,17 +99,20 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
       filter: searchConditions.value,
       offset: first,
       limit: rows,
-      sortBy: 'creationDate,asc'
+      sortBy: "creationDate,asc",
     };
 
     loadingTargetList.value = true;
     rest
-      .post('targets', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
+      .post("targets", searchParams, {
+        header: "X-HTTP-Method-Override",
+        value: "GET",
+      })
       .then((data: any) => {
-        targetList.value = data['targets'];
-        targetListPageState.totalRecords = data['amount'];
-        targetListPageState.first = data['offset'];
-        targetListPageState.rows = data['limit'];
+        targetList.value = data["targets"];
+        targetListPageState.totalRecords = data["amount"];
+        targetListPageState.first = data["offset"];
+        targetListPageState.rows = data["limit"];
       })
       .catch((err: any) => {
         console.log(err.message);
@@ -114,5 +124,12 @@ export const useTargetListDataStore = defineStore('TargetListDataStore', () => {
 
   search();
 
-  return { targetList, loadingTargetList, searchTerms, resetFilter, search, updatePage };
+  return {
+    targetList,
+    loadingTargetList,
+    searchTerms,
+    resetFilter,
+    search,
+    updatePage,
+  };
 });

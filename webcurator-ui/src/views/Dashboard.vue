@@ -7,22 +7,21 @@
 </template>
 
 <script setup lang="ts">
+import { type UseFetchApis, useFetch } from "../utils/rest.api";
 
-import {type UseFetchApis, useFetch} from '../utils/rest.api';
-
-const rest: UseFetchApis=useFetch();
+const rest: UseFetchApis = useFetch();
 
 const showTargets = () => {
-  const rsp= rest.post("targets", {});
-  rsp.then((data:any)=>{
-    console.log('fetch: ');
-    console.log(data);
-  }).catch((err:any)=>{
+  const rsp = rest.post("targets", {});
+  rsp
+    .then((data: any) => {
+      console.log("fetch: ");
+      console.log(data);
+    })
+    .catch((err: any) => {
       console.log(err.message);
-  });
-}
+    });
+};
 </script>
 
-<style>
-
-</style>
+<style></style>

@@ -1,22 +1,29 @@
 <script setup lang="ts">
 // libraries
-import { watch } from 'vue';
-import { useConfirm } from 'primevue/useconfirm';
-import { useRouter } from 'vue-router';
+import { watch } from "vue";
+import { useConfirm } from "primevue/useconfirm";
+import { useRouter } from "vue-router";
 
 // components
-import Loading from '@/components/Loading.vue';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import WctTopLabel from '@/components/WctTopLabel.vue';
+import Loading from "@/components/Loading.vue";
+import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
+import WctTopLabel from "@/components/WctTopLabel.vue";
 // stores
-import { useAgenciesStore } from '@/stores/agencies';
-import { formatTargetState, showTargetAction, stateList } from '@/stores/target';
-import { targetListPageState, useTargetListDataStore } from '@/stores/targetList';
-import { useUserProfileStore, useUsersStore } from '@/stores/users';
+import { useAgenciesStore } from "@/stores/agencies";
+import {
+  formatTargetState,
+  showTargetAction,
+  stateList,
+} from "@/stores/target";
+import {
+  targetListPageState,
+  useTargetListDataStore,
+} from "@/stores/targetList";
+import { useUserProfileStore, useUsersStore } from "@/stores/users";
 // utils
-import { formatDate } from '@/utils/helper';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useAlertStore } from '@/utils/alertStore';
+import { formatDate } from "@/utils/helper";
+import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import { useAlertStore } from "@/utils/alertStore";
 
 const router = useRouter();
 const confirm = useConfirm();
@@ -30,31 +37,31 @@ const targetListData = useTargetListDataStore();
 
 const createNew = () => {
   if (router) {
-    router.push('/targets/new/');
+    router.push("/targets/new/");
   }
 };
 
 const deleteTarget = (id: number) => {
   confirm.require({
     message: `Are you sure you want to delete target ${id}?`,
-    header: 'Confirm Delete',
-    icon: 'pi pi-info-circle',
-    rejectLabel: 'Cancel',
-    acceptLabel: 'Delete',
-    rejectClass: 'p-button-secondary p-button-outlined',
-    acceptClass: 'p-button-danger',
+    header: "Confirm Delete",
+    icon: "pi pi-info-circle",
+    rejectLabel: "Cancel",
+    acceptLabel: "Delete",
+    rejectClass: "p-button-secondary p-button-outlined",
+    acceptClass: "p-button-danger",
     accept: () => {
       rest
-        .delete('targets/' + id, {})
+        .delete("targets/" + id, {})
         .then((rsp: any) => {
           const message = `Target ${id} deleted`;
-          alertStore.info(message, message, 'Confirmed');
+          alertStore.info(message, message, "Confirmed");
           targetListData.search();
         })
         .catch((err: any) => {
           alertStore.error(err.message);
         });
-    }
+    },
   });
 };
 
@@ -74,49 +81,116 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
   <div class="flex flex-col justify-start w-full">
     <h5>Query</h5>
     <div class="flex items-end justify-between w-full mb-4">
-      <div class="flex items-center justify-start sm:w-5/6 gap-4" id="grid-search">
+      <div
+        class="flex items-center justify-start sm:w-5/6 gap-4"
+        id="grid-search"
+      >
         <WctTopLabel label="Target ID" class="w-26">
-          <InputNumber v-model="targetListData.searchTerms.targetId" :useGrouping="false" pt:pcInputText:root:class="max-w-full" />
+          <InputNumber
+            v-model="targetListData.searchTerms.targetId"
+            :useGrouping="false"
+            pt:pcInputText:root:class="max-w-full"
+          />
         </WctTopLabel>
         <WctTopLabel label="Target Name" class="flex-grow">
-          <InputText v-model="targetListData.searchTerms.targetName" type="text" />
+          <InputText
+            v-model="targetListData.searchTerms.targetName"
+            type="text"
+          />
         </WctTopLabel>
         <WctTopLabel label="Seed" class="flex-grow">
-          <InputText v-model="targetListData.searchTerms.targetSeed" type="text" />
+          <InputText
+            v-model="targetListData.searchTerms.targetSeed"
+            type="text"
+          />
         </WctTopLabel>
         <WctTopLabel label="Description" class="flex-grow">
-          <InputText v-model="targetListData.searchTerms.targetDescription" type="text" />
+          <InputText
+            v-model="targetListData.searchTerms.targetDescription"
+            type="text"
+          />
         </WctTopLabel>
         <WctTopLabel label="Member of" class="flex-grow">
-          <InputText v-model="targetListData.searchTerms.targetMemberOf" type="text" />
+          <InputText
+            v-model="targetListData.searchTerms.targetMemberOf"
+            type="text"
+          />
         </WctTopLabel>
       </div>
-      <Button class="wct-primary-button max-w-25" label="Search" icon="pi pi-search" id="search-button" @click="targetListData.search()" />
+      <Button
+        class="wct-primary-button max-w-25"
+        label="Search"
+        icon="pi pi-search"
+        id="search-button"
+        @click="targetListData.search()"
+      />
     </div>
 
     <div class="flex items-center justify-between w-full mb-8">
-      <div class="flex items-center justify-start sm:w-5/6 gap-4" id="grid-search">
+      <div
+        class="flex items-center justify-start sm:w-5/6 gap-4"
+        id="grid-search"
+      >
         <InputGroup>
-          <InputGroupAddon pt:root:class="!text-gray-700">Agency</InputGroupAddon>
-          <Select id="agency" v-model="targetListData.searchTerms.targetAgency" :options="agencies.agencyListWithEmptyItem" optionLabel="name" placeholder="Select an Agency" showClear />
+          <InputGroupAddon pt:root:class="!text-gray-700"
+            >Agency</InputGroupAddon
+          >
+          <Select
+            id="agency"
+            v-model="targetListData.searchTerms.targetAgency"
+            :options="agencies.agencyListWithEmptyItem"
+            optionLabel="name"
+            placeholder="Select an Agency"
+            showClear
+          />
         </InputGroup>
 
         <InputGroup>
           <InputGroupAddon pt:root:class="!text-gray-700">User</InputGroupAddon>
-          <Select id="user" v-model="targetListData.searchTerms.targetUser" :options="users.userListWithEmptyItem" optionLabel="name" placeholder="Select a User" showClear />
+          <Select
+            id="user"
+            v-model="targetListData.searchTerms.targetUser"
+            :options="users.userListWithEmptyItem"
+            optionLabel="name"
+            placeholder="Select a User"
+            showClear
+          />
         </InputGroup>
 
         <InputGroup>
-          <InputGroupAddon pt:root:class="!text-gray-700">State</InputGroupAddon>
-          <MultiSelect v-model="targetListData.searchTerms.targetState" :options="stateList" optionLabel="name" placeholder="Select States" :maxSelectedLabels="3" showClear />
+          <InputGroupAddon pt:root:class="!text-gray-700"
+            >State</InputGroupAddon
+          >
+          <MultiSelect
+            v-model="targetListData.searchTerms.targetState"
+            :options="stateList"
+            optionLabel="name"
+            placeholder="Select States"
+            :maxSelectedLabels="3"
+            showClear
+          />
         </InputGroup>
 
-        <div class="flex items-center justify-between flex-grow border rounded-md w-2/3" style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)">
+        <div
+          class="flex items-center justify-between flex-grow border rounded-md w-2/3"
+          style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)"
+        >
           <label for="non-display-only">Non-Display Only</label>
-          <Checkbox v-model="targetListData.searchTerms.nonDisplayOnly" :binary="true" inputId="non-display-only" />
+          <Checkbox
+            v-model="targetListData.searchTerms.nonDisplayOnly"
+            :binary="true"
+            inputId="non-display-only"
+          />
         </div>
       </div>
-      <Button @click="targetListData.resetFilter()" class="max-w-25" label="Clear" icon="pi pi-times" outlined fluid />
+      <Button
+        @click="targetListData.resetFilter()"
+        class="max-w-25"
+        label="Clear"
+        icon="pi pi-times"
+        outlined
+        fluid
+      />
     </div>
 
     <Divider type="solid" />
@@ -140,19 +214,39 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             columnResizeMode="fit"
             resizableColumns
           >
-            <Column field="id" sortable header="Id" dataType="numeric" class="w-26" />
-            <Column field="creationDate" header="Date" sortable dataType="date" class="w-30">
+            <Column
+              field="id"
+              sortable
+              header="Id"
+              dataType="numeric"
+              class="w-26"
+            />
+            <Column
+              field="creationDate"
+              header="Date"
+              sortable
+              dataType="date"
+              class="w-30"
+            >
               <template #body="{ data }">
                 {{ formatDate(data.creationDate) }}
               </template>
             </Column>
             <Column field="name" header="Name" sortable>
               <template #body="{ data }">
-                <router-link :to="`/targets/${data.id}`">{{ data.name }}</router-link>
+                <router-link :to="`/targets/${data.id}`">{{
+                  data.name
+                }}</router-link>
               </template>
             </Column>
             <Column field="agency" header="Agency" sortable class="w-30" />
-            <Column field="owner" header="Owner" sortable filterField="owner" class="w-30" />
+            <Column
+              field="owner"
+              header="Owner"
+              sortable
+              filterField="owner"
+              class="w-30"
+            />
             <Column field="state" header="State" sortable class="w-30">
               <template #body="{ data }">
                 {{ formatTargetState(data.state) }}
@@ -161,15 +255,26 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             <Column header="Seed" field="seed">
               <template #body="{ data }">
                 <div v-for="seed in data.seeds" :key="seed">
-                  <span v-if="seed.primary" style="font-weight: bold">{{ seed.seed }}</span>
+                  <span v-if="seed.primary" style="font-weight: bold">{{
+                    seed.seed
+                  }}</span>
                   <span v-else>{{ seed.seed }}</span>
                 </div>
               </template>
             </Column>
             <Column header="Action" field="id">
               <template #body="{ data }">
-                <Button v-if="showTargetAction(data, 'copy')" icon="pi pi-copy" text />
-                <Button v-if="showTargetAction(data, 'delete')" icon="pi pi-trash" @click="deleteTarget(data.id)" text />
+                <Button
+                  v-if="showTargetAction(data, 'copy')"
+                  icon="pi pi-copy"
+                  text
+                />
+                <Button
+                  v-if="showTargetAction(data, 'delete')"
+                  icon="pi pi-trash"
+                  @click="deleteTarget(data.id)"
+                  text
+                />
               </template>
             </Column>
             <template #footer>
