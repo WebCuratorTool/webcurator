@@ -26,6 +26,7 @@ import org.webcurator.domain.model.simple.SimpleTarget;
 import org.webcurator.rest.auth.AuthorizationException;
 import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
 
@@ -127,7 +128,8 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to search the target list. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
     }
 
@@ -138,8 +140,9 @@ public class Targets {
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
+
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         TargetDTO targetDTO = new TargetDTO(target);
@@ -165,7 +168,8 @@ public class Targets {
             case "seeds":
                 return ResponseEntity.ok().body(targetDTO.getSeeds());
             default:
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
+                String errMsg = String.format("No such target section: %s for ID: %d", section, id);
+                return FailureResponse.error(HttpStatus.NOT_FOUND, errMsg);
         }
     }
 
@@ -177,7 +181,7 @@ public class Targets {
         Target target = targetDAO.load(id);
 
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         } else {
 
             // Is the user allowed to delete this target?
@@ -190,9 +194,9 @@ public class Targets {
             }
 
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because it has related target instances"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because it has related target instances");
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because its state is not Rejected or Cancelled");
             } else {
                 // FIXME This does not delete group memberships
                 targetDAO.delete(target);
@@ -213,11 +217,11 @@ public class Targets {
         try {
             upsert(target, targetDTO, request, false);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
-        } catch (AuthorizationException e) {
-            return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         try {
@@ -228,7 +232,8 @@ public class Targets {
             targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Malformed Target URL. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 
@@ -239,7 +244,7 @@ public class Targets {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
 
         // Annotations are managed differently from normal associated entities
@@ -250,9 +255,11 @@ public class Targets {
         try {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         // Validate updated DTO
@@ -260,8 +267,8 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
 
         // Finally, map the DTO to the entity and update the database
@@ -269,11 +276,11 @@ public class Targets {
             upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
-        } catch (AuthorizationException e) {
-            return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to dave the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 

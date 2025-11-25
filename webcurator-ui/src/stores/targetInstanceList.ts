@@ -1,10 +1,16 @@
+// libraries
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
+
+// types
+import type { Annotation } from '@/types/annotation';
+import type { TargetInstance } from '@/types/targetInstance';
+// utils
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 export const useTargetInstanceListSearchStore = defineStore('TargetInstanceListSearchStore', () => {
     // Search conditions
-    const targetId = ref(null)
+    const targetId = ref(null);
 
     return { targetId }
 })
@@ -14,29 +20,37 @@ export const useTargetInstanceListStore = defineStore('TargetInstanceList', () =
     const rest: UseFetchApis = useFetch();
   
     const search = async (searchTerms: any) => { 
-        let targetInstanceList: never[] = [];
-
-          const searchParams = {
-            filter: searchTerms,
-            offset: 0,
-            limit: 2000,
-          }
-        
-          loadingTargetInstanceList.value = true
-          rest
-            .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-            .then((data: any) => {
-              targetInstanceList = data['targetInstances']
-            })
-            .catch((err: any) => {
-              console.log(err.message)
-            }).finally(() => {
-              loadingTargetInstanceList.value = false
-              console.log(targetInstanceList, searchTerms)
-              return targetInstanceList;
-            });
-            
+      let targetInstanceList = <Array<TargetInstance>>([]);
+    
+      loadingTargetInstanceList.value = true
+      try {
+        const data = await rest.post('target-instances', searchTerms, { header: 'X-HTTP-Method-Override', value: 'GET' });
+        targetInstanceList = data['targetInstances'];
+      } catch (err: any) {
+        console.log(err.message);
+      } finally {
+        loadingTargetInstanceList.value = false;
+      }
+    
+      return targetInstanceList;
     }
 
-    return { search, loadingTargetInstanceList }
+    const getTargetInstanceAnnotations = async (targetId: number) => {
+      const targetInstanceAnnotations = ref(<Array<Annotation>>([]));
+      const targetInstances = await search({ filter: { targetId: targetId }, limit: -1, includeAnnotations: true });
+
+      targetInstances.forEach((targetInstance: TargetInstance) => {
+        if (targetInstance.annotations && targetInstance.annotations.length > 0) {
+          targetInstance.annotations.forEach((annotation: Annotation) => {
+            // add targetInstanceId, used for rendering in Target Annotations view
+            annotation.targetInstanceId = targetInstance.id;
+            targetInstanceAnnotations.value.push(annotation);
+          });
+        }
+      });
+
+      return targetInstanceAnnotations.value;
+    }
+
+    return { search, loadingTargetInstanceList, getTargetInstanceAnnotations }
 });

@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Dashboard from '../views/Dashboard.vue';
-import { useAuthStore, RootPath, LoginPagePath } from '@/utils/rest.api';
+import { useAuthStore, LoginPagePath } from '@/utils/rest.api';
+
 export const routes = {
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: RootPath,
+      path: '/',
       children: [
         {
           path: 'login',
@@ -48,6 +49,10 @@ export const routes = {
           ]
         }
       ]
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
     }
   ]
 };

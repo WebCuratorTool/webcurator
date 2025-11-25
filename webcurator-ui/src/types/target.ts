@@ -1,12 +1,15 @@
+import type { Annotation } from '@/types/annotation';
 import type { HarvestAuths } from '@/types/harvestAuth';
+
 interface Target {
-    general: TargetGeneral,
-    description: TargetDescription,
-    profile: TargetProfile,
-    seeds: TargetSeeds,
     access: TargetAccess,
+    annotations: TargetAnnotations,
+    description: TargetDescription,
+    general: TargetGeneral,
     groups: TargetGroups,
+    profile: TargetProfile,
     schedule: TargetSchedule
+    seeds: TargetSeeds,
 }
 
 interface TargetAccess {
@@ -15,6 +18,18 @@ interface TargetAccess {
     accessZoneText: string,
     displayChangeReason: string,
     displayNote: string
+}
+
+interface TargetAnnotations {
+    evaluationNote: string,
+    harvestType: string,
+    annotations: Array<Annotation>,
+    alert: boolean,
+    selection: {
+        date: number,
+        type: string,
+        note: string
+    }
 }
 
 interface TargetDescription {
@@ -101,6 +116,7 @@ interface TargetSeeds extends Array<TargetSeed>{}
 export type {
     Target,
     TargetAccess,
+    TargetAnnotations,
     TargetDescription,
     TargetGeneral,
     TargetGroup,

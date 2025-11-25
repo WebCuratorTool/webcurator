@@ -1,21 +1,29 @@
 <script setup lang="ts">
+// libraries
+import { defineAsyncComponent, onMounted, ref } from 'vue';
+import { useDialog } from 'primevue/usedialog';
+import { useRoute } from 'vue-router';
+
+// components
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
 import { useTargetHarvestsDTO } from '@/stores/target';
 import { useTargetInstanceStateStore } from '@/stores/targetInstance';
+// utils
 import { formatDatetime } from '@/utils/helper';
-import Button from 'primevue/button';
-import { useDialog } from 'primevue/usedialog';
-import { defineAsyncComponent, onMounted, ref } from 'vue';
+// views
 import TargetTabPanelHarvetsTargetInstances from './TargetTabPanelHarvetsTargetInstances.vue';
 
+const ScheduleModal = defineAsyncComponent(() => import('./modals/TargetScheduleModal.vue'));
 const scheduleModal = useDialog();
+
+const route = useRoute();
+const targetId = route.params.id as string;
 
 const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
 
 const targetInstanceStates = ref<{ [key: string]: string }>({});
-
-const ScheduleModal = defineAsyncComponent(() => import('./modals/TargetScheduleModal.vue'));
 
 const newSchedule = {
   cron: '',
@@ -87,8 +95,20 @@ onMounted(async () => {
       </div>
     </WctTabViewPanel>
 
-    <TargetTabPanelHarvetsTargetInstances type="upcoming" header="Upcoming Target Instances" :targetInstanceStates="targetInstanceStates" />
+    <TargetTabPanelHarvetsTargetInstances 
+      v-if="targetId" 
+      type="upcoming" 
+      header="Upcoming Target Instances" 
+      :targetInstanceStates="targetInstanceStates"
+      :targetId="targetId" 
+    />
 
-    <TargetTabPanelHarvetsTargetInstances type="latest" header="Last 5 Target Instances" :targetInstanceStates="targetInstanceStates" />
+    <TargetTabPanelHarvetsTargetInstances 
+      v-if="targetId" 
+      type="latest" 
+      header="Last 5 Target Instances" 
+      :targetInstanceStates="targetInstanceStates" 
+      :targetId="targetId"
+    />
   </div>
 </template>

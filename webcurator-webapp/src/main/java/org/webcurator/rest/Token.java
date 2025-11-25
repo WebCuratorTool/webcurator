@@ -9,6 +9,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.rest.auth.AuthorizationException;
 import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.auth.Sessions;
+import org.webcurator.rest.common.FailureResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -42,9 +43,9 @@ public class Token {
             sessionManager.authorize(token, null, null, Privilege.LOGIN);
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Authentication failed");
+            return FailureResponse.error(HttpStatus.UNAUTHORIZED, "Authentication failed");
         } catch (AuthorizationException e) {
-            return ResponseEntity.status(403).body("User is not allowed to login");
+            return FailureResponse.error(HttpStatus.FORBIDDEN, "User is not allowed to login");
         }
     }
 

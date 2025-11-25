@@ -2,6 +2,7 @@ package org.webcurator.rest;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.webcurator.domain.ProfileDAO;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 
 import java.util.*;
@@ -49,7 +51,7 @@ public class Profiles {
             responseMap.put("amount", searchResult.amount);
             return ResponseEntity.ok().body(responseMap);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the profiles, Error: %s", e.getMessage()));
         }
     }
 
@@ -62,7 +64,7 @@ public class Profiles {
      * Handle the actual search using the old DAO API
      */
     private SearchResult search(Filter filter) throws BadRequestError {
-        List<HashMap<String, Object>>profiles = new ArrayList<>();
+        List<HashMap<String, Object>> profiles = new ArrayList<>();
         List<ProfileDTO> result;
         if (filter.agency != null) {
             result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.type);
@@ -155,6 +157,4 @@ public class Profiles {
             this.profiles = profiles;
         }
     }
-
-
 }
