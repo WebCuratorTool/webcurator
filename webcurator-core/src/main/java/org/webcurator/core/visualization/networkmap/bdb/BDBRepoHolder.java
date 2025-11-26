@@ -10,12 +10,18 @@ import org.webcurator.core.visualization.networkmap.metadata.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BDBRepoHolder {
     private static final Logger log = LoggerFactory.getLogger(BDBRepoHolder.class);
 
     private static final String MAX_DB_FILE_SIZE = "256000000";
+    public static final long MAX_TIMEOUT_SECONDS = 30;
 
     private final String dbPath;
     private String dbName;
@@ -52,14 +58,34 @@ public class BDBRepoHolder {
     }
 
     public static BDBRepoHolder createInstance(String dbPath, String repoName) throws IOException {
-        return createBdbRepoHolder(dbPath, repoName);
+        return safeOpenBdbRepoHolder(dbPath, repoName);
     }
 
     public static BDBRepoHolder getInstance(String dbPath, String repoName) throws IOException {
-        return createBdbRepoHolder(dbPath, repoName);
+        return safeOpenBdbRepoHolder(dbPath, repoName);
     }
 
-    private static BDBRepoHolder createBdbRepoHolder(String dbPath, String repoName) throws IOException {
+    public static BDBRepoHolder safeOpenBdbRepoHolder(String dbPath, String repoName) {
+        AtomicReference<BDBRepoHolder> db = new AtomicReference<>();
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            try {
+                db.set(openBdbRepoHolder(dbPath, repoName));
+            } catch (IOException ex) {
+                log.error("Failed to open bdb: {} {}", dbPath, repoName, ex);
+            }
+        });
+
+        try {
+            future.get(MAX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+            log.error("Failed to open bdb: {} {}", dbPath, repoName, ex);
+        }
+
+        return db.get();
+    }
+
+
+    private static BDBRepoHolder openBdbRepoHolder(String dbPath, String repoName) throws IOException {
         log.debug("Open BDB: {}", dbPath);
         BDBRepoHolder repo = new BDBRepoHolder(dbPath, repoName);
 
@@ -101,8 +127,29 @@ public class BDBRepoHolder {
     }
 
     public void shutdownDB() {
+        log.info("Start shutdownDB: {}", this.dbName);
+        CompletableFuture<Void> future = CompletableFuture.runAsync(this::unsafeShutdownDB);
         try {
-            touch();
+            future.get(MAX_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (InterruptedException | ExecutionException | TimeoutException ex) {
+            log.error("Failed to shutdown bdb: {} {}", this.dbPath, this.dbName, ex);
+        }
+        log.info("End shutdownDB: {}", this.dbName);
+    }
+
+    private void asyncShutdownDB() {
+        log.info("Start asyncShutdownDB: {}", this.dbName);
+        CompletableFuture.runAsync(this::unsafeShutdownDB);
+        log.info("End asyncShutdownDB: {}", this.dbName);
+    }
+
+    public void unsafeShutdownDB() {
+        if (this.env.isClosed()) {
+            return;
+        }
+
+        log.info("Start unsafeShutdownDB: {}", this.dbName);
+        try {
             try {
                 this.tblAccessProp.close();
             } catch (Exception e) {
@@ -133,6 +180,7 @@ public class BDBRepoHolder {
                 log.error("Failed to close sleepycat env: {}", e.getMessage());
             }
         }
+        log.info("End unsafeShutdownDB: {}", this.dbName);
     }
 
     // ---------------------------------------------------------------------
