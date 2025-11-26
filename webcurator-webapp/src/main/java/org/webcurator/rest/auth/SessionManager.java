@@ -27,14 +27,17 @@ public class SessionManager {
 
     private static Log logger = LogFactory.getLog(SessionManager.class);
 
-    @Autowired
     Sessions sessions;
 
-    @Autowired
     UserRoleDAO userRoleDAO;
 
-    @Autowired
     AuthenticationManager authenticationManager;
+
+    public SessionManager(Sessions sessions, UserRoleDAO userRoleDAO, AuthenticationManager authenticationManager) {
+        this.sessions = sessions;
+        this.userRoleDAO = userRoleDAO;
+        this.authenticationManager = authenticationManager;
+    }
 
     /**
      * Checks username/password and returns a token upon success

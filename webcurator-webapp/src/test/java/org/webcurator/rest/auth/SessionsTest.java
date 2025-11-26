@@ -11,13 +11,14 @@ public class SessionsTest {
     @Test
     public void testSessionCleanup() {
 
+        String firstToken = "token1";
         Sessions sessions = new Sessions();
-        sessions.addSession("token1", "user", 1);
+        sessions.addSession(firstToken, "user", 1);
         try { Thread.sleep(5); } catch (InterruptedException e) { throw new RuntimeException(e); }
         sessions.addSession("token2", "user", 1);
 
         // The session pointed to by token1 should have been removed by the second call to addSession
-        Assert.assertFalse(sessions.exists("token1"));
+        Assert.assertFalse(sessions.exists(firstToken));
 
     }
 
@@ -26,9 +27,10 @@ public class SessionsTest {
      */
     @Test
     public void testSessionInvalidation() {
+        String token = "token1";
         Sessions sessions = new Sessions();
-        sessions.addSession("token1", "user", 1);
+        sessions.addSession(token, "user", 1);
         try { Thread.sleep(5); } catch (InterruptedException e) { throw new RuntimeException(e); }
-        Assert.assertFalse(sessions.exists("token1"));
+        Assert.assertFalse(sessions.exists(token));
     }
 }
