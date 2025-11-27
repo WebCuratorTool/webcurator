@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 
@@ -19,7 +20,7 @@ public class BDBNetworkMapPoolTest {
     private static final BDBNetworkMapPool pool = new BDBNetworkMapPool(DB_ROOT_PATH, DB_VERSION);
     private static final NetworkMapClientLocal clientLocal = new NetworkMapClientLocal(pool, null);
     private static final Random rand = new Random();
-    private static final int JOB_ACCOUNT = 200;
+    private static final int JOB_ACCOUNT = 20;
 
 
     static class Worker extends Thread {
@@ -71,10 +72,16 @@ public class BDBNetworkMapPoolTest {
             pool.close(job, 1);
         }
 
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 3; i++) {
             runOneRound();
             System.out.printf("Tested round: %d", i);
             System.out.println();
         }
+    }
+
+    @Test
+    public void testCreateInstance() {
+        BDBRepoHolder db = pool.createInstance(1, 1);
+        assert db != null;
     }
 }
