@@ -55,6 +55,10 @@ public class Privilege {
     public static final String DELETE_TARGET = "DELETE_TARGET";
     public static final String REINSTATE_TARGET = "REINSTATE_TARGET";
     public static final String ADD_SCHEDULE_TO_TARGET = "ADD_SCHEDULE_TO_TARGET";
+
+
+    // FIXME drop the following three privileges after we get rid of the old JSP UI
+    //  since the ReST API does not use them
     public static final String SET_HARVEST_PROFILE_LV1 = "SET_HARVEST_PROFILE_LV1";
     public static final String SET_HARVEST_PROFILE_LV2 = "SET_HARVEST_PROFILE_LV2";
     public static final String SET_HARVEST_PROFILE_LV3 = "SET_HARVEST_PROFILE_LV3";
