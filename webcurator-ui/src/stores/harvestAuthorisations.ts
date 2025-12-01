@@ -1,6 +1,7 @@
-import { ref } from "vue";
 import { defineStore } from "pinia";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import { ref } from "vue";
+
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 export const useHarvestAuthorisationStatusStore = defineStore(
   "HarvestAuthorisationStatus",

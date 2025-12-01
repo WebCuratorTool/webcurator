@@ -1,23 +1,33 @@
 <script setup lang="ts">
-import { useTargetGropusDTO } from "@/stores/target";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
 import { ref } from "vue";
+
+import { useTargetGropusDTO } from "@/stores/target";
+import type { TargetGroup, TargetGroups } from "@/types/target";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const rest: UseFetchApis = useFetch();
 
 const targetGroups = useTargetGropusDTO();
 
-const groups = ref([]);
-const filteredGroups = ref([]);
+const groups = ref(<TargetGroups>[]);
+const filteredGroups = ref(<TargetGroups>[]);
 const loading = ref(false);
 
 const searchTerm = ref("");
 
-const states: any = {
+const states: Record<number, string> = {
   8: "Pending",
   9: "Active",
   10: "Inactive",
 };
+
+interface TargetGroupsResponse {
+  filter: Record<string, unknown>;
+  groups: TargetGroups;
+  amount: number;
+  offset: number;
+  limit: number;
+}
 
 const fetch = () => {
   const searchParams = {
@@ -32,13 +42,14 @@ const fetch = () => {
       header: "X-HTTP-Method-Override",
       value: "GET",
     })
-    .then((data: any) => {
-      groups.value = data["groups"];
+    .then((data: unknown) => {
+      const resp = data as TargetGroupsResponse;
+      groups.value = resp.groups;
       filteredGroups.value = groups.value;
       loading.value = false;
     })
     .catch((err: any) => {
-      console.log(err.message);
+      console.log(err?.message ?? err);
       loading.value = false;
     });
 };
@@ -46,14 +57,14 @@ const fetch = () => {
 const search = () => {
   const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
   filteredGroups.value = groups.value.filter(
-    (g: any) =>
+    (g: TargetGroup) =>
       g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-      g.agency.toLowerCase().includes(lowerCaseSearchTerm),
+      (g.agency && g.agency.toLowerCase().includes(lowerCaseSearchTerm)),
   );
 };
 
 const isGroupAdded = (id: number) => {
-  return targetGroups.targetGroups.some((t: any) => t.id == id);
+  return targetGroups.targetGroups.some((t: TargetGroup) => t.id == id);
 };
 
 fetch();
@@ -76,7 +87,11 @@ fetch();
     <Divider type="dotted" />
 
     <div class="flex flex-wrap gap-2">
-      <Chip v-for="group in targetGroups.targetGroups" style="padding: 0 4px">
+      <Chip
+        v-for="group in targetGroups.targetGroups"
+        style="padding: 0 4px"
+        :key="group.id"
+      >
         <span class="p-2 m-0">{{ group.name }}</span>
         <Button
           class="p-0 m-0"

@@ -72,12 +72,12 @@
 }
 
 .tabview-custom .p-tabpanels {
-  background-color: transparent;
-  background: transparent;
+  background-color: var(--surface-ground);
+  /* background: transparent; */
 }
 .tabview-custom .p-tablist-tab-list {
-  background-color: transparent;
-  background: transparent;
+  background-color: var(--surface-ground);
+  /* background: transparent; */
 }
 
 .wct-back-button {

@@ -1,10 +1,16 @@
-import { useLayout } from "@/layout/composables/layout";
 import { updatePreset, updateSurfacePalette } from "@primeuix/themes";
 import { ref } from "vue";
 
+import { useLayout } from "@/layout/composables/layout";
+
 const { layoutConfig, isDarkTheme, toggleDarkMode } = useLayout();
 
-const primaryColors = ref([
+interface Color {
+  name: string;
+  palette: { [key: number]: string };
+}
+
+const primaryColors = ref<Color[]>([
   { name: "noir", palette: {} },
   {
     name: "emerald",
@@ -406,7 +412,7 @@ const surfaces = ref([
 function getPresetExt() {
   const color = primaryColors.value.find(
     (c) => c.name === layoutConfig.primary,
-  ) as any;
+  ) as Color;
 
   if (color.name === "noir") {
     return {
@@ -496,7 +502,7 @@ function getPresetExt() {
   }
 }
 
-function updateColors(type: string, color: any) {
+function updateColors(type: string, color: Color) {
   if (type === "primary") {
     layoutConfig.primary = color.name;
   } else if (type === "surface") {
@@ -506,7 +512,7 @@ function updateColors(type: string, color: any) {
   applyTheme(type, color);
 }
 
-function applyTheme(type: string, color: any) {
+function applyTheme(type: string, color: Color) {
   if (type === "primary") {
     updatePreset(getPresetExt());
   } else if (type === "surface") {
@@ -515,12 +521,12 @@ function applyTheme(type: string, color: any) {
 }
 
 export const togglePreset = (colorName: string) => {
-  const color = primaryColors.value.find((c) => c.name === colorName) as any;
+  const color = primaryColors.value.find((c) => c.name === colorName) as Color;
   updateColors("primary", color);
 };
 
 export const toggleSurface = (colorName: string) => {
-  const color = primaryColors.value.find((c) => c.name === colorName) as any;
+  const color = primaryColors.value.find((c) => c.name === colorName) as Color;
   updateColors("surface", color);
 };
 

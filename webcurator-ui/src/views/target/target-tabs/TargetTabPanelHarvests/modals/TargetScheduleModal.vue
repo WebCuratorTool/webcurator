@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { computed, inject, type Ref, ref, watch } from "vue";
+
 import Loading from "@/components/Loading.vue";
 import WctFormField from "@/components/WctFormField.vue";
 import { useTargetGeneralDTO, useTargetHarvestsDTO } from "@/stores/target";
@@ -13,31 +16,31 @@ import {
   parseCron,
 } from "@/utils/cronParser";
 import { formatDate, formatTime } from "@/utils/helper";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
-import { computed, inject, ref, watch } from "vue";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const targetGeneral = useTargetGeneralDTO();
 const targetHarvests = useTargetHarvestsDTO();
 
 const rest: UseFetchApis = useFetch();
 
-const dialogRef: any = inject("dialogRef");
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
-const targetSchedule = ref(dialogRef.value.data.targetSchedule);
+const targetSchedule = ref(dialogRef?.value.data.targetSchedule);
 const cronFields = ref();
 const scheduleType = ref("");
 const startDate = ref();
 const endDate = ref();
 const time = ref();
-const editing = ref(dialogRef.value.data.editingSchedule);
-const isNewSchedule = ref(dialogRef.value.data.isNewSchedule);
-const scheduleTypes = ref();
+const editing = ref(dialogRef?.value.data.editingSchedule);
+const isNewSchedule = ref(dialogRef?.value.data.isNewSchedule);
+const scheduleTypes = ref(<Record<number, string>>{});
 const loading = ref(true);
 const monthGroups = ref<string[]>([]);
 const customScheduledTimes = ref<Date[]>([]);
 const validationErrors = ref(false);
+const selectedTime = ref<Date | null>(null);
 const newCronObject = ref({
-  time: null,
+  time: "",
   dayOfMonth: "",
   month: "",
   months: "",
@@ -46,18 +49,18 @@ const newCronObject = ref({
   dayOfWeek: "",
 });
 
-startDate.value = formatDate(dialogRef.value.data.targetSchedule.startDate);
+startDate.value = formatDate(dialogRef?.value.data.targetSchedule.startDate);
 endDate.value =
-  dialogRef.value.data.targetSchedule.endDate != null
-    ? formatDate(dialogRef.value.data.targetSchedule.endDate)
+  dialogRef?.value.data.targetSchedule.endDate != null
+    ? formatDate(dialogRef?.value.data.targetSchedule.endDate)
     : "";
 time.value =
-  dialogRef.value.data.targetSchedule.nextExecutionDate != null
-    ? formatTime(dialogRef.value.data.targetSchedule.nextExecutionDate)
+  dialogRef?.value.data.targetSchedule.nextExecutionDate != null
+    ? formatTime(dialogRef?.value.data.targetSchedule.nextExecutionDate)
     : "";
 cronFields.value =
-  dialogRef.value.data.targetSchedule.cron != ""
-    ? parseCron(dialogRef.value.data.targetSchedule.cron)
+  dialogRef?.value.data.targetSchedule.cron != ""
+    ? parseCron(dialogRef?.value.data.targetSchedule.cron)
     : { dayOfMonth: "", month: "" };
 
 // Init a new cron object if in editing mode
@@ -110,8 +113,8 @@ const shouldShowDayOfWeek = computed(() => {
 
 const fetch = () => {
   rest
-    .get("targets/schedule-types")
-    .then((data: any) => {
+    .get<Record<number, string>>("targets/schedule-types")
+    .then((data) => {
       scheduleTypes.value = data;
       scheduleType.value = scheduleTypes.value[targetSchedule.value.type];
       loading.value = false;
@@ -151,7 +154,7 @@ const getNextCustomTimes = () => {
 };
 
 const saveSchedule = () => {
-  const parseDate = (dateStr: any) => {
+  const parseDate = (dateStr: string) => {
     const [day, month, year] = dateStr.split("/");
     return new Date(`${year}-${month}-${day}`);
   };
@@ -169,9 +172,11 @@ const saveSchedule = () => {
       : createCronExpression(newCronObject.value);
 
   // Get the schedule type number from the schedule types list
-  const scheduleTypeNumber = Object.keys(scheduleTypes.value).find(
-    (key) => scheduleTypes.value[key] === scheduleType.value,
+  const scheduleTypeKey = Object.keys(scheduleTypes.value).find(
+    (key: string) => scheduleTypes.value[Number(key)] === scheduleType.value,
   );
+  const scheduleTypeNumber =
+    scheduleTypeKey !== undefined ? Number(scheduleTypeKey) : 0;
 
   const scheduleToSave = {
     cron: cronExpression,
@@ -198,7 +203,7 @@ const saveSchedule = () => {
 };
 
 const closeDialog = () => {
-  dialogRef.value.close();
+  dialogRef?.value.close();
 };
 
 const updateCronDayOfWeek = () => {
@@ -230,6 +235,31 @@ const updateMonthGroups = () => {
 watch(scheduleType, updateMonthGroups);
 watch(shouldShowDayOfWeek, updateCronDayOfWeek);
 watch(shouldShowDayOfMonth, updateCronDayOfMonth);
+watch(selectedTime, (newVal) => {
+  if (newVal) {
+    const hours = newVal.getHours().toString().padStart(2, "0");
+    const minutes = newVal.getMinutes().toString().padStart(2, "0");
+    newCronObject.value.time = `${hours}:${minutes}`;
+  } else {
+    newCronObject.value.time = "";
+  }
+});
+
+watch(
+  () => newCronObject.value.time,
+  (newVal) => {
+    if (newVal) {
+      const [hours, minutes] = newVal.split(":").map(Number);
+      const date = new Date();
+      date.setHours(hours);
+      date.setMinutes(minutes);
+      selectedTime.value = date;
+    } else {
+      selectedTime.value = null;
+    }
+  },
+  { immediate: true }, // Run on component mount
+);
 
 fetch();
 </script>
@@ -294,7 +324,7 @@ fetch();
           v-if="scheduleType != 'Every Monday at 9:00pm'"
           label="Time"
         >
-          <DatePicker v-if="editing" v-model="newCronObject.time" timeOnly />
+          <DatePicker v-if="editing" v-model="selectedTime" timeOnly />
           <p v-else class="font-semibold">
             {{ formatTime(targetSchedule.nextExecutionDate) }}
           </p>

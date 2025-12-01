@@ -1,4 +1,16 @@
 import type { AuthorisingAgent } from "./authorisingAgent";
+
+interface PermissionAnnotation {
+  date: number;
+  user: string;
+  note: string;
+}
+
+interface PermissionExclusion {
+  url: string;
+  reason: string;
+}
+
 interface Permission {
   id: number;
   startDate: number;
@@ -13,11 +25,11 @@ interface Permission {
   openAccessDate: null | string;
   authorisingAgent: AuthorisingAgent;
   quickPick: boolean;
-  annotations: any[];
+  annotations: PermissionAnnotation[];
   displayName: string;
   exclusions: {
-    [key: string]: any;
+    [key: string]: PermissionExclusion;
   }[];
 }
 
-export type { Permission };
+export type { Permission, PermissionAnnotation, PermissionExclusion };

@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { formatTargetState, useTargetGeneralDTO } from "@/stores/target";
 import { formatDate } from "@/utils/helper";
-import { useRouter } from "vue-router";
-import TargetTabPanelAccess from "./TargetTabPanelAccess.vue";
+
 import TargetTabPanelAnnotations from "./TargetTabAnnotations/TargetTabPanelAnnotations.vue";
+import TargetTabPanelAccess from "./TargetTabPanelAccess.vue";
 import TargetTabPanelDescription from "./TargetTabPanelDescription.vue";
 import TargetTabPanelGeneral from "./TargetTabPanelGeneral/TargetTabPanelGeneral.vue";
 import TargetTabPanelHarvests from "./TargetTabPanelHarvests/TargetTabPanelHarvests.vue";
 import TargetTabPanelProfile from "./TargetTabPanelProfile.vue";
-
-const router = useRouter();
 
 defineProps<{
   editing: boolean;
@@ -17,36 +15,12 @@ defineProps<{
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
-
-const emit = defineEmits(["setEditing", "save"]);
-
-const navigateBack = () => {
-  if (router) {
-    router.push("/targets/");
-  }
-};
 </script>
 
 <template>
   <div class="2xl:w-5/6 flex flex-col">
-    <!-- <Toolbar>
-      <template #start>
-        <Button icon="pi pi-arrow-left" @click="navigateBack" text />
-      </template>
-      <template v-if="!editing" #end>
-        <Button class="wct-primary-button" icon="pi pi-pencil" @click="$emit('setEditing', true)" label="Edit" />
-      </template>
-      <template v-else #end>
-        <div class="flex gap-2">
-          <Button class="wct-primary-button" icon="pi pi-times" @click="$emit('setEditing', false)" label="Cancel" />
-          <Button class="wct-primary-button ml-2" icon="pi pi-save" @click="$emit('save')" label="Save" />
-        </div>
-      </template>
-    </Toolbar> -->
-
     <div class="flex items-center justify-between w-full px-5 pt-8">
-      <!-- <Button icon="pi pi-arrow-left" @click="navigateBack" text /> -->
-      <router-link to="/wct/targets/">
+      <router-link to="/targets/">
         <span class="pi pi-arrow-left wct-back-button"></span>
       </router-link>
       <Button

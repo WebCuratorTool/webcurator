@@ -1,15 +1,15 @@
-import { createPinia } from "pinia";
-import { createApp } from "vue";
+import "@/assets/styles.scss";
 
 import Aura from "@primeuix/themes/aura";
+import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
 import ConfirmationService from "primevue/confirmationservice";
 import DialogService from "primevue/dialogservice";
 import ToastService from "primevue/toastservice";
+import { createApp } from "vue";
+
 import App from "./App.vue";
 import router from "./router";
-
-import "@/assets/styles.scss";
 
 const app = createApp(App);
 

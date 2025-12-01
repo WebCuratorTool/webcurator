@@ -1,5 +1,4 @@
 import { Cron } from "croner";
-import { formatTime } from "./helper";
 
 export const days = [
   "Monday",
@@ -90,7 +89,7 @@ export const createCronExpression = (cronSettings: {
   dayOfMonth: string;
   months: string;
   dayOfWeek: string;
-  time: any;
+  time: string;
 }) => {
   const cron = {
     minute: "",
@@ -100,14 +99,7 @@ export const createCronExpression = (cronSettings: {
     dayOfWeek: "",
   };
 
-  let time;
-
-  // Get the hour and minute from the time
-  // It may be a date object if selected by the time picker, otherwise it's a number
-  if (Object.prototype.toString.call(cronSettings.time) === "[object Date]") {
-    time = formatTime(cronSettings.time).split(":");
-  } else time = cronSettings.time.toString().split(":");
-
+  const time = cronSettings.time.toString().split(":");
   cron.hour = time[0];
   cron.minute = time[1];
 

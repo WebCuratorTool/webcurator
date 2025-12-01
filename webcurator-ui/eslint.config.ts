@@ -1,8 +1,9 @@
-import { defineConfig } from "eslint/config";
-import globals from "globals";
 import js from "@eslint/js";
-import pluginVue from "eslint-plugin-vue";
+import { defineConfig } from "eslint/config";
 import prettierPlugin from "eslint-plugin-prettier";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import pluginVue from "eslint-plugin-vue";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
@@ -26,7 +27,11 @@ export default defineConfig([
 
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,vue}"],
-    plugins: { js, prettier: prettierPlugin },
+    plugins: {
+      js,
+      "simple-import-sort": simpleImportSort,
+      prettier: prettierPlugin,
+    },
     extends: ["js/recommended"],
     languageOptions: {
       globals: globals.browser,
@@ -34,7 +39,8 @@ export default defineConfig([
     },
     rules: {
       "prettier/prettier": "warn",
-      "sort-imports": "warn",
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
     },
   },
 

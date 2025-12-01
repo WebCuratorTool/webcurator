@@ -1,75 +1,57 @@
 <script setup lang="ts">
-import { inject, onMounted, reactive, ref } from "vue";
 import type { DataTableRowClickEvent } from "primevue/datatable";
-import { usePermissionStore } from "@/stores/permissions";
-import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
-import type { Permission } from "@/types/permission";
-import { formatDate } from "@/utils/helper";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { inject, onMounted, reactive, type Ref, ref } from "vue";
 
 import Loading from "@/components/Loading.vue";
+import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
+import { usePermissionStore } from "@/stores/permissions";
+import type { AuthorisingAgent } from "@/types/authorisingAgent";
+import type {
+  HarvestAuth,
+  HarvestAuthDisplay,
+  HarvestAuthSearchResponse,
+} from "@/types/harvestAuth";
+import type { Permission } from "@/types/permission";
+import { formatDate } from "@/utils/helper";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
-const dialogRef: any = inject("dialogRef");
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
 const rest: UseFetchApis = useFetch();
-
-interface HarvestAuth {
-  id: number;
-  name: string;
-  authorisingAgents: any[];
-  permissions: any[];
-}
 
 const returnedHarvestAuths = ref<HarvestAuth[]>([]);
 const loading = ref(false);
 const loadingPermission = ref(false);
 
-const harvestAuths = ref<
-  {
-    id: number;
-    name: string;
-    agent: "";
-    permissionId: number;
-    startDate: "";
-    endDate: "";
-    urlPatterns: [];
-  }[]
->([]);
-const filteredHarvestAuths = ref<
-  {
-    id: number;
-    name: string;
-    agent: "";
-    permissionId: number;
-    startDate: "";
-    endDate: "";
-    urlPatterns: [];
-  }[]
->([]);
+const harvestAuths = ref<HarvestAuthDisplay[]>([]);
+const filteredHarvestAuths = ref<HarvestAuthDisplay[]>([]);
 
 const searchTerm = ref("");
 
 const seed = ref();
 let expandedPermission = reactive<Permission>({} as Permission);
-const expandedRows = ref<any[]>([]);
+const expandedRows = ref<Permission[]>([]);
 const harvestAuthorisationStatuses = ref();
 
 const prepareData = (data: HarvestAuth[]) => {
   data.forEach((harvestAuth: HarvestAuth) => {
     if (harvestAuth.authorisingAgents.length > 0) {
-      harvestAuth.authorisingAgents.forEach((authorisingAgent: any) => {
-        if (authorisingAgent.permissions.length > 0) {
-          harvestAuths.value.push({
-            id: harvestAuth.id,
-            name: harvestAuth.name,
-            agent: authorisingAgent.name,
-            permissionId: authorisingAgent.permissions[0].id,
-            startDate: authorisingAgent.permissions[0].startDate,
-            endDate: authorisingAgent.permissions[0].endDate,
-            urlPatterns: authorisingAgent.permissions[0].urlPatterns,
-          });
-        }
-      });
+      harvestAuth.authorisingAgents.forEach(
+        (authorisingAgent: AuthorisingAgent) => {
+          if (authorisingAgent.permissions.length > 0) {
+            harvestAuths.value.push({
+              id: harvestAuth.id,
+              name: harvestAuth.name,
+              agent: authorisingAgent.name,
+              permissionId: authorisingAgent.permissions[0].id,
+              startDate: authorisingAgent.permissions[0].startDate,
+              endDate: authorisingAgent.permissions[0].endDate,
+              urlPatterns: authorisingAgent.permissions[0].urlPatterns,
+            });
+          }
+        },
+      );
     }
   });
   filteredHarvestAuths.value = harvestAuths.value;
@@ -77,17 +59,14 @@ const prepareData = (data: HarvestAuth[]) => {
 
 const setExpandedRow = async (event: DataTableRowClickEvent) => {
   loadingPermission.value = true;
-  const isExpanded = (expandedRows.value as any[]).find(
+  const isExpanded = (expandedRows.value as Permission[]).find(
     (p) => p.id === event.data.id,
   );
 
   if (isExpanded?.id) {
-    expandedRows.value = [event.data] as any;
-    const fetchedPermission: any = await usePermissionStore().fetch(
-      event.data.permissionId,
-    );
-
-    expandedPermission = fetchedPermission;
+    expandedRows.value = [event.data] as Permission[];
+    await usePermissionStore().fetch(event.data.permissionId);
+    expandedPermission = usePermissionStore().permission;
   } else {
     expandedRows.value = [];
     expandedPermission = {} as Permission;
@@ -96,7 +75,7 @@ const setExpandedRow = async (event: DataTableRowClickEvent) => {
   loadingPermission.value = false;
 };
 
-const fetch = () => {
+const fetch = async () => {
   const searchParams = {
     offset: 0,
     limit: 1024,
@@ -104,26 +83,28 @@ const fetch = () => {
 
   loading.value = true;
 
-  rest
-    .post("harvest-authorisations", searchParams, {
-      header: "X-HTTP-Method-Override",
-      value: "GET",
-    })
-    .then((data: any) => {
-      returnedHarvestAuths.value = data["harvestAuthorisations"];
-      prepareData(returnedHarvestAuths.value);
-      loading.value = false;
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-      loading.value = false;
-    });
+  try {
+    const response: HarvestAuthSearchResponse = await rest.post(
+      "harvest-authorisations",
+      searchParams,
+      {
+        header: "X-HTTP-Method-Override",
+        value: "GET",
+      },
+    );
+    returnedHarvestAuths.value = response.harvestAuthorisations;
+    prepareData(returnedHarvestAuths.value);
+    loading.value = false;
+  } catch (err: any) {
+    console.log(err.message);
+    loading.value = false;
+  }
 };
 
 const search = () => {
   const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
   filteredHarvestAuths.value = harvestAuths.value.filter(
-    (g: any) =>
+    (g: HarvestAuthDisplay) =>
       g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
       g.urlPatterns.some((urlPattern: string) => {
         // Ignore trailing slashes
@@ -140,7 +121,7 @@ const isAuthAdded = (authPermissionId: number) =>
   );
 
 onMounted(async () => {
-  seed.value = dialogRef.value.data.seed;
+  seed.value = dialogRef?.value.data.seed;
   const statuses = await useHarvestAuthorisationStatusStore().fetch();
   harvestAuthorisationStatuses.value = statuses;
 });

@@ -1,14 +1,12 @@
 <script setup lang="ts">
-// libraries
-import { defineAsyncComponent, ref, toRaw, watch } from "vue";
 import { useDialog } from "primevue/usedialog";
+import { defineAsyncComponent, ref, toRaw, watch } from "vue";
 import { useRoute } from "vue-router";
 
-// components
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-// stores
 import { useTargetSeedsDTO } from "@/stores/target";
-// utils
+import type { HarvestAuth, HarvestAuthDisplay } from "@/types/harvestAuth";
+import type { TargetSeed } from "@/types/target";
 import { formatDate } from "@/utils/helper";
 
 const AddPermissionModal = defineAsyncComponent(
@@ -35,25 +33,27 @@ const targetId = route.params.id as string;
 const targetSeeds = useTargetSeedsDTO();
 
 const editingSeed = ref(0);
-const previousSeed = ref({});
+const previousSeed = ref<TargetSeed>();
 
-const editSeed = (seed: any) => {
+const editSeed = (seed: TargetSeed) => {
   previousSeed.value = structuredClone(toRaw(seed));
   editingSeed.value = seed.id;
 };
 
 const cancelEditSeed = () => {
-  targetSeeds.replaceSeed(previousSeed.value);
+  if (previousSeed.value) {
+    targetSeeds.replaceSeed(previousSeed.value);
+  }
   editingSeed.value = 0;
 };
 
-const removePermission = (seed: any, auth: any) => {
+const removePermission = (seed: TargetSeed, auth: HarvestAuthDisplay) => {
   seed.authorisations = seed.authorisations.filter(
-    (a: any) => a.permissionId !== auth.permissionId,
+    (a: HarvestAuth) => a.permissionId !== auth.permissionId,
   );
 };
 
-const showAddPermission = (seed: any) => {
+const showAddPermission = (seed: TargetSeed) => {
   addPermissionsModal.open(AddPermissionModal, {
     props: {
       header: `Add Permission to ${seed.seed}`,

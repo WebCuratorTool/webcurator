@@ -1,16 +1,21 @@
+import { defineStore } from "pinia";
+import { ref } from "vue";
+
 import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
 import {
   type Target,
   type TargetAccess,
   type TargetAnnotations,
   type TargetDescription,
+  type TargetGeneral,
+  type TargetGroup,
   type TargetGroups,
+  type TargetHarvest,
   type TargetProfile,
   type TargetSchedule,
+  type TargetSeed,
   type TargetSeeds,
 } from "@/types/target";
-import { defineStore } from "pinia";
-import { ref } from "vue";
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 };
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 };
@@ -47,13 +52,18 @@ export const setTarget = (target: Target) => {
   useTargetGeneralDTO().setData(target.general);
   useTargetGropusDTO().setData(target.groups);
   useTargetHarvestsDTO().setData(target.schedule);
-  target.profile != null && useTargetProfileDTO().setData(target.profile);
+  if (target.profile != null) {
+    useTargetProfileDTO().setData(target.profile);
+  }
   useTargetSeedsDTO().setData(target.seeds);
   useTargetAccessDTO().setData(target.access);
   useTargetAnnotationsDTO().setData(target.annotations);
 };
 
-export const formatTargetState = (state: number | any) => {
+export const formatTargetState = (
+  state: number | { code: number; name: string },
+) => {
+  console.log("Formatting state: ", state);
   const placeHolder = "Select a state";
 
   if (typeof state === "undefined") {
@@ -115,31 +125,23 @@ export const useNextStateStore = defineStore("TargetNextStateList", () => {
   return { nextStateList, initData, setData };
 });
 
-export const showTargetAction = (target: any, actionName: string) => {
-  if (!target || !actionName) {
-    return false;
-  }
+export const showTargetAction = (
+  targetState: number,
+  actionName: string,
+): boolean => {
+  if (!targetState || !actionName) return false;
 
-  //TODO: privilege applied
-
-  if (actionName === "view") {
-    return true;
-  }
-
-  if (actionName === "edit") {
-    return true;
-  }
-
-  if (actionName === "new" || actionName === "copy") {
-    return true;
-  }
+  if (actionName === "view" || actionName === "edit") return true;
+  if (actionName === "new" || actionName === "copy") return true;
 
   if (actionName === "delete") {
     return (
-      target.state === TARGET_STATE_REJECTED.code ||
-      target.state === TARGET_STATE_CANCELLED.code
+      targetState === TARGET_STATE_REJECTED.code ||
+      targetState === TARGET_STATE_CANCELLED.code
     );
   }
+
+  return false;
 };
 
 export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
@@ -190,10 +192,10 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
       autoPrune: autoPrune.value,
       referenceCrawl: referenceCrawl.value,
       requestToArchivists: requestToArchivists.value,
-    };
+    } as TargetGeneral;
   };
 
-  const setData = (data: any) => {
+  const setData = (data: TargetGeneral) => {
     id.value = data.id;
     name.value = data.name;
     creationDate.value = data.creationDate;
@@ -358,7 +360,7 @@ export const useTargetSeedsDTO = defineStore("TargetSeedsDTO", () => {
 
   const getData = () => targetSeeds.value;
 
-  const addSeed = (seed: any) => {
+  const addSeed = (seed: TargetSeed) => {
     targetSeeds.value.push(seed);
   };
 
@@ -366,7 +368,7 @@ export const useTargetSeedsDTO = defineStore("TargetSeedsDTO", () => {
     targetSeeds.value = targetSeeds.value.filter((s) => s.id != seedId);
   };
 
-  const replaceSeed = (replacementSeed: any) => {
+  const replaceSeed = (replacementSeed: TargetSeed) => {
     targetSeeds.value = targetSeeds.value.map((seed) =>
       seed.id === replacementSeed.id ? replacementSeed : seed,
     );
@@ -400,7 +402,7 @@ export const useTargetGropusDTO = defineStore("TargetGroupsDTO", () => {
     targetGroups.value = targetGroups.value.filter((g) => g.id != groupId);
   };
 
-  const addGroup = (group: any) => {
+  const addGroup = (group: TargetGroup) => {
     targetGroups.value.push({ id: group.id, name: group.name });
   };
 
@@ -460,7 +462,7 @@ export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
     targetSchedule.value = data;
   };
 
-  const addSchedule = (schedule: any) => {
+  const addSchedule = (schedule: TargetHarvest) => {
     targetSchedule.value.schedules.push(schedule);
   };
 
@@ -470,7 +472,7 @@ export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
     );
   };
 
-  const replaceSchedule = (replacementSchedule: any) => {
+  const replaceSchedule = (replacementSchedule: TargetHarvest) => {
     targetSchedule.value.schedules = targetSchedule.value.schedules.map(
       (schedule) =>
         schedule.id === replacementSchedule.id ? replacementSchedule : schedule,

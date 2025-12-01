@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useTargetGropusDTO } from "@/stores/target";
 import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent } from "vue";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
+import { useTargetGropusDTO } from "@/stores/target";
 
 const targetGroups = useTargetGropusDTO();
 

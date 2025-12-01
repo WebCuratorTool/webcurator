@@ -1,6 +1,12 @@
-import { createRouter, createWebHistory } from "vue-router";
-import Dashboard from "../views/Dashboard.vue";
+import {
+  createRouter,
+  createWebHistory,
+  type RouteLocationNormalized,
+} from "vue-router";
+
 import { LoginPagePath, useAuthStore } from "@/utils/rest.api";
+
+import Dashboard from "../views/Dashboard.vue";
 
 export const routes = {
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -58,7 +64,7 @@ export const routes = {
 };
 
 const router = createRouter(routes);
-router.beforeEach(async (to: any) => {
+router.beforeEach(async (to: RouteLocationNormalized) => {
   const auth = useAuthStore();
   const loggedIn = await auth.isAuthenticated();
   if (to.path !== LoginPagePath && !loggedIn) {

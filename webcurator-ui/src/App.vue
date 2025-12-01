@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { togglePreset, toggleThemeMode } from "./utils/themes";
-import IconWarning from "@/components/icons/IconWarning.vue";
 import { RouterView } from "vue-router";
+
+import IconWarning from "@/components/icons/IconWarning.vue";
+
+import { togglePreset, toggleThemeMode } from "./utils/themes";
 
 toggleThemeMode("light");
 togglePreset("indigo");

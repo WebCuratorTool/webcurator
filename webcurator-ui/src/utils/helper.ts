@@ -1,4 +1,4 @@
-import { routes } from "@/router";
+// import { routes } from "@/router";
 
 export const formatDate = (timestamp: number | string) => {
   const value = new Date(timestamp);
@@ -9,7 +9,7 @@ export const formatDate = (timestamp: number | string) => {
   });
 };
 
-export const formatTime = (timestamp: number) => {
+export const formatTime = (timestamp: Date | number | string) => {
   const value = new Date(timestamp);
   return value.toLocaleTimeString([], { hour12: false, timeStyle: "short" });
 };
@@ -19,36 +19,36 @@ export const formatDatetime = (timestamp: number) => {
   return value.toLocaleString();
 };
 
-export const filterRoutePathByName = (routeName: string) => {
-  const path = routes.routes[0].path;
-  for (let i = 0; i < routes.routes[0].children.length; i++) {
-    const r = routes.routes[0].children[i];
-    if (r.name === routeName) {
-      return path + "/" + r.path;
-    }
-  }
-  return undefined;
-};
+// export const filterRoutePathByName = (routeName: string) => {
+//   const path = routes.routes[0].path;
+//   for (let i = 0; i < routes.routes[0].children.length; i++) {
+//     const r = routes.routes[0].children[i];
+//     if (r.name === routeName) {
+//       return path + "/" + r.path;
+//     }
+//   }
+//   return undefined;
+// };
 
-export const getRouteURLByName = (
-  routeName: string,
-  params: any = undefined,
-) => {
-  let path = filterRoutePathByName(routeName);
-  if (!path) {
-    return "/";
-  }
+// export const getRouteURLByName = (
+//   routeName: string,
+//   params: any = undefined,
+// ) => {
+//   let path = filterRoutePathByName(routeName);
+//   if (!path) {
+//     return "/";
+//   }
 
-  if (!params) {
-    return path;
-  }
+//   if (!params) {
+//     return path;
+//   }
 
-  for (const key in params) {
-    const value = params[key];
-    path = path.replace(":" + key, value);
-  }
-  return path;
-};
+//   for (const key in params) {
+//     const value = params[key];
+//     path = path.replace(":" + key, value);
+//   }
+//   return path;
+// };
 
 export const camelCaseToTitleCase = (s: string) => {
   const result = s.replace(/([A-Z])/g, " $1");

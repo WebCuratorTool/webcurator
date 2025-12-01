@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useTargetDescriptionDTO } from "@/stores/target";
 import { ref } from "vue";
 
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
+import { useTargetDescriptionDTO } from "@/stores/target";
 
 defineProps<{
   editing: boolean;

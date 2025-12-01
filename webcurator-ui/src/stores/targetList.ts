@@ -1,17 +1,35 @@
-// libraries
-import { reactive, ref } from "vue";
 import { defineStore } from "pinia";
+import { reactive, ref } from "vue";
 
-// stores
 import { useUserProfileStore } from "@/stores/users";
-// utils
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import type { Target } from "@/types/target";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+
+interface SearchConditions {
+  targetId: number | null;
+  name: string;
+  seed: string;
+  description: string;
+  groupName: string;
+  nonDisplayOnly: boolean;
+  agency: string | null;
+  userId: string | null;
+  states: Array<number>;
+}
+
+interface TargetListResponse {
+  amount: number;
+  offset: number;
+  limit: number;
+  targets: Array<Target>;
+}
 
 export const targetListPageState = reactive({
   totalRecords: 1,
   rows: 10,
   first: 0,
 });
+
 export const useTargetListSearchStore = defineStore(
   "TargetListSearchStore",
   () => {
@@ -24,7 +42,7 @@ export const useTargetListSearchStore = defineStore(
     const nonDisplayOnly = ref(false);
     const targetAgency = ref();
     const targetUser = ref();
-    const targetState = [] as any;
+    const targetState = ref<Array<{ name: string; code: number }>>([]);
     return {
       targetId,
       targetName,
@@ -41,10 +59,20 @@ export const useTargetListSearchStore = defineStore(
 
 export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
   const userProfile = useUserProfileStore();
-  const targetList = ref([]);
+  const targetList = ref(Array<Target>());
   const loadingTargetList = ref(false);
   const searchTerms = useTargetListSearchStore();
-  const searchConditions = ref({} as any);
+  const searchConditions = ref<SearchConditions>({
+    targetId: null,
+    name: "",
+    seed: "",
+    description: "",
+    groupName: "",
+    nonDisplayOnly: false,
+    agency: null,
+    userId: null,
+    states: Array<number>(),
+  });
   const rest: UseFetchApis = useFetch();
 
   const resetFilter = () => {
@@ -79,7 +107,7 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
       nonDisplayOnly: searchTerms.nonDisplayOnly,
       agency: searchTerms.targetAgency?.name,
       userId: searchTerms.targetUser?.code,
-      states: [] as any,
+      states: Array<number>(),
     };
 
     if (searchTerms.targetState?.length > 0) {
@@ -104,11 +132,11 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
 
     loadingTargetList.value = true;
     rest
-      .post("targets", searchParams, {
+      .post<TargetListResponse>("targets", searchParams, {
         header: "X-HTTP-Method-Override",
         value: "GET",
       })
-      .then((data: any) => {
+      .then((data: TargetListResponse) => {
         targetList.value = data["targets"];
         targetListPageState.totalRecords = data["amount"];
         targetListPageState.first = data["offset"];
@@ -131,5 +159,6 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
     resetFilter,
     search,
     updatePage,
+    pageState: targetListPageState,
   };
 });

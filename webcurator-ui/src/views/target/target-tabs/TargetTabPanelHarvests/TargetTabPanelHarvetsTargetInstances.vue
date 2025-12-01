@@ -1,24 +1,13 @@
 <script setup lang="ts">
-// libraries
 import { onMounted, ref } from "vue";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
-import { useRoute } from "vue-router";
 
-// components
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-// stores
 import { useTargetInstanceListStore } from "@/stores/targetInstanceList";
-// types
 import type { TargetInstance } from "@/types/targetInstance";
-// utils
 import { formatDatetime } from "@/utils/helper";
 import { useProgressStore } from "@/utils/progress";
 
-const rest: UseFetchApis = useFetch();
 const progress = useProgressStore();
-
-const route = useRoute();
-const targetId = route.params.id as string;
 
 const targetInstances = ref(<Array<TargetInstance>>[]);
 const emptyMessage = ref("");
@@ -36,7 +25,7 @@ const fetchTargetInstances = async () => {
     const now = new Date();
     const searchParams = {
       filter: {
-        targetId: targetId,
+        targetId: props.targetId,
         to: props.type == "latest" ? now : null,
         from: props.type == "upcoming" ? now : null,
       },

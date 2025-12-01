@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useTargetAccessDTO } from "@/stores/target";
+import { Select } from "primevue";
 import { ref } from "vue";
 
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-import { Select } from "primevue";
+import { useTargetAccessDTO } from "@/stores/target";
 
 const data = useTargetAccessDTO();
 const targetAccess = data.targetAccess;

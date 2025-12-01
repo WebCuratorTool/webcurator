@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+import { useProfiles } from "@/stores/profiles";
 import {
   initNewTarget,
-  useNextStateStore,
   useTargetDescriptionDTO,
   useTargetGeneralDTO,
   useTargetGropusDTO,
   useTargetProfileDTO,
 } from "@/stores/target";
+import type { NewTarget } from "@/types/target";
+import { useAlertStore } from "@/utils/alertStore";
+import { useProgressStore } from "@/utils/progress";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+
 import TargetTabView from "./target-tabs/TargetTabView.vue";
-import { ref } from "vue";
-import { useProfiles } from "@/stores/profiles";
-import { useRouter } from "vue-router";
-import { useTargetListDataStore } from "@/stores/targetList";
-const targetListData = useTargetListDataStore();
 
 const router = useRouter();
+const progress = useProgressStore();
+const alertStore = useAlertStore();
 
 const editing = ref(true);
 const loading = ref(false);
@@ -27,48 +31,31 @@ const targetDescription = useTargetDescriptionDTO();
 const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetProfile = useTargetProfileDTO();
-const nextStates = useNextStateStore();
 
-const fetchProfile = () => {
-  loading.value = true;
-  // const data = await rest.get('proflies/');
-  rest
-    .get("profiles/")
-    .then((data: any) => {
-      useProfiles().setProfiles(data);
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-};
+const save = async () => {
+  progress.start();
+  try {
+    const dataReq: NewTarget = {
+      description: targetDescription.getData(),
+      general: targetGeneral.getData(),
+      groups: targetGroups.getData(),
+    };
 
-const save = () => {
-  const dataReq: any = {
-    description: targetDescription.getData(),
-    general: targetGeneral.getData(),
-    groups: targetGroups.getData(),
-  };
+    if (targetProfile.getData().id != null) {
+      dataReq.profile = targetProfile.getData();
+    }
 
-  if (targetProfile.getData().id != null) {
-    dataReq.profile = targetProfile.getData();
-  }
-
-  rest
-    .post("targets", dataReq)
-    .then((data: any) => {
-      console.log(data);
-      targetListData.search();
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-    })
-    .finally(() => {
+    const response = await rest.post("targets/", dataReq);
+    if (response == 200) {
+      showSuccessMessage();
       editing.value = false;
-      router.push("/targets/");
-    });
+    }
+  } catch (err: any) {
+    showErrorMessage(err.message);
+  } finally {
+    progress.end();
+    router.push("/targets/");
+  }
 };
 
 const setEditing = (isEditing: boolean) => {
@@ -78,15 +65,23 @@ const setEditing = (isEditing: boolean) => {
   }
 };
 
+const showErrorMessage = (message: string) => {
+  alertStore.error(message, message, "Target not saved");
+};
+
+const showSuccessMessage = () => {
+  alertStore.info("Target succesfully saved");
+};
+
 initNewTarget();
-fetchProfile();
+useProfiles().fetchProfiles();
 </script>
 
 <template>
   <TargetTabView
     :editing="editing"
     :isTargetAvailable="isTargetAvailable"
-    :loading="loading"
+    :loading="useProfiles().loadingProfiles || loading"
     @setEditing="setEditing"
     @save="save"
   />

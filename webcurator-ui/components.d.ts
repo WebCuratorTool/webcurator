@@ -57,7 +57,7 @@ declare module 'vue' {
     WctTabViewPanel: typeof import('./src/components/WctTabViewPanel.vue')['default']
     WctTopLabel: typeof import('./src/components/WctTopLabel.vue')['default']
   }
-  export interface ComponentCustomProperties {
+  export interface GlobalDirectives {
     Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

@@ -1,17 +1,14 @@
 <script setup lang="ts">
-// libraries
-import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useDialog } from "primevue/usedialog";
+import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
-// components
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-// stores
 import { useTargetHarvestsDTO } from "@/stores/target";
 import { useTargetInstanceStateStore } from "@/stores/targetInstance";
-// utils
+import type { TargetHarvest } from "@/types/target";
 import { formatDatetime } from "@/utils/helper";
-// views
+
 import TargetTabPanelHarvetsTargetInstances from "./TargetTabPanelHarvetsTargetInstances.vue";
 
 const ScheduleModal = defineAsyncComponent(
@@ -43,7 +40,7 @@ defineProps<{
 }>();
 
 const showScheduleModal = (
-  targetSchedule: any,
+  targetSchedule: TargetHarvest,
   editingSchedule: boolean,
   isNewSchedule: boolean,
 ) => {
@@ -63,7 +60,8 @@ const showScheduleModal = (
 };
 
 onMounted(async () => {
-  const states = await useTargetInstanceStateStore().fetch();
+  const states: Record<number, string> =
+    await useTargetInstanceStateStore().fetch();
   targetInstanceStates.value = states;
 });
 </script>

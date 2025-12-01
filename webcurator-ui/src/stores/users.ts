@@ -1,6 +1,8 @@
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+
+import type { User, UsersResponse } from "@/types/user";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const KEY_USER_PROFILE = "wct-user-profile";
 export const useUserProfileStore = defineStore("userProfile", () => {
@@ -11,8 +13,8 @@ export const useUserProfileStore = defineStore("userProfile", () => {
   const lastName = ref("");
   const agency = ref("");
   const isActive = ref(true);
-  const roles = ref([]);
-  const priviledges = ref([]);
+  const roles = ref<string[]>([]);
+  const priviledges = ref<string[]>([]);
 
   const currUserName = computed(
     () => firstName.value + " " + lastName.value + "(" + name.value + ")",
@@ -67,7 +69,7 @@ export const useUserProfileStore = defineStore("userProfile", () => {
     localStorage.removeItem(KEY_USER_PROFILE);
   };
 
-  const setBasicData = (user: any) => {
+  const setBasicData = (user: User) => {
     id.value = user.id;
     name.value = user.name;
     firstName.value = user.firstName;
@@ -104,17 +106,17 @@ export const useUserProfileStore = defineStore("userProfile", () => {
 });
 
 export const useUsersStore = defineStore("users", () => {
-  const data = ref([]);
+  const data = ref(<Array<User>>[]);
   const initialFetch = () => {
     const userProfile = useUserProfileStore();
     const rest: UseFetchApis = useFetch();
     rest
-      .get("users")
-      .then((rsp: any) => {
+      .get<UsersResponse>("users")
+      .then((rsp) => {
         data.value = rsp["users"];
 
         for (let i = 0; i < data.value.length; i++) {
-          const user: any = data.value[i];
+          const user: User = data.value[i];
           if (user.name === userProfile.name) {
             userProfile.setBasicData(user);
           }
@@ -128,7 +130,7 @@ export const useUsersStore = defineStore("users", () => {
   const userList = computed(() => {
     const formatedData = [];
     for (let i = 0; i < data.value.length; i++) {
-      const user: any = data.value[i];
+      const user: User = data.value[i];
       formatedData.push({
         id: user.id,
         name: user.firstName + " " + user.lastName + " (" + user.name + ")",
@@ -142,7 +144,7 @@ export const useUsersStore = defineStore("users", () => {
     const formatedData = [];
 
     for (let i = 0; i < data.value.length; i++) {
-      const user: any = data.value[i];
+      const user: User = data.value[i];
       if (user.name === "bootstrap") {
         continue;
       }
@@ -160,23 +162,18 @@ export const useUsersStore = defineStore("users", () => {
   return { data, userList, userListWithEmptyItem, initialFetch };
 });
 
-export const getPresentationUserName = (selectedUser: string | any) => {
+export const getPresentationUserName = (selectedUser: string) => {
   if (!selectedUser) {
     console.log("The input selectedUser is " + selectedUser);
     return "";
   }
 
-  let userName = "";
-  if (typeof selectedUser === "string") {
-    userName = selectedUser;
-  } else {
-    userName = selectedUser.code;
-  }
+  const userName = selectedUser;
 
   const users = useUsersStore();
   const data = users.data;
   for (let i = 0; i < data.length; i++) {
-    const user: any = data[i];
+    const user: User = data[i];
     if (user.name === userName) {
       return user.firstName + " " + user.lastName + " (" + user.name + ")";
     }

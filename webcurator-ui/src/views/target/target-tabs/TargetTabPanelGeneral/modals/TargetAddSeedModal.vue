@@ -1,13 +1,11 @@
 <script setup lang="ts">
-// libraries
-import { inject, ref } from "vue";
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { inject, type Ref, ref } from "vue";
 
-// stores
 import { useTargetSeedsDTO } from "@/stores/target";
-// utils
 import { useAlertStore } from "@/utils/alertStore";
 
-const dialogRef: any = inject("dialogRef");
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 const alertStore = useAlertStore();
 const targetSeeds = useTargetSeedsDTO();
 
@@ -26,7 +24,7 @@ const addSeed = () => {
     } else {
       targetSeeds.addSeed(newSeed.value);
       newSeed.value = { seed: "", authorisations: [], primary: false };
-      dialogRef.value.close();
+      dialogRef?.value.close();
     }
   }
 };

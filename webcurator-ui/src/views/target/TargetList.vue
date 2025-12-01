@@ -1,29 +1,22 @@
 <script setup lang="ts">
-// libraries
-import { watch } from "vue";
 import { useConfirm } from "primevue/useconfirm";
+import { watch } from "vue";
 import { useRouter } from "vue-router";
 
-// components
 import Loading from "@/components/Loading.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import WctTopLabel from "@/components/WctTopLabel.vue";
-// stores
 import { useAgenciesStore } from "@/stores/agencies";
 import {
   formatTargetState,
   showTargetAction,
   stateList,
 } from "@/stores/target";
-import {
-  targetListPageState,
-  useTargetListDataStore,
-} from "@/stores/targetList";
+import { useTargetListDataStore } from "@/stores/targetList";
 import { useUserProfileStore, useUsersStore } from "@/stores/users";
-// utils
-import { formatDate } from "@/utils/helper";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
 import { useAlertStore } from "@/utils/alertStore";
+import { formatDate } from "@/utils/helper";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const router = useRouter();
 const confirm = useConfirm();
@@ -53,7 +46,7 @@ const deleteTarget = (id: number) => {
     accept: () => {
       rest
         .delete("targets/" + id, {})
-        .then((rsp: any) => {
+        .then(() => {
           const message = `Target ${id} deleted`;
           alertStore.info(message, message, "Confirmed");
           targetListData.search();
@@ -265,12 +258,12 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
             <Column header="Action" field="id">
               <template #body="{ data }">
                 <Button
-                  v-if="showTargetAction(data, 'copy')"
+                  v-if="showTargetAction(data.state, 'copy')"
                   icon="pi pi-copy"
                   text
                 />
                 <Button
-                  v-if="showTargetAction(data, 'delete')"
+                  v-if="showTargetAction(data.state, 'delete')"
                   icon="pi pi-trash"
                   @click="deleteTarget(data.id)"
                   text
@@ -281,9 +274,9 @@ watch(userProfile, (newUserProfile, oldUserProfile) => {
               <div class="flex justify-end w-full">
                 <Paginator
                   :pageLinkSize="3"
-                  :first="targetListPageState.first"
-                  :rows="targetListPageState.rows"
-                  :totalRecords="targetListPageState.totalRecords"
+                  :first="targetListData.pageState.first"
+                  :rows="targetListData.pageState.rows"
+                  :totalRecords="targetListData.pageState.totalRecords"
                   :rowsPerPageOptions="[10, 20, 50, 100]"
                   @page="targetListData.updatePage($event.first, $event.rows)"
                   template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"

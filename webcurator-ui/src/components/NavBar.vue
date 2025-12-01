@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import { useLayout } from "@/layout/composables/layout";
-import { useUserProfileStore } from "@/stores/users";
 import { useAuthStore } from "@/utils/rest.api";
 import { toggleThemeMode } from "@/utils/themes";
 
@@ -32,12 +31,11 @@ const authStore = useAuthStore();
 
 const { layoutConfig } = useLayout();
 
-const token = useUserProfileStore();
 const logout = () => {
   authStore.logout();
 };
 
-const onDarkModeChange = (value: any) => {
+const onDarkModeChange = (value: boolean) => {
   if (value) {
     toggleThemeMode("dark");
   } else {

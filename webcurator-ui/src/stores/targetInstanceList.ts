@@ -1,12 +1,25 @@
-// libraries
-import { ref } from "vue";
 import { defineStore } from "pinia";
+import { ref } from "vue";
 
-// types
 import type { Annotation } from "@/types/annotation";
 import type { TargetInstance } from "@/types/targetInstance";
-// utils
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+
+type Filter = { targetId?: number } | Record<string, unknown>;
+
+type TargetInstanceSearchTerms = {
+  filter?: Filter;
+  limit?: number;
+  includeAnnotations?: boolean;
+};
+
+type TargetInstanceSearchResponse = {
+  filter?: Filter;
+  limit?: number;
+  includeAnnotations?: boolean;
+  sortBy?: string;
+  targetInstances: Array<TargetInstance>;
+};
 
 export const useTargetInstanceListSearchStore = defineStore(
   "TargetInstanceListSearchStore",
@@ -24,16 +37,20 @@ export const useTargetInstanceListStore = defineStore(
     const loadingTargetInstanceList = ref(false);
     const rest: UseFetchApis = useFetch();
 
-    const search = async (searchTerms: any) => {
+    const search = async (searchTerms: TargetInstanceSearchTerms) => {
       let targetInstanceList = <Array<TargetInstance>>[];
 
       loadingTargetInstanceList.value = true;
       try {
-        const data = await rest.post("target-instances", searchTerms, {
-          header: "X-HTTP-Method-Override",
-          value: "GET",
-        });
-        targetInstanceList = data["targetInstances"];
+        const data: TargetInstanceSearchResponse = await rest.post(
+          "target-instances",
+          searchTerms,
+          {
+            header: "X-HTTP-Method-Override",
+            value: "GET",
+          },
+        );
+        targetInstanceList = data.targetInstances;
       } catch (err: any) {
         console.log(err.message);
       } finally {

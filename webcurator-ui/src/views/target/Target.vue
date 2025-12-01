@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
+
 import {
   setTarget,
   useNextStateStore,
@@ -14,9 +14,12 @@ import {
   useTargetProfileDTO,
   useTargetSeedsDTO,
 } from "@/stores/target";
-import TargetTabView from "./target-tabs/TargetTabView.vue";
+import type { Target } from "@/types/target";
 import { useAlertStore } from "@/utils/alertStore";
 import { useProgressStore } from "@/utils/progress";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+
+import TargetTabView from "./target-tabs/TargetTabView.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -39,17 +42,11 @@ const editing = ref(false);
 const isTargetAvailable = ref(false);
 const isPageAvailable = ref(true);
 
-const initData = () => {
-  isTargetAvailable.value = false;
-  targetGeneral.initData();
-  nextStates.initData();
-};
-
 const fetchTargetDetails = async () => {
   isTargetAvailable.value = false;
   progress.start();
   try {
-    const data = await rest.get("targets/" + targetId);
+    const data: Target = await rest.get("targets/" + targetId);
     if (data) {
       isTargetAvailable.value = true;
       setTarget(data);

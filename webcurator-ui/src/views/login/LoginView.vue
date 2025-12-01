@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { type LoginResponse, useAuthStore } from "@/utils/rest.api";
 import { ref } from "vue";
 import { useRoute } from "vue-router";
+
+import { type LoginResponse, useAuthStore } from "@/utils/rest.api";
 
 const authStore = useAuthStore();
 const route = useRoute();

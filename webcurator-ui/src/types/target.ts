@@ -54,11 +54,13 @@ interface TargetGeneral {
   name: string;
   creationDate: number;
   description: string;
+  owner: string;
   referenceNumber: string;
   runOnApproval: boolean;
   automatedQA: boolean;
   selectedUser: string;
-  selectedState: {};
+  selectedState: { name: string; code: number };
+  state: number;
   autoPrune: boolean;
   referenceCrawl: boolean;
   requestToArchivists: string;
@@ -68,11 +70,14 @@ interface TargetGeneral {
 interface TargetGroup {
   id: number;
   name: string;
+  agency?: string;
+  state?: number;
+  type?: string;
 }
 
 interface TargetProfileOverride {
   id: string;
-  value: string | number | boolean | any[];
+  value: string | number | boolean | string[];
   enabled: boolean;
   unit?: string;
 }
@@ -85,10 +90,10 @@ interface TargetProfile {
   overrides: Array<TargetProfileOverride>;
 }
 
-interface TargetGroups extends Array<TargetGroup> {}
+type TargetGroups = Array<TargetGroup>;
 
 interface TargetSeed {
-  id: number;
+  id?: number;
   seed: string;
   primary: boolean;
   authorisations: HarvestAuths;
@@ -101,19 +106,27 @@ interface TargetSchedule {
 }
 
 interface TargetHarvest {
-  id: number;
+  id?: number;
   cron: string;
-  startDate: number;
-  endDate: number;
+  startDate: number | Date;
+  endDate: number | null;
   type: number;
-  nextExecutionDate: number;
-  lastProcessedDate: number;
+  nextExecutionDate: number | Date | null;
+  lastProcessedDate?: number | null;
   owner: string;
 }
 
-interface TargetSeeds extends Array<TargetSeed> {}
+type TargetSeeds = Array<TargetSeed>;
+
+interface NewTarget {
+  description: TargetDescription;
+  general: TargetGeneral;
+  groups: TargetGroups;
+  profile?: TargetProfile;
+}
 
 export type {
+  NewTarget,
   Target,
   TargetAccess,
   TargetAnnotations,

@@ -1,21 +1,17 @@
 <script setup lang="ts">
-// libraries
-import { Text, defineAsyncComponent, ref } from "vue";
+import { Textarea } from "primevue";
 import { useDialog } from "primevue/usedialog";
+import { defineAsyncComponent, ref } from "vue";
 import { useRoute } from "vue-router";
 
-// components
-import TargetTabAnnotationsMessage from "./TargetTabAnnotationsMessage.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-// stores
 import { useTargetAnnotationsDTO } from "@/stores/target";
 import { useTargetInstanceListStore } from "@/stores/targetInstanceList";
 import { useUserProfileStore } from "@/stores/users";
-// types
 import type { Annotation } from "@/types/annotation";
-// utils
 import { formatDate } from "@/utils/helper";
-import { Textarea } from "primevue";
+
+import TargetTabAnnotationsMessage from "./TargetTabAnnotationsMessage.vue";
 
 const NewAnnotationModal = defineAsyncComponent(
   () => import("./modals/TargetNewAnnotationModal.vue"),
@@ -125,6 +121,14 @@ const deleteAnnotation = (annotation: Annotation) => {
   );
 };
 
+const saveAnnotation = (
+  annotation: Annotation,
+  updatedAnnotation: Annotation,
+) => {
+  annotation.note = updatedAnnotation.note;
+  annotation.alert = updatedAnnotation.alert;
+};
+
 if (targetId) {
   prepareAnnotations();
 }
@@ -223,8 +227,6 @@ if (targetId) {
             <TargetTabAnnotationsMessage
               v-if="slotProps.item.targetInstanceId"
               :annotation="slotProps.item"
-              :editing="editing"
-              @deleteAnnotation="deleteAnnotation"
             />
           </template>
           <!-- Target annotations -->
@@ -234,6 +236,7 @@ if (targetId) {
               :annotation="slotProps.item"
               :editing="editing"
               @deleteAnnotation="deleteAnnotation"
+              @saveAnnotation="saveAnnotation(slotProps.item, $event)"
             />
           </template>
         </Timeline>

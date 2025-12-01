@@ -1,14 +1,16 @@
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
+import type { Agencies } from "@/types/agency";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+
 export const useAgenciesStore = defineStore("agencies", () => {
-  const data = ref([]);
+  const data = ref();
   const initialFetch = () => {
     const rest: UseFetchApis = useFetch();
     rest
-      .get("agencies")
-      .then((rsp: any) => {
+      .get<Agencies>("agencies")
+      .then((rsp) => {
         data.value = rsp;
       })
       .catch((err: any) => {
@@ -18,7 +20,7 @@ export const useAgenciesStore = defineStore("agencies", () => {
 
   const agencyList = computed(() => {
     const formatedData = [];
-    for (let i = 0; i < data.value.length; i++) {
+    for (let i = 0; i < data.value?.length; i++) {
       const item = data.value[i];
       formatedData.push({
         name: item["name"],
@@ -30,7 +32,7 @@ export const useAgenciesStore = defineStore("agencies", () => {
 
   const agencyListWithEmptyItem = computed(() => {
     const formatedData = [];
-    for (let i = 0; i < data.value.length; i++) {
+    for (let i = 0; i < data.value?.length; i++) {
       const item = data.value[i];
       formatedData.push({
         name: item["name"],

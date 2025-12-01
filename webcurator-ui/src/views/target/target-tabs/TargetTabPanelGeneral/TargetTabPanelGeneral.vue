@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { computed } from "vue";
+
+import WctFormField from "@/components/WctFormField.vue";
+import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import {
   formatTargetState,
   useNextStateStore,
@@ -6,11 +10,8 @@ import {
 } from "@/stores/target";
 import { useUsersStore } from "@/stores/users";
 
-import WctFormField from "@/components/WctFormField.vue";
-import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import TargetTabPanelGeneralGroups from "./TargetTabPanelGeneralGroups.vue";
 import TargetTabPanelGeneralSeeds from "./TargetTabPanelGeneralSeeds.vue";
-import { computed } from "vue";
 
 defineProps<{
   editing: boolean;

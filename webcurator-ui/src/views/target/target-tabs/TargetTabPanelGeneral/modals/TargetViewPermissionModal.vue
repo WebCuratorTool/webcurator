@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
-import { formatDate } from "@/utils/helper";
-import type { Permission } from "@/types/permission";
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { inject, onMounted, type Ref, ref } from "vue";
+
+import Loading from "@/components/Loading.vue";
+import WctFormField from "@/components/WctFormField.vue";
 import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
 import { usePermissionStore } from "@/stores/permissions";
+import type { Permission } from "@/types/permission";
+import { formatDate } from "@/utils/helper";
 
-import WctFormField from "@/components/WctFormField.vue";
-import Loading from "@/components/Loading.vue";
-
-const dialogRef: any = inject("dialogRef");
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
 const permission = ref<Permission>({} as Permission);
 const loading = ref(true);
@@ -16,10 +17,8 @@ const permissionStatuses = ref<{ [key: string]: string }>({});
 
 onMounted(async () => {
   try {
-    const fetchedPermission: any = await usePermissionStore().fetch(
-      dialogRef.value.data.permissionId,
-    );
-    permission.value = fetchedPermission;
+    await usePermissionStore().fetch(dialogRef?.value.data.permissionId);
+    permission.value = usePermissionStore().permission;
     const statuses = await useHarvestAuthorisationStatusStore().fetch();
     permissionStatuses.value = statuses;
     loading.value = false;

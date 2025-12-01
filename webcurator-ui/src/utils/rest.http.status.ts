@@ -69,4 +69,4 @@ export const HttpStatus = {
   508: "Loop Detected",
   510: "Not Extended",
   511: "Network Authentication Required",
-} as any;
+} as Record<number, string>;

@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { type SelectChangeEvent, Textarea } from "primevue";
+import { computed, ref, watch } from "vue";
+
+import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useProfiles } from "@/stores/profiles";
 import { useTargetProfileDTO } from "@/stores/target";
+import type { Profile, ProfilesResponse } from "@/types/profile";
 import { camelCaseToTitleCase } from "@/utils/helper";
-import { type UseFetchApis, useFetch } from "@/utils/rest.api";
-import { computed, ref, watch } from "vue";
 import { useProgressStore } from "@/utils/progress";
-import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
-import type { Profile } from "@/types/profile";
-import { Textarea } from "primevue";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const rest: UseFetchApis = useFetch();
 const progress = useProgressStore();
@@ -27,14 +28,14 @@ const profileStore = useProfiles();
 const selectedHarvesterType = ref(targetProfile.harvesterType);
 const selectedProfile = ref({} as Profile | undefined);
 
-const onChangeProfile = (event: any) => {
+const onChangeProfile = (event: SelectChangeEvent) => {
   useTargetProfileDTO().setProfile(event.value);
 };
 
-const fetchProfile = async () => {
+const fetchProfile = async (): Promise<unknown> => {
   progress.start();
   try {
-    const datasets = await rest.get("profiles/");
+    const datasets: ProfilesResponse = await rest.get("profiles/");
     if (!datasets || !datasets.profiles) {
       progress.end();
       console.log("Failed to load profiles");
@@ -42,7 +43,7 @@ const fetchProfile = async () => {
     }
     profileStore.setProfiles(datasets);
     selectedProfile.value = datasets.profiles.find(
-      (profile: any) => profile.id == targetProfile.id,
+      (profile: Profile) => profile.id == targetProfile.id,
     );
   } finally {
     progress.end();
@@ -127,15 +128,16 @@ watch(
               v-else-if="data.id == 'blockedUrls' || data.id == 'includedUrls'"
             >
               <Textarea
-                :key="editing"
                 v-if="editing"
+                :key="data.id"
                 v-model="data.value"
                 :disabled="!editing"
                 class="w-2/3"
               />
               <p
                 v-else
-                v-for="item in data.value"
+                v-for="(item, index) in data.value"
+                :key="index"
                 class="font-semibold w-2/3 !mb-1"
               >
                 {{ item }}

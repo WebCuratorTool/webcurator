@@ -1,32 +1,24 @@
 <script setup lang="ts">
-// libraries
-import { defineAsyncComponent, ref } from "vue";
+import { reactive, ref } from "vue";
 
-// types
 import type { Annotation } from "@/types/annotation";
-// utils
 import { formatDate } from "@/utils/helper";
 
 const props = defineProps<{
   annotation: Annotation;
-  editing: boolean;
+  editing?: boolean;
 }>();
 
-const emit = defineEmits(["deleteAnnotation"]);
-
 const editingAnnotation = ref(false);
-const previousAnnotationNote = ref();
-const previousAnnotationAlert = ref();
 
-const editAnnotation = () => {
-  editingAnnotation.value = true;
-  previousAnnotationNote.value = props.annotation.note;
-  previousAnnotationAlert.value = props.annotation.alert;
-};
+const localAnnotation = reactive({
+  note: props.annotation.note,
+  alert: props.annotation.alert,
+});
 
 const cancelEditAnnotation = () => {
-  props.annotation.note = previousAnnotationNote.value;
-  props.annotation.alert = previousAnnotationAlert.value;
+  localAnnotation.note = props.annotation.note;
+  localAnnotation.alert = props.annotation.alert;
   editingAnnotation.value = false;
 };
 </script>
@@ -44,7 +36,7 @@ const cancelEditAnnotation = () => {
             />
             <div v-if="editingAnnotation" class="flex items-center gap-2">
               <label>
-                <Checkbox v-model="annotation.alert" binary />
+                <Checkbox v-model="localAnnotation.alert" binary />
                 Generate alert
               </label>
             </div>
@@ -69,7 +61,7 @@ const cancelEditAnnotation = () => {
             icon="pi pi-pencil"
             v-tooltip.bottom="'Edit Annotation'"
             text
-            @click="editAnnotation()"
+            @click="editingAnnotation = true"
           />
         </div>
         <div
@@ -84,7 +76,10 @@ const cancelEditAnnotation = () => {
             icon="pi pi-save"
             v-tooltip.bottom="'Save'"
             text
-            @click="editingAnnotation = false"
+            @click="
+              ($emit('saveAnnotation', localAnnotation),
+              (editingAnnotation = false))
+            "
           />
           <Button
             class="p-button-text"
@@ -100,7 +95,7 @@ const cancelEditAnnotation = () => {
     <template #content>
       <Textarea
         v-if="editing && editingAnnotation && !annotation.targetInstanceId"
-        v-model="annotation.note"
+        v-model="localAnnotation.note"
         autoResize
         rows="3"
         class="w-full"

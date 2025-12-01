@@ -16,9 +16,6 @@
       "@/*": [
         "./src/*" // set path `@/*` as alias of `src/*`
       ]
-    },
-    "vueCompilerOptions": {
-      "globalTypesPath": "node_modules/vue/dist/vue.d.ts"
     }
   }
 }

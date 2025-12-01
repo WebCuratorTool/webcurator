@@ -1,7 +1,10 @@
-import router from "@/router";
-import { useUserProfileStore } from "@/stores/users";
 import { defineStore } from "pinia";
 import { ref } from "vue";
+
+import router from "@/router";
+import { useUserProfileStore } from "@/stores/users";
+import type { CustomHeader } from "@/types/customHeader";
+
 import { useAlertStore } from "./alertStore";
 import { HttpStatus } from "./rest.http.status";
 
@@ -146,15 +149,28 @@ export const useAuthStore = defineStore("AuthStore", () => {
   };
 });
 
+// export interface UseFetchApis {
+//   // methods
+//   get: (path: string) => any;
+//   post: (path: string, payload: any, customHeader?: any) => any;
+//   put: (path: string, payload: any) => any;
+//   delete: (path: string, payload: any) => any;
+//   patch: (path: string, payload: any) => any;
+//   head: (path: string) => any;
+//   options: (path: string, payload: any) => any;
+// }
 export interface UseFetchApis {
-  // methods
-  get: (path: string) => any;
-  post: (path: string, payload: any, customHeader?: any) => any;
-  put: (path: string, payload: any) => any;
-  delete: (path: string, payload: any) => any;
-  patch: (path: string, payload: any) => any;
-  head: (path: string) => any;
-  options: (path: string, payload: any) => any;
+  get<T = unknown>(path: string): Promise<T>;
+  post<T = unknown, P = unknown>(
+    path: string,
+    payload: P,
+    customHeader?: CustomHeader,
+  ): Promise<T>;
+  put<T = unknown, P = unknown>(path: string, payload: P): Promise<T>;
+  delete<T = unknown, P = unknown>(path: string, payload?: P): Promise<T>;
+  patch<T = unknown, P = unknown>(path: string, payload: P): Promise<T>;
+  head<T = unknown>(path: string): Promise<T>;
+  options<T = unknown, P = unknown>(path: string, payload?: P): Promise<T>;
 }
 
 // by convention, composable function names start with "use"
@@ -176,8 +192,8 @@ export function useFetch() {
   function setMethod(methodValue: HttpMethod) {
     return async (
       path: string,
-      payload: any = null,
-      customHeader: any = null,
+      payload: unknown = null,
+      customHeader: CustomHeader | null = null,
     ) => {
       // await sleep(1000);
 
