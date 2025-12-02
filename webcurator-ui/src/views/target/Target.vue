@@ -100,13 +100,6 @@ const save = async () => {
   }
 };
 
-// const setEditing = (isEditing: boolean) => {
-//   editing.value = isEditing;
-//   if (!isEditing) {
-//     fetchTargetDetails();
-//   }
-// };
-
 const setEditing = (isEditing: boolean) => {
   if (isEditing) {
     originalTarget = {

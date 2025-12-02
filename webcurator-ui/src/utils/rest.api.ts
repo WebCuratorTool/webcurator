@@ -149,16 +149,6 @@ export const useAuthStore = defineStore("AuthStore", () => {
   };
 });
 
-// export interface UseFetchApis {
-//   // methods
-//   get: (path: string) => any;
-//   post: (path: string, payload: any, customHeader?: any) => any;
-//   put: (path: string, payload: any) => any;
-//   delete: (path: string, payload: any) => any;
-//   patch: (path: string, payload: any) => any;
-//   head: (path: string) => any;
-//   options: (path: string, payload: any) => any;
-// }
 export interface UseFetchApis {
   get<T = unknown>(path: string): Promise<T>;
   post<T = unknown, P = unknown>(
