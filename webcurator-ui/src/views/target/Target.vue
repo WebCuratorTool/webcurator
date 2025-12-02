@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, toRaw } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import {
@@ -41,6 +41,8 @@ const nextStates = useNextStateStore();
 const editing = ref(false);
 const isTargetAvailable = ref(false);
 const isPageAvailable = ref(true);
+
+let originalTarget: Target | null = null;
 
 const fetchTargetDetails = async () => {
   isTargetAvailable.value = false;
@@ -98,12 +100,44 @@ const save = async () => {
   }
 };
 
+// const setEditing = (isEditing: boolean) => {
+//   editing.value = isEditing;
+//   if (!isEditing) {
+//     fetchTargetDetails();
+//   }
+// };
+
 const setEditing = (isEditing: boolean) => {
-  editing.value = isEditing;
-  if (!isEditing) {
-    fetchTargetDetails();
+  if (isEditing) {
+    originalTarget = {
+      access: JSON.parse(JSON.stringify(toRaw(targetAccess.getData()))),
+      annotations: JSON.parse(
+        JSON.stringify(toRaw(targetAnnotations.getData())),
+      ),
+      description: JSON.parse(
+        JSON.stringify(toRaw(targetDescription.getData())),
+      ),
+      general: JSON.parse(JSON.stringify(toRaw(targetGeneral.getData()))),
+      groups: JSON.parse(JSON.stringify(toRaw(targetGroups.getData()))),
+      schedule: JSON.parse(JSON.stringify(toRaw(targetHarvests.getData()))),
+      profile: JSON.parse(JSON.stringify(toRaw(targetProfile.getData()))),
+      seeds: JSON.parse(JSON.stringify(toRaw(targetSeeds.getData()))),
+    };
+  } else {
+    if (originalTarget) {
+      targetAccess.setData(originalTarget.access);
+      targetAnnotations.setData(originalTarget.annotations);
+      targetDescription.setData(originalTarget.description);
+      targetGeneral.setData(originalTarget.general);
+      targetGroups.setData(originalTarget.groups);
+      targetHarvests.setData(originalTarget.schedule);
+      targetProfile.setData(originalTarget.profile);
+      targetSeeds.setData(originalTarget.seeds);
+    }
   }
+  editing.value = isEditing;
 };
+
 
 const showErrorMessage = (message: string) => {
   alertStore.error(message, message, "Target not saved");

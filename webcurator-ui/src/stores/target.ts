@@ -63,7 +63,6 @@ export const setTarget = (target: Target) => {
 export const formatTargetState = (
   state: number | { code: number; name: string },
 ) => {
-  console.log("Formatting state: ", state);
   const placeHolder = "Select a state";
 
   if (typeof state === "undefined") {
@@ -322,7 +321,7 @@ export const useTargetProfileDTO = defineStore("TargetProfileDTO", () => {
   };
 
   const setData = (data: TargetProfile) => {
-    targetProfile.value = data;
+    Object.assign(targetProfile.value, data);
   };
 
   return { targetProfile, initData, getData, setData, setProfile };
@@ -338,7 +337,7 @@ export const useTargetDescriptionDTO = defineStore(
     };
 
     const setData = (data: TargetDescription) => {
-      targetDescription.value = data;
+      Object.assign(targetDescription.value, data);
     };
 
     const getData = () => targetDescription.value;
@@ -355,7 +354,7 @@ export const useTargetSeedsDTO = defineStore("TargetSeedsDTO", () => {
   };
 
   const setData = (data: TargetSeeds) => {
-    targetSeeds.value = data;
+    Object.assign(targetSeeds.value, data);
   };
 
   const getData = () => targetSeeds.value;
@@ -393,7 +392,7 @@ export const useTargetGropusDTO = defineStore("TargetGroupsDTO", () => {
   };
 
   const setData = (data: TargetGroups) => {
-    targetGroups.value = data;
+    targetGroups.value.splice(0, targetGroups.value.length, ...data);
   };
 
   const getData = () => targetGroups.value;
@@ -417,8 +416,9 @@ export const useTargetAccessDTO = defineStore("TargetAccessDTO", () => {
   };
 
   const setData = (data: TargetAccess) => {
-    targetAccess.value = data;
+    Object.assign(targetAccess.value, data);
   };
+
   const getData = () => targetAccess.value;
 
   return { targetAccess, initData, setData, getData };
@@ -443,7 +443,7 @@ export const useTargetAnnotationsDTO = defineStore(
     };
 
     const setData = (data: TargetAnnotations) => {
-      targetAnnotations.value = data;
+      Object.assign(targetAnnotations.value, data);
     };
     const getData = () => targetAnnotations.value;
 
@@ -459,7 +459,7 @@ export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
   };
 
   const setData = (data: TargetSchedule) => {
-    targetSchedule.value = data;
+    Object.assign(targetSchedule.value, data);
   };
 
   const addSchedule = (schedule: TargetHarvest) => {

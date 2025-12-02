@@ -5,12 +5,10 @@ import { computed, ref, watch } from "vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useProfiles } from "@/stores/profiles";
 import { useTargetProfileDTO } from "@/stores/target";
-import type { Profile, ProfilesResponse } from "@/types/profile";
+import type { Profile } from "@/types/profile";
 import { camelCaseToTitleCase } from "@/utils/helper";
 import { useProgressStore } from "@/utils/progress";
-import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
-const rest: UseFetchApis = useFetch();
 const progress = useProgressStore();
 const props = defineProps<{
   editing: boolean;
@@ -32,24 +30,6 @@ const onChangeProfile = (event: SelectChangeEvent) => {
   useTargetProfileDTO().setProfile(event.value);
 };
 
-const fetchProfile = async (): Promise<unknown> => {
-  progress.start();
-  try {
-    const datasets: ProfilesResponse = await rest.get("profiles/");
-    if (!datasets || !datasets.profiles) {
-      progress.end();
-      console.log("Failed to load profiles");
-      return;
-    }
-    profileStore.setProfiles(datasets);
-    selectedProfile.value = datasets.profiles.find(
-      (profile: Profile) => profile.id == targetProfile.id,
-    );
-  } finally {
-    progress.end();
-  }
-};
-
 const baseProfileOptions = computed(() => {
   return profileStore.profiles.filter(
     (profile) => profile.type == selectedHarvesterType.value,
@@ -60,7 +40,7 @@ watch(
   () => props.editing,
   async (newEditing) => {
     if (newEditing) {
-      await fetchProfile();
+      await profileStore.fetchProfiles();
       targetProfile.overrides.forEach((override) => {
         if (Array.isArray(override.value)) {
           override.value = override.value.join("\n");
