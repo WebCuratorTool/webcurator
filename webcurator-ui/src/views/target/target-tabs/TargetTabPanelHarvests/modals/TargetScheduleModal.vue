@@ -117,10 +117,9 @@ const fetch = () => {
     .then((data) => {
       scheduleTypes.value = data;
       scheduleType.value = scheduleTypes.value[targetSchedule.value.type];
-      loading.value = false;
     })
-    .catch((err: any) => {
-      console.log(err.message);
+    .finally(() => {
+      loading.value = false;
     });
 };
 

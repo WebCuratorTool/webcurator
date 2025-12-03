@@ -21,7 +21,15 @@ interface LoginResponse {
   title: string;
   detail: string;
 }
-export type { LoginResponse };
+
+interface ApiErrorResponse {
+  timestamp: string;
+  status: number;
+  error: string;
+  path: string;
+}
+
+export type { ApiErrorResponse, LoginResponse };
 
 const _login = async (username: string, password: string) => {
   const credentials = "username=" + username + "&password=" + password;
@@ -231,17 +239,22 @@ export function useFetch() {
         let rsp;
         try {
           rsp = await fetch(reqPath, reqOptions);
-        } catch (err: any) {
+        } catch (err: unknown) {
+          let rspError = "Unknown error";
+          if (err instanceof Error) {
+            rspError = err.message;
+          }
+
           retriedTimes.value++;
           if (retriedTimes.value >= MaxRetryTimes) {
-            const errMsg = err.message;
+            const errMsg = `${rspError}`;
             await confirm.error(
               errMsg,
               `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
             );
             break;
           } else {
-            const errMsg = `${err.message}. Will retry in ${RetryDelay / 1000} seconds.`;
+            const errMsg = `${rspError}. Will retry in ${RetryDelay / 1000} seconds.`;
             confirm.warning(
               errMsg,
               `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
@@ -325,7 +338,7 @@ export function useFetch() {
   return shell;
 }
 
-const extractErrorMessageFromResponse = async (rsp: any) => {
+const extractErrorMessageFromResponse = async (rsp: Response) => {
   let err = null;
 
   //If not able to get the status text, then try to get the error message from the response body.
@@ -337,7 +350,7 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
       const doc = parser.parseFromString(rawHtml, "text/html");
       err = doc.body.textContent || "Unknown error";
     } else if (contentType.startsWith("application/json")) {
-      const errMessage = await rsp.json();
+      const errMessage: ApiErrorResponse = await rsp.json();
       err = errMessage.error;
     } else {
       err = await rsp.text();

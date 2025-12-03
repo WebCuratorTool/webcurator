@@ -51,8 +51,6 @@ export const useTargetInstanceListStore = defineStore(
           },
         );
         targetInstanceList = data.targetInstances;
-      } catch (err: any) {
-        console.log(err.message);
       } finally {
         loadingTargetInstanceList.value = false;
       }

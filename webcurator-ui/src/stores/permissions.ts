@@ -12,11 +12,8 @@ export const usePermissionStore = defineStore("Permission", () => {
     loadingPermission.value = true;
 
     try {
-      const response = await rest.get(`permissions/${id}`);
-      permission.value = response;
-      loadingPermission.value = false;
-    } catch (err: any) {
-      console.log(err.message);
+      permission.value = await rest.get(`permissions/${id}`);
+    } finally {
       loadingPermission.value = false;
     }
   };

@@ -93,8 +93,9 @@ const save = async () => {
       showSuccessMessage();
       editing.value = false;
     }
-  } catch (err: any) {
-    showErrorMessage(err.message);
+  } catch (err: unknown) {
+    const msg = err as Error;
+    showErrorMessage(msg.message);
   } finally {
     progress.end();
   }
@@ -130,7 +131,6 @@ const setEditing = (isEditing: boolean) => {
   }
   editing.value = isEditing;
 };
-
 
 const showErrorMessage = (message: string) => {
   alertStore.error(message, message, "Target not saved");

@@ -8,14 +8,9 @@ export const useAgenciesStore = defineStore("agencies", () => {
   const data = ref();
   const initialFetch = () => {
     const rest: UseFetchApis = useFetch();
-    rest
-      .get<Agencies>("agencies")
-      .then((rsp) => {
-        data.value = rsp;
-      })
-      .catch((err: any) => {
-        console.log(err.message);
-      });
+    rest.get<Agencies>("agencies").then((rsp) => {
+      data.value = rsp;
+    });
   };
 
   const agencyList = computed(() => {

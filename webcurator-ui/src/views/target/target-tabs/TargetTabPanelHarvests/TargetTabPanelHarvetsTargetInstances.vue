@@ -34,8 +34,9 @@ const fetchTargetInstances = async () => {
 
     targetInstances.value =
       await useTargetInstanceListStore().search(searchParams);
-  } catch (err: any) {
-    console.log(err.message);
+  } catch (err: unknown) {
+    const msg = err as Error;
+    console.log(msg.message);
   } finally {
     progress.end();
     if (targetInstances.value && targetInstances.value.length == 0) {

@@ -83,7 +83,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
       }
       console.error(`${header}: ${detail}`);
       toast.removeAllGroups();
-      return new Promise((resolve: any) => {
+      return new Promise((resolve: (value: boolean) => void) => {
         confirm.require({
           group: "dlg-error",
           header: header,

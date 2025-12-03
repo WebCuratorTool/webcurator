@@ -142,9 +142,6 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
         targetListPageState.first = data["offset"];
         targetListPageState.rows = data["limit"];
       })
-      .catch((err: any) => {
-        console.log(err.message);
-      })
       .finally(() => {
         loadingTargetList.value = false;
       });

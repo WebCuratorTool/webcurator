@@ -50,8 +50,9 @@ const save = async () => {
       showSuccessMessage();
       editing.value = false;
     }
-  } catch (err: any) {
-    showErrorMessage(err.message);
+  } catch (err: unknown) {
+    const msg = err as Error;
+    showErrorMessage(msg.message);
   } finally {
     progress.end();
     router.push("/targets/");

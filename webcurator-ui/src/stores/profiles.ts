@@ -19,8 +19,6 @@ export const useProfiles = defineStore("Profiles", () => {
     try {
       const data: ProfilesResponse = await rest.get("profiles/");
       profiles.value = data.profiles;
-    } catch (err: any) {
-      console.log(err.message);
     } finally {
       loadingProfiles.value = false;
     }

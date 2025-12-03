@@ -46,10 +46,8 @@ const fetch = () => {
       const resp = data as TargetGroupsResponse;
       groups.value = resp.groups;
       filteredGroups.value = groups.value;
-      loading.value = false;
     })
-    .catch((err: any) => {
-      console.log(err?.message ?? err);
+    .finally(() => {
       loading.value = false;
     });
 };

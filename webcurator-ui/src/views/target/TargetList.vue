@@ -51,8 +51,9 @@ const deleteTarget = (id: number) => {
           alertStore.info(message, message, "Confirmed");
           targetListData.search();
         })
-        .catch((err: any) => {
-          alertStore.error(err.message);
+        .catch((err: unknown) => {
+          const msg = err as Error;
+          alertStore.error(msg.message);
         });
     },
   });

@@ -94,9 +94,10 @@ const fetch = async () => {
     );
     returnedHarvestAuths.value = response.harvestAuthorisations;
     prepareData(returnedHarvestAuths.value);
-    loading.value = false;
-  } catch (err: any) {
-    console.log(err.message);
+  } catch (err: unknown) {
+    const msg = err as Error;
+    console.log(msg.message);
+  } finally {
     loading.value = false;
   }
 };

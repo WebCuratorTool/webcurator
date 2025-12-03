@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
+import type { SelectItem } from "@/types/commons";
 import {
   type Target,
   type TargetAccess,
@@ -17,13 +18,13 @@ import {
   type TargetSeeds,
 } from "@/types/target";
 
-const TARGET_STATE_PENDING = { name: "Pending", code: 1 };
-const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 };
-const TARGET_STATE_NOMINATED = { name: "Nominated", code: 3 };
-const TARGET_STATE_REJECTED = { name: "Rejected", code: 4 };
-const TARGET_STATE_APPROVED = { name: "Approved", code: 5 };
-const TARGET_STATE_CANCELLED = { name: "Cancelled", code: 6 };
-const TARGET_STATE_COMPLETED = { name: "Completed", code: 7 };
+const TARGET_STATE_PENDING = { name: "Pending", code: 1 } as SelectItem;
+const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 } as SelectItem;
+const TARGET_STATE_NOMINATED = { name: "Nominated", code: 3 } as SelectItem;
+const TARGET_STATE_REJECTED = { name: "Rejected", code: 4 } as SelectItem;
+const TARGET_STATE_APPROVED = { name: "Approved", code: 5 } as SelectItem;
+const TARGET_STATE_CANCELLED = { name: "Cancelled", code: 6 } as SelectItem;
+const TARGET_STATE_COMPLETED = { name: "Completed", code: 7 } as SelectItem;
 
 export const stateList = [
   TARGET_STATE_PENDING,
@@ -102,7 +103,7 @@ export const useNextStateStore = defineStore("TargetNextStateList", () => {
     ];
   };
 
-  const setData = (originalState: any, data: any) => {
+  const setData = (originalState: SelectItem, data: Array<number>) => {
     const states = [];
     for (let i = 0; i < data.length; i++) {
       states.push(stateList[data[i] - 1]);

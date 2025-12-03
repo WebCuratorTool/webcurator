@@ -110,21 +110,16 @@ export const useUsersStore = defineStore("users", () => {
   const initialFetch = () => {
     const userProfile = useUserProfileStore();
     const rest: UseFetchApis = useFetch();
-    rest
-      .get<UsersResponse>("users")
-      .then((rsp) => {
-        data.value = rsp["users"];
+    rest.get<UsersResponse>("users").then((rsp) => {
+      data.value = rsp["users"];
 
-        for (let i = 0; i < data.value.length; i++) {
-          const user: User = data.value[i];
-          if (user.name === userProfile.name) {
-            userProfile.setBasicData(user);
-          }
+      for (let i = 0; i < data.value.length; i++) {
+        const user: User = data.value[i];
+        if (user.name === userProfile.name) {
+          userProfile.setBasicData(user);
         }
-      })
-      .catch((err: any) => {
-        console.log(err.message);
-      });
+      }
+    });
   };
 
   const userList = computed(() => {
