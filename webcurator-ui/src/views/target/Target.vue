@@ -1,107 +1,121 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useToast } from "primevue/usetoast";
 import {
-    setTarget,
-    useTargetDescriptionDTO,
-    useTargetGeneralDTO,
-    useTargetGropusDTO,
-    useTargetProfileDTO,
-    useTargetSeedsDTO,
-    useTargetHarvestsDTO, 
-    useNextStateStore 
+  setTarget,
+  useTargetAccessDTO,
+  useTargetAnnotationsDTO,
+  useTargetDescriptionDTO,
+  useTargetGeneralDTO,
+  useTargetGropusDTO,
+  useTargetProfileDTO,
+  useTargetSeedsDTO,
+  useTargetHarvestsDTO, 
+  useNextStateStore 
 } from '@/stores/target';
 import TargetTabView from './target-tabs/TargetTabView.vue';
+import { useAlertStore } from '@/utils/alertStore';
+import { useProgressStore } from '@/utils/progress';
 
-const route = useRoute()
-const targetId = route.params.id as string
-
+const router = useRouter();
+const route = useRoute();
 const rest: UseFetchApis = useFetch();
-const toast = useToast();
+const alertStore = useAlertStore();
+const progress = useProgressStore();
+const targetId = route.params.id as string;
 
-const targetGeneral = useTargetGeneralDTO();
-const targetProfile = useTargetProfileDTO();
+const targetAccess = useTargetAccessDTO();
+const targetAnnotations = useTargetAnnotationsDTO();
 const targetDescription = useTargetDescriptionDTO();
-const targetSeeds = useTargetSeedsDTO();
+const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetHarvests = useTargetHarvestsDTO();
+const targetProfile = useTargetProfileDTO();
+const targetSeeds = useTargetSeedsDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
 const isTargetAvailable = ref(false);
-const loading = ref(false);
+const isPageAvailable = ref(true);
 
 const initData = () => {
   isTargetAvailable.value = false;
   targetGeneral.initData();
   nextStates.initData();
-}
+};
 
-const fetchTargetDetails = () => {
-    isTargetAvailable.value = false;
-    loading.value = true;
+const fetchTargetDetails = async () => {
+  isTargetAvailable.value = false;
+  progress.start();
+  try {
+    const data = await rest.get('targets/' + targetId);
+    if (data) {
+      isTargetAvailable.value = true;
+      setTarget(data);
+      nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
+    } else {
+      isPageAvailable.value = false;
+      router.push('/targets/');
+    }
+  } finally {
+    progress.end();
+  }
+};
 
-    rest.get('targets/' + targetId).then((data: any) => {        
-        isTargetAvailable.value = true;
-        setTarget(data);
-        nextStates.setData(targetGeneral.selectedState, data.general.nextStates || []);
-    }).catch((err: any) => {
-        console.log(err.message);
-        initData();
-    }).finally(() => {
-        loading.value = false;
-    });
-}
-
-const save = () => {
+const save = async () => {
+  progress.start();
+  try {
     const dataReq = {
-        general: targetGeneral.getData(),
-        profile: targetProfile.getData(),
-        description: targetDescription.getData(),
-        groups: targetGroups.getData(),
-        seeds: targetSeeds.getData(),
-        schedule: targetHarvests.getData()
-    }    
+      access: targetAccess.getData(),
+      annotations: targetAnnotations.getData(),
+      general: targetGeneral.getData(),
+      profile: targetProfile.getData(),
+      description: targetDescription.getData(),
+      groups: targetGroups.getData(),
+      seeds: targetSeeds.getData(),
+      schedule: targetHarvests.getData()
+    }       
+    
+    dataReq.profile.overrides.forEach((override) => {
+      // Ensure blockedUrls and includedUrls are arrays
+      if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+        if (!Array.isArray(override.value)) {
+          override.value = override.value.toString().split('\n');
+        }
+      }
+    });
 
-  rest.put('targets/' + targetGeneral.id, dataReq)
-  .then((response: any) => {
+    const response = await rest.put('targets/' + targetGeneral.id, dataReq);
     if (response == 200) {
       showSuccessMessage();
-      editing.value = false
+      editing.value = false;
     }
-  })
-  .catch((err: any) => {
-    showErrorMessage(err.message)
-  })
-}
+  } catch (err: any) {
+    showErrorMessage(err.message);
+  } finally {
+    progress.end();
+  }
+};
 
 const setEditing = (isEditing: boolean) => {
   editing.value = isEditing;
   if (!isEditing) {
     fetchTargetDetails();
   }
-}
+};
 
 const showErrorMessage = (message: string) => {
-  toast.add({ severity: 'error', summary: 'Target not saved', detail: message, life: 3000 });
+  alertStore.error(message, message, 'Target not saved');
 };
 
 const showSuccessMessage = () => {
-  toast.add({ severity: 'success', summary: 'Target succesfully saved', life: 3000 });
+  alertStore.info('Target succesfully saved');
 };
-fetchTargetDetails();
 
+await fetchTargetDetails();
 </script>
 
 <template>
-  <Toast />
-  <TargetTabView 
-    :editing=editing 
-    :isTargetAvailable=isTargetAvailable
-    :loading=loading
-    @setEditing="setEditing"
-    @save="save"    
-  />
+  <TargetTabView v-if="isPageAvailable" :editing="editing" :isTargetAvailable="isTargetAvailable" @setEditing="setEditing" @save="save" />
 </template>

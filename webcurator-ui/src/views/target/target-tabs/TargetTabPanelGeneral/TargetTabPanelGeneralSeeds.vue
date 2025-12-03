@@ -1,46 +1,35 @@
 <script setup lang="ts">
+// libraries
 import { defineAsyncComponent, ref, toRaw, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import WctTopLabel from '@/components/WctTopLabel.vue';
-import { useTargetSeedsDTO } from '@/stores/target';
-import { formatDate } from '@/utils/helper';
 import { useDialog } from 'primevue/usedialog';
-import { useToast } from 'primevue/usetoast';
+import { useRoute } from 'vue-router';
+
+// components
+import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
+import { useTargetSeedsDTO } from '@/stores/target';
+// utils
+import { formatDate } from '@/utils/helper';
 
 const AddPermissionModal = defineAsyncComponent(() => import('./modals/TargetAddPermissionModal.vue'));
+const AddSeedModal = defineAsyncComponent(() => import('./modals/TargetAddSeedModal.vue'));
 const ViewPermissionModal = defineAsyncComponent(() => import('./modals/TargetViewPermissionModal.vue'));
 
-const toast = useToast();
+const addPermissionsModal = useDialog();
+const addSeedModal = useDialog();
+const viewPermissionModal = useDialog();
 
 const props = defineProps<{
   editing: boolean;
 }>();
 
-const route = useRoute()
-const targetId = route.params.id as string
+const route = useRoute();
+const targetId = route.params.id as string;
 
 const targetSeeds = useTargetSeedsDTO();
 
-const addingSeeds = ref(false);
 const editingSeed = ref(0);
-const newSeed = ref({ seed: '', authorisations: [], primary: false });
 const previousSeed = ref({});
-const selectedAuthorisationOption = ref('Auto');
-
-const addSeedsModal = useDialog();
-const viewPermissionModal = useDialog();
-
-const addSeed = () => {
-  if (newSeed.value.seed != '') {
-    if (targetSeeds.targetSeeds.some((t) => t.seed == newSeed.value.seed)) {
-      showErrorMessage();
-    } else {
-      targetSeeds.addSeed(newSeed.value);
-    }
-    newSeed.value = { seed: '', authorisations: [], primary: false };
-  }
-};
 
 const editSeed = (seed: any) => {
   previousSeed.value = structuredClone(toRaw(seed));
@@ -57,67 +46,61 @@ const removePermission = (seed: any, auth: any) => {
 };
 
 const showAddPermission = (seed: any) => {
-  addSeedsModal.open(AddPermissionModal, {
+  addPermissionsModal.open(AddPermissionModal, {
     props: { header: `Add Permission to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
     data: { seed: seed, targetId: targetId }
   });
 };
 
+const showAddSeed = () => {
+  addSeedModal.open(AddSeedModal, {
+    props: { header: 'Add Seed', modal: true, dismissableMask: true, style: { width: '30vw' } }
+  });
+};
+
 const showViewPermission = (permissionId: number) => {
-  viewPermissionModal.open(ViewPermissionModal, { 
+  viewPermissionModal.open(ViewPermissionModal, {
     props: { modal: true, dismissableMask: true, closable: false, style: { width: '50vw' } },
     data: { permissionId: permissionId }
-  })
-}
-
-const showErrorMessage = () => {
-  toast.add({ severity: 'error', summary: 'Seed not added', detail: 'The seed already exists on the target', life: 3000 });
+  });
 };
 
 // If the Target is switched out of editing mode, clear the editing seed value too
-watch(() => props.editing, async(updatedEditingState) => {
-  if (updatedEditingState == false) {
-    editingSeed.value = 0;
+watch(
+  () => props.editing,
+  async (updatedEditingState) => {
+    if (updatedEditingState == false) {
+      editingSeed.value = 0;
+    }
   }
-});
+);
 </script>
 
 <template>
   <div class="flex justify-between">
     <h4>Seeds</h4>
-    <Button v-if="editing && !addingSeeds" icon="pi pi-plus" label="Add" text @click="addingSeeds = true" />
-    <Button v-if="editing && addingSeeds" icon="pi pi-times" text @click="addingSeeds = false" />
+    <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showAddSeed()" />
   </div>
   <WctTabViewPanel>
-    <div v-if="editing && addingSeeds" class="flex items-end justify-start w-full gap-4 pb-8">
-      <WctTopLabel label="Add Seed" style="width: 50%">
-        <InputText v-model="newSeed.seed" />
-      </WctTopLabel>
-      <WctTopLabel label="Authorisation" style="width: 30%">
-        <Select v-model="selectedAuthorisationOption" :options="['Auto', 'Add Later']" />
-      </WctTopLabel>
-      <Button class="w-auto" icon="pi pi-plus" label="Add" text @click="addSeed" />
-    </div>
-
     <table v-if="targetSeeds.targetSeeds.length > 0" class="w-full target-seed-parent-table">
       <thead>
         <tr style="border-bottom: 1px solid #e4e4e4">
-          <th style="width: 20%; text-align: left; padding: 0.5rem">Seed</th>
-          <th style="width: 10%; text-align: left; padding: 0.5rem">Primary</th>
+          <th style="width: 33%; text-align: left; padding: 0.5rem">Seed</th>
+          <th style="width: 7%; text-align: left; padding: 0.5rem">Primary</th>
           <th style="width: 15%; text-align: left; padding: 0.5rem">Harvest Auth</th>
           <th style="width: 15%; text-align: left; padding: 0.5rem">Auth Agent</th>
-          <th style="width: 17.5%; text-align: left; padding: 0.5rem">Start Date</th>
-          <th style="width: 17.5%; text-align: left; padding: 0.5rem">End Date</th>
+          <th style="width: 10%; text-align: left; padding: 0.5rem">Start Date</th>
+          <th style="width: 10%; text-align: left; padding: 0.5rem">End Date</th>
           <th style="width: 10%; text-align: left; padding: 0.5rem">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="data in targetSeeds.targetSeeds" :key="data.id">
-          <td style="width: 20%; padding: 0.5rem">
+          <td style="width: 33%; padding: 0.5rem">
             <span v-if="editingSeed != data.id">{{ data.seed }}</span>
             <InputText v-else v-model="data.seed" />
           </td>
-          <td style="width: 10%; padding: 0.5rem">
+          <td style="width: 7%; padding: 0.5rem">
             <span v-if="editingSeed != data.id">{{ data.primary ? 'Yes' : 'No' }}</span>
             <Checkbox v-else v-model="data.primary" :binary="true" />
           </td>
@@ -125,14 +108,14 @@ watch(() => props.editing, async(updatedEditingState) => {
             <table class="w-full target-seed-child-table">
               <tbody>
                 <tr v-for="authorisation in data.authorisations" :key="authorisation.id">
-                  <td style="width: 15%; padding: 0.5rem">{{ authorisation.name }}</td>
-                  <td style="width: 15%; padding: 0.5rem">{{ authorisation.agent }}</td>
-                  <td style="width: 17.5%; padding: 0.5rem">{{ authorisation.startDate && formatDate(authorisation.startDate) }}</td>
-                  <td style="width: 17.5%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
-                  <td style="width: 5%; padding: 0.5rem">
+                  <td style="width: 25%; padding: 0.5rem">{{ authorisation.name }}</td>
+                  <td style="width: 25%; padding: 0.5rem">{{ authorisation.agent }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">{{ authorisation.startDate && formatDate(authorisation.startDate) }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">{{ authorisation.endDate && formatDate(authorisation.endDate) }}</td>
+                  <td style="width: 16.67%; padding: 0.5rem">
                     <div class="flex">
-                      <Button class="p-button-text" style="width: 2rem;" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)"/>
-                      <Button v-if="editing" class="p-button-text" style="width: 2rem;" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removePermission(data, authorisation)" />
+                      <Button class="p-button-text" style="width: 2rem" icon="pi pi-eye" v-tooltip.bottom="'View Permission'" text @click="showViewPermission(authorisation.permissionId)" />
+                      <Button v-if="editing" class="p-button-text" style="width: 2rem" icon="pi pi-link" v-tooltip.bottom="'Unlink Permission'" text @click="removePermission(data, authorisation)" />
                     </div>
                   </td>
                 </tr>
@@ -141,9 +124,9 @@ watch(() => props.editing, async(updatedEditingState) => {
           </td>
           <td v-if="editing" style="width: 5%; padding: 0.5rem">
             <div v-if="editing && editingSeed != data.id" class="flex">
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Permission'" text @click="showAddPermission(data)" />
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
-              <Button class="p-button-text" style="width: 2rem;" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-plus-circle" v-tooltip.bottom="'Add Permission'" text @click="showAddPermission(data)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-pencil" v-tooltip.bottom="'Edit Seed'" text @click="editSeed(data)" />
+              <Button class="p-button-text" style="width: 2rem" icon="pi pi-trash" v-tooltip.bottom="'Remove Seed'" text @click="targetSeeds.removeSeed(data.id)" />
             </div>
             <div v-else-if="editing && editingSeed == data.id" class="flex">
               <Button class="p-button-text" style="width: 2rem" icon="pi pi-save" v-tooltip.bottom="'Save'" text @click="editingSeed = 0" />

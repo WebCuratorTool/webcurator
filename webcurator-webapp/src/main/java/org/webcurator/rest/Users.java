@@ -1,6 +1,7 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class Users {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the users, Error: %s", e.getMessage()));
         }
     }
 
@@ -56,8 +58,8 @@ public class Users {
             result = userRoleDAO.getUsers(filter.agency);
         }
         for (User u : result) {
-            List<String> roles=new ArrayList<>();
-            for (Role r : u.getRoles()){
+            List<String> roles = new ArrayList<>();
+            for (Role r : u.getRoles()) {
                 roles.add(r.getName());
             }
             HashMap<String, Object> user = new HashMap<>();
@@ -67,8 +69,8 @@ public class Users {
             user.put("lastName", u.getLastname());
             user.put("email", u.getEmail());
             user.put("agency", u.getAgency().getName());
-            user.put("isActive",u.isActive());
-            user.put("roles",roles);
+            user.put("isActive", u.isActive());
+            user.put("roles", roles);
             users.add(user);
         }
         return new SearchResult(users.size(), users);
@@ -80,12 +82,15 @@ public class Users {
      */
     private static class SearchParams {
         private Filter filter;
+
         SearchParams() {
             filter = new Filter();
         }
+
         public Filter getFilter() {
             return filter;
         }
+
         public void setFilter(Filter filter) {
             this.filter = filter;
         }
@@ -96,9 +101,11 @@ public class Users {
      */
     private static class Filter {
         private String agency;
+
         public String getAgency() {
             return agency;
         }
+
         public void setAgency(String agency) {
             this.agency = agency;
         }

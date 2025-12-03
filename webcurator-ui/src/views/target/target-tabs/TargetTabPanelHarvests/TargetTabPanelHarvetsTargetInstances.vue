@@ -1,69 +1,73 @@
 <script setup lang="ts">
-import { formatDatetime } from '@/utils/helper';
+// libraries
+import { onMounted, ref } from 'vue';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-import Loading from '@/components/Loading.vue';
+// components
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
+// stores
+import { useTargetInstanceListStore } from '@/stores/targetInstanceList';
+// types
+import type { TargetInstance } from '@/types/targetInstance';
+// utils
+import { formatDatetime } from '@/utils/helper';
+import { useProgressStore } from '@/utils/progress';
 
 const rest: UseFetchApis = useFetch();
+const progress = useProgressStore();
 
 const route = useRoute();
 const targetId = route.params.id as string;
 
-const targetInstances = ref();
-const loading = ref(true);
+const targetInstances = ref(<Array<TargetInstance>>([]));
 const emptyMessage = ref('');
 
 const props = defineProps<{
   header: string;
   type: string;
   targetInstanceStates: { [key: string]: string };
+  targetId: string
 }>();
 
-const fetchTargetInstances = () => {
-  loading.value = true;
+const fetchTargetInstances = async () => {
+  progress.start();
+  try {
+    const now = new Date();
+    const searchParams = {
+      filter: {
+        targetId: targetId,
+        to: props.type == 'latest' ? now : null,
+        from: props.type == 'upcoming' ? now : null
+      },
+      limit: props.type == 'latest' ? 5 : 15
+    };
 
-  const now = new Date();
-  const searchParams = {
-    filter: {
-      targetId: targetId,
-      to: props.type == 'latest' ? now : null,
-      from: props.type == 'upcoming' ? now : null
-    },
-    limit: props.type == 'latest' ? 5 : 15
-  };
-
-  rest
-    .post('target-instances', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-    .then((data: any) => {
-      targetInstances.value = data.targetInstances;
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-    })
-    .finally(() => {
-      if (targetInstances.value && targetInstances.value.length == 0) {
-        if (props.type == 'latest') {
-          emptyMessage.value = 'No recent target instances';
-        } else {
-          emptyMessage.value = 'No upcoming target instances';
-        }
+    targetInstances.value = await useTargetInstanceListStore().search(searchParams);
+    
+  } catch (err: any) {
+    console.log(err.message);
+  } finally {
+    progress.end();
+    if (targetInstances.value && targetInstances.value.length == 0) {
+      if (props.type == 'latest') {
+        emptyMessage.value = 'No recent target instances';
+      } else {
+        emptyMessage.value = 'No upcoming target instances';
       }
-      loading.value = false;
-    });
+    }
+  }
 };
-
-fetchTargetInstances();
+onMounted(() => {
+  fetchTargetInstances();
+});
 </script>
 
 <template>
-  <Loading v-if="loading" />
-  <div v-else class="mt-4">
+  <div class="mt-4">
     <h4>{{ header }}</h4>
     <WctTabViewPanel>
-      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="loading">
+      <DataTable v-if="targetInstances && targetInstanceStates && targetInstances.length" class="w-full" :rowHover="true" :value="targetInstances" :loading="progress.visible">
         <Column field="id" header="Id" dataType="numeric" style="min-width: 2rem" />
         <Column field="name" header="Name" />
         <Column field="state" header="State">

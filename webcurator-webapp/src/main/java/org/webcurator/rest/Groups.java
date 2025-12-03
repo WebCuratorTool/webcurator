@@ -1,6 +1,7 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 
 import java.util.*;
@@ -37,8 +39,8 @@ public class Groups {
     }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
-       if (searchParams == null) {
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
+        if (searchParams == null) {
             searchParams = new SearchParams();
         }
         Filter filter = searchParams.getFilter();
@@ -63,7 +65,7 @@ public class Groups {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the groups, Error: %s", e.getMessage()));
         }
     }
 
@@ -71,7 +73,7 @@ public class Groups {
      * Returns an overview of all possible group states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 

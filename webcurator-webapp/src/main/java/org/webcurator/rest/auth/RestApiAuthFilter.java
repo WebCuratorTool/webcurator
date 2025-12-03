@@ -3,9 +3,7 @@ package org.webcurator.rest.auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.webcurator.domain.model.auth.Privilege;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +28,11 @@ public class RestApiAuthFilter implements Filter {
         String contentUri = req.getContextPath();
         String url = req.getRequestURI().substring(contentUri.length());
         if (url.startsWith("/api")) {
-            String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
-            // FIXME now someone with only LOGIN privilege can still do everything (including DELETE, POST and PUT)
-            SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
-            if (authorizationResult.failed) {
-                rsp.setStatus(authorizationResult.status);
-                rsp.getOutputStream().print(authorizationResult.message);
+            try {
+                sessionManager.checkToken(req);
+            } catch (AuthorizationException e) {
+                rsp.setStatus(e.getStatus());
+                rsp.getOutputStream().print(e.getMessage());
                 return;
             }
         }

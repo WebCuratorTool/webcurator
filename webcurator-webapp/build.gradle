@@ -137,7 +137,11 @@ processResources {
 tasks.register('cleanUI', Delete) {
     group = "BuildUI"
     description = "Remove the dist folder"
-    delete '../webcurator-ui/dist'
+    def dirsToDelete = [
+        '../webcurator-ui/dist',
+        'src/main/resources/static'
+    ]
+    delete dirsToDelete
     followSymlinks = true
     doLast {
         println 'UI cleaning done!'
@@ -183,31 +187,17 @@ tasks.register('copyUI', Copy) {
     description = "Copy the files from dist folder to webapp folder"
     dependsOn tasks.buildUI
     from '../webcurator-ui/dist'
-    into './src/main/webapp/'
+    into './src/main/resources/static/'
     doLast {
         println 'UI copying done!'
         println 'All UI tasks done!'
     }
 }
 
-bootWar {
-    dependsOn tasks.copyUI
-}
-
-war {
-    dependsOn tasks.copyUI
-}
-
-bootRun {
-    dependsOn tasks.copyUI
-}
-
 clean {
     dependsOn tasks.cleanUI
 }
 
-build {
+processResources {
     dependsOn tasks.copyUI
 }
-
-

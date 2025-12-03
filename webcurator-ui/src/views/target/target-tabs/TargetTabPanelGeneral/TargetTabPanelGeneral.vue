@@ -6,6 +6,7 @@ import WctFormField from '@/components/WctFormField.vue';
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
 import TargetTabPanelGeneralGroups from './TargetTabPanelGeneralGroups.vue';
 import TargetTabPanelGeneralSeeds from './TargetTabPanelGeneralSeeds.vue';
+import { computed } from 'vue';
 
 defineProps<{
   editing: boolean;
@@ -14,6 +15,13 @@ defineProps<{
 const targetGeneral = useTargetGeneralDTO();
 const users = useUsersStore();
 const nextStates = useNextStateStore();
+const selectedUser = computed(() => {
+  if (targetGeneral.selectedUser) {
+    return targetGeneral.selectedUser.code;
+  } else {
+    return '';
+  }
+});
 </script>
 
 <template>
@@ -49,7 +57,7 @@ const nextStates = useNextStateStore();
             class="w-full md:w-18rem"
             :disabled="!editing"
           />
-          <p v-else class="font-semibold">{{ targetGeneral.selectedUser.code }}</p>
+          <p v-else class="font-semibold">{{ selectedUser }}</p>
         </WctFormField>
 
         <WctFormField label="Reference Number">

@@ -80,6 +80,14 @@
   background: transparent;
 }
 
+.wct-back-button {
+  color: #3f51b5;
+}
+
+.wct-back-button:hover {
+  color: #6878c4;
+}
+
 button.wct-primary-button {
   border: 1px solid #3f51b5;
   background: #3f51b5;

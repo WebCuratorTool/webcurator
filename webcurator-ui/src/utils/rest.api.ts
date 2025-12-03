@@ -1,14 +1,17 @@
 import router from '@/router';
 import { useUserProfileStore } from '@/stores/users';
 import { defineStore } from 'pinia';
-import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
+import { useAlertStore } from './alertStore';
+import { HttpStatus } from './rest.http.status';
 
-export const RootPath = '/wct';
-export const LoginPagePath = RootPath + '/login';
-const RootContextPath = RootPath + '/api/v1';
-const ToastLife = 30 * 1000;
-const RetryDelay = 3 * 1000;
+export const BasePath = '/wct';
+export const HomePagePath = '/';
+export const LoginPagePath = '/login';
+export const ApiRootPath = '/wct';
+const ApiContextPath = ApiRootPath + '/api/v1';
+const RetryDelay = 20 * 1000;
+const MaxRetryTimes = 3;
 
 interface LoginResponse {
   ok: boolean;
@@ -19,7 +22,7 @@ export type { LoginResponse };
 
 const _login = async (username: string, password: string) => {
   const credentials = 'username=' + username + '&password=' + password;
-  const rsp = await fetch(RootPath + '/auth/v1/token', {
+  const rsp = await fetch(ApiRootPath + '/auth/v1/token', {
     method: 'POST',
     redirect: 'error',
     headers: {
@@ -47,18 +50,18 @@ const _login = async (username: string, password: string) => {
     feedback.ok = false;
     feedback.title = 'Error: ' + status;
     feedback.detail = statusText;
+  } else {
+    const token = await rsp.text();
+    const userProfile = useUserProfileStore();
+    userProfile.setToken(username, token);
   }
-
-  const token = await rsp.text();
-  const userProfile = useUserProfileStore();
-  userProfile.setToken(username, token);
 
   return feedback;
 };
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const useAuthStore = defineStore('AuthStore', () => {
   const isAuthenticating = ref(false);
 
@@ -74,7 +77,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
     if (!token) {
       return false;
     }
-    const rsp = await fetch(RootPath + '/auth/v1/token/' + token);
+    const rsp = await fetch(ApiRootPath + '/auth/v1/token/' + token);
     return rsp.ok;
   };
 
@@ -92,7 +95,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
       if (redirectPath.value) {
         router.push(redirectPath.value);
       } else {
-        router.push(RootPath);
+        router.push(HomePagePath);
       }
     } else {
       isAuthenticating.value = false;
@@ -110,7 +113,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
     const token = userProfile.token;
     userProfile.clear();
     if (token) {
-      await fetch(RootPath + '/auth/v1/token/' + token, {
+      await fetch(ApiRootPath + '/auth/v1/token/' + token, {
         method: 'DELETE',
         redirect: 'error',
         headers: {
@@ -118,7 +121,7 @@ export const useAuthStore = defineStore('AuthStore', () => {
         }
       });
     }
-    setRedirectPath(RootPath);
+    setRedirectPath(HomePagePath);
     router.push(LoginPagePath);
   };
 
@@ -139,7 +142,7 @@ export interface UseFetchApis {
 // by convention, composable function names start with "use"
 export function useFetch() {
   // state encapsulated and managed by the composable
-  const toast = useToast();
+  const confirm = useAlertStore();
 
   const shell: UseFetchApis = {
     // method
@@ -154,12 +157,15 @@ export function useFetch() {
 
   function setMethod(methodValue: HttpMethod) {
     return async (path: string, payload: any = null, customHeader: any = null) => {
+      // await sleep(1000);
+
       const userProfile = useUserProfileStore();
       const loginStore = useAuthStore();
 
       let ret = null;
 
       const isFinished = ref(false);
+      const retriedTimes = ref(0);
 
       //Retry until it's finished. If the login session is expired, it can be run 2 rounds
       while (!isFinished.value) {
@@ -189,73 +195,75 @@ export function useFetch() {
 
         let reqPath;
         if (path.startsWith('/')) {
-          reqPath = RootContextPath + path;
+          reqPath = ApiContextPath + path;
         } else {
-          reqPath = RootContextPath + '/' + path;
+          reqPath = ApiContextPath + '/' + path;
         }
 
-        const rsp = await fetch(reqPath, reqOptions).catch((err: any) => {
-          toast.removeAllGroups();
-          toast.add({
-            severity: 'warn',
-            summary: 'Warning! ',
-            detail: err.message,
-            life: ToastLife
-          });
-        });
+        let rsp;
+        try {
+          rsp = await fetch(reqPath, reqOptions);
+        } catch (err: any) {
+          retriedTimes.value++;
+          if (retriedTimes.value >= MaxRetryTimes) {
+            const errMsg = err.message;
+            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            break;
+          } else {
+            const errMsg = `${err.message}. Will retry in ${RetryDelay / 1000} seconds.`;
+            confirm.warning(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            await sleep(RetryDelay);
+            continue;
+          }
+        }
 
-        //Exception has happened
         if (!rsp) {
-          // await sleep(RetryDelay);
-          // continue;
+          //Exception has happened
+          const errMsg = 'Unknown exception happened.';
+          await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}`);
+          break;
+        } else if (rsp.status === 502 || rsp.status === 504) {
+          //Upstream error
+          const errMsg = await extractErrorMessageFromResponse(rsp);
+          retriedTimes.value++;
+          if (retriedTimes.value >= MaxRetryTimes) {
+            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            break;
+          } else {
+            const errForRetry = `${errMsg}. Will retry in ${RetryDelay / 1000} seconds.`;
+            confirm.warning(errForRetry, `Failed to [${methodValue}] ${reqPath}: ${errForRetry}`);
+            await sleep(RetryDelay);
+            continue;
+          }
+        } else if (rsp.status === 401) {
+          loginStore.startLogin();
+          continue;
+        } else if (rsp.status === 403) {
+          const errMsg = await extractErrorMessageFromResponse(rsp);
+          await confirm.error(errMsg, `User does not have role to [${methodValue}] ${reqPath}: ${errMsg}`);
+          continue;
+        } else if (!rsp.ok) {
+          const errMsg = await extractErrorMessageFromResponse(rsp);
+          await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
           break;
         }
 
-        //Need authentication, forward to login page
-        if (rsp.status === 401) {
-          loginStore.startLogin();
-          continue;
-        }
+        const contentType = rsp.headers.get('content-type') || '';
+        const contentLength = parseInt(rsp.headers.get('content-length') || '-1');
 
-        //Upstream error
-        if (rsp.status >= 500 && rsp.status <= 599) {
-          toast.removeAllGroups();
-          toast.add({
-            severity: 'warn',
-            summary: 'Warning!',
-            detail: '[' + rsp.status + '] System Error! Will retry in ' + RetryDelay / 1000 + ' seconds.',
-            life: ToastLife
-          });
-          await sleep(RetryDelay);
-          continue;
-        }
-
-        if (rsp.ok) {
-          const contentType = rsp.headers.get('content-type') || '';
-          const contentLength = parseInt(rsp.headers.get('content-length') || '-1');
-
-          if (contentType.length === 0 && contentLength <= 0) {
-            ret = rsp.status;
-          } else if (contentType.startsWith('application/json')) {
-            ret = await rsp.json();
-          } else if (contentType.startsWith('application') || contentType.startsWith('image') || contentType.startsWith('video') || contentType.startsWith('audio')) {
-            ret = await rsp.blob();
-          } else {
-            ret = await rsp.text();
-          }
+        if (!contentType && contentLength <= 0) {
+          ret = rsp.status;
+        } else if (contentType.startsWith('application/json')) {
+          ret = await rsp.json();
+        } else if (contentType.startsWith('application') || contentType.startsWith('image') || contentType.startsWith('video') || contentType.startsWith('audio')) {
+          ret = await rsp.blob();
         } else {
-          let error = '';
-          let e = await rsp.text();
-          if (!e) {
-            e = 'Unknown error';
-          }
-          error = '[' + path + '] ' + e + ' StatusCode: ' + rsp.status;
-          toast.removeAllGroups();
-          toast.add({ severity: 'error', summary: 'Error!', detail: error, life: ToastLife });
-          ret = undefined;
+          ret = await rsp.text();
         }
+        confirm.trace(`Succeed to [${methodValue}] ${reqPath}`);
         isFinished.value = true;
       }
+
       return ret;
     };
   }
@@ -263,3 +271,40 @@ export function useFetch() {
   // expose managed state as return value
   return shell;
 }
+
+const extractErrorMessageFromResponse = async (rsp: any) => {
+  let err = null;
+
+  //If not able to get the status text, then try to get the error message from the response body.
+  const contentType = rsp.headers.get('content-type') || '';
+  if (contentType) {
+    if (contentType.startsWith('text/html')) {
+      const rawHtml = await rsp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawHtml, 'text/html');
+      err = doc.body.textContent || 'Unknown error';
+    } else if (contentType.startsWith('application/json')) {
+      const errMessage = await rsp.json();
+      err = errMessage.error;
+    } else {
+      err = await rsp.text();
+    }
+  } else {
+    err = rsp.statusText;
+  }
+
+  if (!err) {
+    // If not able to get the response content, then try to guess the status text from the status code
+    err = HttpStatus[rsp.status];
+  }
+  if (!err) {
+    if (rsp.status >= 500 && rsp.status <= 599) {
+      err = 'System error';
+    } else if (rsp.status >= 400 && rsp.status <= 499) {
+      err = 'User request error';
+    } else {
+      err = 'Unknown error';
+    }
+  }
+  return err;
+};

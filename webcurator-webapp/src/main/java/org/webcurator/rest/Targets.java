@@ -7,6 +7,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,16 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.simple.SimpleSeed;
 import org.webcurator.domain.model.simple.SimpleTarget;
+import org.webcurator.rest.auth.AuthorizationException;
+import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
 
@@ -30,7 +35,6 @@ import javax.validation.*;
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -75,6 +79,9 @@ public class Targets {
 
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     private Map<Integer, String> stateMap = new TreeMap<>();
 
@@ -121,7 +128,8 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to search the target list. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
     }
 
@@ -132,8 +140,9 @@ public class Targets {
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
+
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         TargetDTO targetDTO = new TargetDTO(target);
@@ -159,7 +168,8 @@ public class Targets {
             case "seeds":
                 return ResponseEntity.ok().body(targetDTO.getSeeds());
             default:
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
+                String errMsg = String.format("No such target section: %s for ID: %d", section, id);
+                return FailureResponse.error(HttpStatus.NOT_FOUND, errMsg);
         }
     }
 
@@ -167,15 +177,26 @@ public class Targets {
      * Handler for deleting individual targets
      */
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<?> delete(@PathVariable long id) {
+    public ResponseEntity<?> delete(@PathVariable long id, HttpServletRequest request) {
         Target target = targetDAO.load(id);
+
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         } else {
+
+            // Is the user allowed to delete this target?
+            String owner = target.getOwner().getUsername();
+            String agency = target.getOwner().getAgency().getName();
+            try {
+                sessionManager.authorize(request, owner, agency, Privilege.DELETE_TARGET);
+            } catch (AuthorizationException e) {
+                return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
+            }
+
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because it has related target instances"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because it has related target instances");
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because its state is not Rejected or Cancelled");
             } else {
                 // FIXME This does not delete group memberships
                 targetDAO.delete(target);
@@ -191,13 +212,16 @@ public class Targets {
      */
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
+
         Target target = new Target();
         try {
-            upsert(target, targetDTO);
+            upsert(target, targetDTO, request, false);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         try {
@@ -208,7 +232,8 @@ public class Targets {
             targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Malformed Target URL. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 
@@ -219,8 +244,9 @@ public class Targets {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
+
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         // Create DTO based on the current data in the database
@@ -229,9 +255,11 @@ public class Targets {
         try {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         // Validate updated DTO
@@ -239,18 +267,20 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
 
         // Finally, map the DTO to the entity and update the database
         try {
-            upsert(target, targetDTO);
+            upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to dave the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 
@@ -258,7 +288,7 @@ public class Targets {
      * Returns an overview of all possible target states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 
@@ -266,7 +296,7 @@ public class Targets {
      * Returns an overview of all possible schedule types
      */
     @GetMapping(path = "/schedule-types")
-    public ResponseEntity getScheduleTypes() {
+    public ResponseEntity<?> getScheduleTypes() {
         Map<Integer, String> scheduleTypes = new TreeMap<>();
         scheduleTypes.put(Schedule.TYPE_ANNUALLY, "Annually");
         scheduleTypes.put(Schedule.TYPE_HALF_YEARLY, "Half-yearly");
@@ -282,15 +312,17 @@ public class Targets {
 
 
     /**
-     * The actual mapping of TargetDTO to Target and upsert of the latter
+     * The actual mapping of TargetDTO to Target and upsert of the latter. Also does a number of
+     * last-minute data-based authorisation checks
      */
-    private void upsert(Target target, TargetDTO targetDTO) throws BadRequestError {
+    private void upsert(Target target, TargetDTO targetDTO, HttpServletRequest request, boolean isUpdate) throws BadRequestError, AuthorizationException {
 
         String ownerStr = targetDTO.getGeneral().getOwner();
         User owner = userRoleDAO.getUserByName(ownerStr);
         if (owner == null) {
             throw new BadRequestError(String.format("Owner with username %s unknown", ownerStr));
         }
+
         if (target.isNew()) {
             target.setCreationDate(new Date());
         }
@@ -315,7 +347,7 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
-            // Upsert the schedules and distinguish existing ones to be updated from new ones to added
+            // Upsert the schedules and distinguish existing ones to be updated from new ones to be added
             ArrayList<Schedule> schedulesToBeDeleted = new ArrayList<>();
             for (Schedule schedule : target.getSchedules()) {
                 boolean deleteSchedule = true;
@@ -358,9 +390,7 @@ public class Targets {
                 for (TargetDTO.Seed.Authorisation authorisation : s.getAuthorisations()) {
                     try {
                         Site site = siteDAO.load(authorisation.getId());
-                        for (Permission p : site.getPermissions()) {
-                            permissions.add(p);
-                        }
+                        permissions.addAll(site.getPermissions());
                     } catch (ObjectNotFoundException e) {
                         throw new BadRequestError(String.format("Unknown authorisation: %s", authorisation));
                     }
@@ -475,6 +505,31 @@ public class Targets {
             target.setDublinCoreMetaData(metadata);
         }
 
+        /*
+         * Authorisations
+         *
+         * All desired modifications have been collected, so now we can check whether
+         * we have the privileges required to apply them
+         */
+        String agency = owner.getAgency().getName();
+        if (isUpdate) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.MODIFY_TARGET);
+        } else {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CREATE_TARGET);
+        }
+        if (target.getState() != Target.STATE_APPROVED && targetDTO.getGeneral().getState() == Target.STATE_APPROVED) {
+            if (target.getState() == Target.STATE_COMPLETED) {
+                sessionManager.authorize(request, ownerStr, agency, Privilege.REINSTATE_TARGET);
+            }
+            sessionManager.authorize(request, ownerStr, agency, Privilege.APPROVE_TARGET);
+        }
+        if (target.getState() != Target.STATE_CANCELLED && targetDTO.getGeneral().getState() == Target.STATE_CANCELLED) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CANCEL_TARGET);
+        }
+        if (!targetDTO.getSchedule().getSchedules().isEmpty()) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
+        }
+
         // Persist the target
         try {
             if (targetDTO.getGroups() != null) {
@@ -495,7 +550,7 @@ public class Targets {
         } catch (DataIntegrityViolationException e) {
             String msg = e.getMessage();
             Throwable cause = e.getCause();
-            if (cause != null && cause instanceof ConstraintViolationException) {
+            if (cause instanceof ConstraintViolationException) {
                 if (((ConstraintViolationException) cause).getSQLException() != null) {
                     msg = "Database constraint violation, details: " + ((ConstraintViolationException) cause).getSQLException().getMessage();
                 }
@@ -649,12 +704,12 @@ public class Targets {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
+    public Map<String, Object> errorMessage(MethodArgumentNotValidException ex) {
         String msg = null;
         // Return the first error (typically there will only be one anyway)
         if (ex.getBindingResult().getErrorCount() > 0) {
             FieldError error = (FieldError) ex.getBindingResult().getAllErrors().get(0);
-            String fieldName = ((FieldError) error).getField();
+            String fieldName = (error).getField();
             String errorMessage = error.getDefaultMessage();
             msg = fieldName + ": " + errorMessage;
         }
