@@ -157,6 +157,7 @@ export const useAuthStore = defineStore("AuthStore", () => {
   };
 });
 
+/* eslint-disable no-unused-vars */
 export interface UseFetchApis {
   get<T = unknown>(path: string): Promise<T>;
   post<T = unknown, P = unknown>(
@@ -170,6 +171,7 @@ export interface UseFetchApis {
   head<T = unknown>(path: string): Promise<T>;
   options<T = unknown, P = unknown>(path: string, payload?: P): Promise<T>;
 }
+/* eslint-enable no-unused-vars */
 
 // by convention, composable function names start with "use"
 export function useFetch() {
@@ -212,7 +214,7 @@ export function useFetch() {
 
         userProfile.load(); //Update the info from local storage
 
-        const requestHeaders: HeadersInit = new Headers();
+        const requestHeaders = new Headers();
         requestHeaders.set("Content-Type", "application/json");
         requestHeaders.set("Authorization", userProfile.token);
 
@@ -220,10 +222,11 @@ export function useFetch() {
           requestHeaders.set(customHeader.header, customHeader.value);
         }
 
-        const reqOptions: RequestInit = {
+        const reqOptions = {
           method: methodValue,
-          redirect: "error",
+          redirect: "error" as const,
           headers: requestHeaders,
+          body: null as string | null,
         };
         if (payload !== null && payload !== undefined) {
           reqOptions.body = JSON.stringify(payload);

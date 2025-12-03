@@ -83,6 +83,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
       }
       console.error(`${header}: ${detail}`);
       toast.removeAllGroups();
+      /* eslint-disable no-unused-vars */
       return new Promise((resolve: (value: boolean) => void) => {
         confirm.require({
           group: "dlg-error",
@@ -92,6 +93,7 @@ export const useAlertStore = defineStore("AlertStore", () => {
           reject: () => resolve(false),
         });
       });
+      /* eslint-enable no-unused-vars */
     }
   };
 
