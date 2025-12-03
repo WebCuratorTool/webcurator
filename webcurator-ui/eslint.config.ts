@@ -25,6 +25,10 @@ export default defineConfig([
     ],
   },
 
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  ...pluginVue.configs["flat/essential"],
+
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,vue}"],
     plugins: {
@@ -41,10 +45,7 @@ export default defineConfig([
       "prettier/prettier": "warn",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",
+      "vue/multi-word-component-names": "off",
     },
   },
-
-  tseslint.configs.recommended,
-
-  pluginVue.configs["flat/essential"],
 ]);
