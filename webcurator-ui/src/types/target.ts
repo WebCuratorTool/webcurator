@@ -1,5 +1,5 @@
 import type { Annotation } from "@/types/annotation";
-import type { HarvestAuths } from "@/types/harvestAuth";
+import type { HarvestAuthDisplays } from "@/types/harvestAuth";
 
 interface Target {
   access: TargetAccess;
@@ -96,7 +96,7 @@ interface TargetSeed {
   id?: number;
   seed: string;
   primary: boolean;
-  authorisations: HarvestAuths;
+  authorisations: HarvestAuthDisplays;
 }
 
 interface TargetSchedule {

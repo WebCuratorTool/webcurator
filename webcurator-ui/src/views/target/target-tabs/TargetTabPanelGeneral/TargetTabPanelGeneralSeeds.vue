@@ -5,7 +5,7 @@ import { useRoute } from "vue-router";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetSeedsDTO } from "@/stores/target";
-import type { HarvestAuth, HarvestAuthDisplay } from "@/types/harvestAuth";
+import type { HarvestAuthDisplay } from "@/types/harvestAuth";
 import type { TargetSeed } from "@/types/target";
 import { formatDate } from "@/utils/helper";
 
@@ -37,7 +37,9 @@ const previousSeed = ref<TargetSeed>();
 
 const editSeed = (seed: TargetSeed) => {
   previousSeed.value = structuredClone(toRaw(seed));
-  editingSeed.value = seed.id;
+  if (seed.id) {
+    editingSeed.value = seed.id;
+  }
 };
 
 const cancelEditSeed = () => {
@@ -49,7 +51,7 @@ const cancelEditSeed = () => {
 
 const removePermission = (seed: TargetSeed, auth: HarvestAuthDisplay) => {
   seed.authorisations = seed.authorisations.filter(
-    (a: HarvestAuth) => a.permissionId !== auth.permissionId,
+    (a: HarvestAuthDisplay) => a.permissionId !== auth.permissionId,
   );
 };
 
@@ -86,6 +88,12 @@ const showViewPermission = (permissionId: number) => {
     },
     data: { permissionId: permissionId },
   });
+};
+
+const removeSeedById = (id?: number) => {
+  if (id !== undefined && id !== null) {
+    targetSeeds.removeSeed(id);
+  }
 };
 
 // If the Target is switched out of editing mode, clear the editing seed value too
@@ -208,18 +216,18 @@ watch(
               <Button
                 class="p-button-text"
                 style="width: 2rem"
-                icon="pi pi-pencil"
-                v-tooltip.bottom="'Edit Seed'"
+                icon="pi pi-trash"
+                v-tooltip.bottom="'Remove Seed'"
                 text
-                @click="editSeed(data)"
+                @click="removeSeedById(data.id)"
               />
               <Button
                 class="p-button-text"
                 style="width: 2rem"
-                icon="pi pi-trash"
-                v-tooltip.bottom="'Remove Seed'"
+                icon="pi pi-pencil"
+                v-tooltip.bottom="'Edit Seed'"
                 text
-                @click="targetSeeds.removeSeed(data.id)"
+                @click="editSeed(data)"
               />
             </div>
             <div v-else-if="editing && editingSeed == data.id" class="flex">

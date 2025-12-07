@@ -6,6 +6,7 @@ interface HarvestAuth {
   name: string;
   authorisingAgents: AuthorisingAgent[];
   permissions: Permission[];
+  permissionId?: number;
 }
 
 interface HarvestAuthDisplay {
@@ -29,9 +30,12 @@ interface HarvestAuthSearchResponse {
 
 type HarvestAuths = Array<HarvestAuth>;
 
+type HarvestAuthDisplays = Array<HarvestAuthDisplay>;
+
 export type {
   HarvestAuth,
   HarvestAuthDisplay,
+  HarvestAuthDisplays,
   HarvestAuths,
   HarvestAuthSearchResponse,
 };
