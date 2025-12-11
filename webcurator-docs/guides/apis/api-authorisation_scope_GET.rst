@@ -1,7 +1,7 @@
 Retrieve Authorisation Scope (GET)
 ==================================
 
-Returns the highest authorisation scope of a specific privilege of a user. The result is empty if the user does not have the privilege.
+Returns the widest authorisation scope of a specific privilege of a user. The result is empty if the user does not have the privilege.
 
 It is only possilbe to retrieve this list based upon a given and valid token. This is for security purposes.
 
