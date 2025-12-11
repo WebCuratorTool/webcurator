@@ -13,7 +13,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import java.util.*;
 
 /**
  * Handles authentication and authorization for the ReST API, using token-based access
@@ -69,23 +69,25 @@ public class SessionManager {
 
     /**
      * Check whether the user in the current session has sufficient privilege scope to alter the data for the supplied
-     * user and/or agency and role
+     * user and/or agency and privilege
      */
-    public void authorize(String token, String owner, String agency, String role)
+    public void authorize(String token, String owner, String agency, String privilege)
             throws AuthorizationException {
 
-        boolean hasRole = false;
+        boolean hasPrivilege = false;
         int scope = Privilege.SCOPE_NONE;
         List<RolePrivilege> rolePrivileges = userRoleDAO.getUserPrivileges(sessions.getUser(token));
         for (RolePrivilege rolePrivilege : rolePrivileges) {
-            if (rolePrivilege.getPrivilege().equals(role)) {
-                hasRole = true;
-                scope = rolePrivilege.getPrivilegeScope();
-                break;
+            if (rolePrivilege.getPrivilege().equals(privilege)) {
+                hasPrivilege = true;
+                // Make sure we get the widest scope for this privilege
+                if (scope > rolePrivilege.getPrivilegeScope()) {
+                    scope = rolePrivilege.getPrivilegeScope();
+                }
             }
         }
-        if (!hasRole) {
-            throw new AuthorizationException("User does not have role " + role, 403);
+        if (!hasPrivilege) {
+            throw new AuthorizationException("User does not have privilege " + privilege, 403);
         }
         switch (scope) {
             case Privilege.SCOPE_NONE:
@@ -97,8 +99,8 @@ public class SessionManager {
                     return;
                 } else {
                     throw new AuthorizationException(String.format(
-                            "User has role %s but it's limited to objects belonging to the user's agency %s (not %s)",
-                            role, userAgency, agency), 403);
+                            "User has privilege %s but it's limited to objects belonging to the user's agency %s (not %s)",
+                            privilege, userAgency, agency), 403);
 
                 }
             case Privilege.SCOPE_OWNER:
@@ -106,10 +108,10 @@ public class SessionManager {
                     return;
                 } else {
                     throw new AuthorizationException(String.format(
-                            "User has role %s but it's limited to objects the user owns", role), 403);
+                            "User has privilege %s but it's limited to objects the user owns", privilege), 403);
                 }
             default:
-                throw new AuthorizationException(String.format("Unknown scope %d for role %s", scope, role), 403);
+                throw new AuthorizationException(String.format("Unknown scope %d for privilege %s", scope, privilege), 403);
         }
 
     }
@@ -135,6 +137,38 @@ public class SessionManager {
         sessions.removeSession(token);
     }
 
+    /**
+     * Get the privileges for the user in this session. Note that a privilege can be granted to a user
+     * multiple times, because a user may have more than one role. This method returns the highest available scope
+     * for every privilege.
+     */
+    public List<Map<String, Object>> getPrivileges(HttpServletRequest httpServletRequest) throws AuthorizationException {
+        String token = extractToken(httpServletRequest);
+        String userName = sessions.getUser(token);
+        List<RolePrivilege> rolePrivileges = userRoleDAO.getUserPrivileges(userName);
+        List<Map<String, Object>> privileges = new ArrayList<>();
+
+        // First determine the privileges with the widest scope
+        HashMap<String, Integer> rolePrivilegesMap = new HashMap<>();
+        for (RolePrivilege rolePrivilege : rolePrivileges) {
+            int scope = rolePrivilege.getPrivilegeScope();
+            String privilege = rolePrivilege.getPrivilege();
+            if (rolePrivilegesMap.containsKey(privilege) && rolePrivilegesMap.get(privilege) <= scope) {
+                continue;
+            }
+            rolePrivilegesMap.put(privilege, scope);
+        }
+
+        // Now structure them as a list of maps
+        for (Map.Entry<String, Integer> entry: rolePrivilegesMap.entrySet()) {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("privilege", entry.getKey());
+            map.put("scope", entry.getValue());
+            privileges.add(map);
+        }
+        return privileges;
+    }
+
 
     private String extractToken(HttpServletRequest httpServletRequest) throws AuthorizationException {
         String authorizationHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
@@ -143,5 +177,6 @@ public class SessionManager {
         }
         return authorizationHeader.replaceAll("^Bearer\\s+", "");
     }
+
 
 }

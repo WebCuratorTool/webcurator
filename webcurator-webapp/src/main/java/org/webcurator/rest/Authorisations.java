@@ -2,11 +2,14 @@ package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.webcurator.rest.auth.AuthorizationException;
 import org.webcurator.rest.auth.SessionManager;
+import org.webcurator.rest.common.FailureResponse;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,12 +28,10 @@ public class Authorisations {
      */
     @GetMapping(path = "")
     public ResponseEntity<?> get(HttpServletRequest request) {
-
-        String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        // Note that the token will already have been verified at this point, so we can safely assume it refers
-        // to a valid session
-        return ResponseEntity.ok().body(sessionManager.getPrivileges(authorizationHeader));
-
+        try {
+            return ResponseEntity.ok().body(sessionManager.getPrivileges(request));
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), e.getMessage());
+        }
     }
 }
