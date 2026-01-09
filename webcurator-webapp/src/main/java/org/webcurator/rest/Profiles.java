@@ -2,6 +2,7 @@ package org.webcurator.rest;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.webcurator.domain.ProfileDAO;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 
 import java.util.*;
@@ -36,7 +38,7 @@ public class Profiles {
     }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
         }
@@ -47,15 +49,14 @@ public class Profiles {
             responseMap.put("filter", filter);
             responseMap.put("profiles", searchResult.profiles);
             responseMap.put("amount", searchResult.amount);
-            ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
-            return response;
+            return ResponseEntity.ok().body(responseMap);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the profiles, Error: %s", e.getMessage()));
         }
     }
 
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(states);
     }
 
@@ -63,13 +64,20 @@ public class Profiles {
      * Handle the actual search using the old DAO API
      */
     private SearchResult search(Filter filter) throws BadRequestError {
-        List<HashMap<String, Object>>profiles = new ArrayList<>();
+        List<HashMap<String, Object>> profiles = new ArrayList<>();
         List<ProfileDTO> result;
         if (filter.agency != null) {
             result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.type);
         } else {
             result = profileDAO.getDTOs(!filter.showOnlyActive, filter.type);
         }
+
+        /*
+         * Note: if we decide to return the full profile here, and the user does not have
+         * the privilege VIEW_PROFILES or MANAGE_PROFILES, we should withhold the full
+         * profile content for profiles not belonging to the user's agency (perhaps with
+         * an indication that it's not being shown due to insufficient privileges)
+         */
         for (ProfileDTO p : result) {
             HashMap<String, Object> profile = new HashMap<>();
             profile.put("id", p.getOid());
@@ -149,6 +157,4 @@ public class Profiles {
             this.profiles = profiles;
         }
     }
-
-
 }

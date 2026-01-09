@@ -1,6 +1,7 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,9 @@ import org.webcurator.domain.SiteDAO;
 import org.webcurator.domain.model.core.AuthorisingAgent;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
+import org.webcurator.domain.model.core.UrlPattern;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 
 import java.util.*;
@@ -46,7 +49,7 @@ public class HarvestAuthorisations {
     }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
         }
@@ -73,11 +76,12 @@ public class HarvestAuthorisations {
                 responseMap.put(OFFSET_FIELD, offset);
             } else {
                 responseMap.put(OFFSET_FIELD, 0);
-            }   responseMap.put("amount", searchResult.amount);
+            }
+            responseMap.put("amount", searchResult.amount);
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the harvest authorisations, Error: %s", e.getMessage()));
         }
     }
 
@@ -85,7 +89,7 @@ public class HarvestAuthorisations {
      * Returns an overview of all possible group states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 
@@ -127,7 +131,7 @@ public class HarvestAuthorisations {
         if (offset < 0) {
             throw new BadRequestError("Offset may not be negative");
         }
-        // The TargetDao API only supports offsets that are a multiple of limit
+        // The SiteDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
         SiteCriteria criteria = new SiteCriteria();
@@ -143,7 +147,7 @@ public class HarvestAuthorisations {
 
         Pagination pagination = siteDAO.search(criteria, pageNumber, limit);
         List<HashMap<String, Object>> harvestAuthorisationSummaries = new ArrayList<>();
-        for (Site site : (List<Site>)pagination.getList()) {
+        for (Site site : (List<Site>) pagination.getList()) {
             harvestAuthorisationSummaries.add(getHarvestAuthorisationSummary(site));
         }
         return new SearchResult(pagination.getTotal(), harvestAuthorisationSummaries);
@@ -154,17 +158,33 @@ public class HarvestAuthorisations {
         summary.put("id", site.getOid());
         summary.put("creationDate", site.getCreationDate());
         summary.put("name", site.getTitle());
-        Set<Long> authorisingAgents = new HashSet<>();
+        Set<HashMap<String, Object>> authorisingAgents = new HashSet<>();
         for (AuthorisingAgent authorisingAgent : site.getAuthorisingAgents()) {
-            authorisingAgents.add(authorisingAgent.getOid());
+            HashMap<String, Object> agent = new HashMap<>();
+            agent.put("id", authorisingAgent.getOid());
+            agent.put("name", authorisingAgent.getName());
+            authorisingAgents.add(agent);
+            Set<HashMap<String, Object>> permissions = new HashSet<>();
+            for (Permission p : site.getPermissions()) {
+                if (Objects.equals(p.getAuthorisingAgent().getOid(), authorisingAgent.getOid())) {
+                    HashMap<String, Object> permission = new HashMap<>();
+                    permission.put("id", p.getOid());
+                    permission.put("status", p.getStatus());
+                    permission.put("startDate", p.getStartDate());
+                    permission.put("endDate", p.getEndDate());
+                    List<String> urlPatterns = new ArrayList<>();
+                    for (UrlPattern u : p.getUrls()) {
+                        urlPatterns.add(u.getPattern());
+                    }
+                    permission.put("urlPatterns", urlPatterns);
+                    permissions.add(permission);
+                }
+            }
+            agent.put("permissions", permissions);
         }
         summary.put("authorisingAgents", authorisingAgents);
         summary.put("orderNo", site.getLibraryOrderNo());
-        Set<Integer> permissionStates = new HashSet<>();
-        for (Permission permission : site.getPermissions()) {
-            permissionStates.add(permission.getStatus());
-        }
-        summary.put("permissionStates", permissionStates);
+
         return summary;
     }
 
@@ -176,12 +196,15 @@ public class HarvestAuthorisations {
         private Integer limit;
         private String sortBy;
         private Filter filter;
+
         SearchParams() {
             filter = new Filter();
         }
+
         public Filter getFilter() {
             return filter;
         }
+
         public void setFilter(Filter filter) {
             this.filter = filter;
         }
@@ -224,9 +247,11 @@ public class HarvestAuthorisations {
         private String permissionsFileReference;
         private String orderNo;
         private Set<Integer> permissionStates;
+
         public String getAgency() {
             return agency;
         }
+
         public void setAgency(String agency) {
             this.agency = agency;
         }

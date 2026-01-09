@@ -2,20 +2,16 @@ Retrieve Targets (GET)
 ======================
 Returns all targets with a subset of the available information based upon given filter and sorting.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets``_
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-query-method.rst
 
 ====== ====== ========
@@ -97,7 +93,7 @@ seeds        List   Required
 | **creationDate**
 .. include:: /guides/apis/descriptions/desc-formatDate.rst
 
-.. include:: /guides/apis/descriptions/desc-state_target_response.rst
+.. include:: /guides/apis/descriptions/desc-state_target.rst
 
 | **seeds**
 | A list of seeds containing the following information:

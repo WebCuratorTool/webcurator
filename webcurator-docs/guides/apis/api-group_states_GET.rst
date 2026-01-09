@@ -3,20 +3,16 @@ Retrieve Group states (GET)
 
 Returns a list of all the states that a group can have, including the description of each specific state.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/groups/states``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -48,4 +44,7 @@ Example
 -------
 .. code-block:: linux
 
-  TODO
+  curl \
+  --location --request GET 'http://localhost/wct/auth/v1/groups/states' \
+  --header 'Authorization: Bearer <token>' \
+  --data ''

@@ -16,10 +16,16 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.simple.SimpleSeed;
+import org.webcurator.domain.model.simple.SimpleTarget;
+import org.webcurator.rest.auth.AuthorizationException;
+import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.ProfileDTO;
 import org.webcurator.rest.dto.ScheduleDTO;
@@ -75,6 +81,9 @@ public class Targets {
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
 
+    @Autowired
+    private SessionManager sessionManager;
+
     private Map<Integer, String> stateMap = new TreeMap<>();
 
     public Targets() {
@@ -120,7 +129,8 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to search the target list. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
     }
 
@@ -131,8 +141,9 @@ public class Targets {
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
+
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         TargetDTO targetDTO = new TargetDTO(target);
@@ -158,7 +169,8 @@ public class Targets {
             case "seeds":
                 return ResponseEntity.ok().body(targetDTO.getSeeds());
             default:
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
+                String errMsg = String.format("No such target section: %s for ID: %d", section, id);
+                return FailureResponse.error(HttpStatus.NOT_FOUND, errMsg);
         }
     }
 
@@ -166,15 +178,26 @@ public class Targets {
      * Handler for deleting individual targets
      */
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<?> delete(@PathVariable long id) {
+    public ResponseEntity<?> delete(@PathVariable long id, HttpServletRequest request) {
         Target target = targetDAO.load(id);
+
         if (target == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         } else {
+
+            // Is the user allowed to delete this target?
+            String owner = target.getOwner().getUsername();
+            String agency = target.getOwner().getAgency().getName();
+            try {
+                sessionManager.authorize(request, owner, agency, Privilege.DELETE_TARGET);
+            } catch (AuthorizationException e) {
+                return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
+            }
+
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because it has related target instances"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because it has related target instances");
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because its state is not Rejected or Cancelled");
             } else {
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
@@ -189,13 +212,16 @@ public class Targets {
      */
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
+
         Target target = new Target();
         try {
-            upsert(target, targetDTO);
+            upsert(target, targetDTO, request, false);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         try {
@@ -206,7 +232,8 @@ public class Targets {
             targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Malformed Target URL. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 
@@ -217,8 +244,9 @@ public class Targets {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target with id %s does not exist", id));
         }
+
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         // Create DTO based on the current data in the database
@@ -227,9 +255,11 @@ public class Targets {
         try {
             Utils.mapToDTO(targetMap, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
         // Validate updated DTO
@@ -237,18 +267,20 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
 
         // Finally, map the DTO to the entity and update the database
         try {
-            upsert(target, targetDTO);
+            upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to save the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to dave the Target, Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
 
@@ -256,7 +288,7 @@ public class Targets {
      * Returns an overview of all possible target states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 
@@ -264,7 +296,7 @@ public class Targets {
      * Returns an overview of all possible schedule types
      */
     @GetMapping(path = "/schedule-types")
-    public ResponseEntity getScheduleTypes() {
+    public ResponseEntity<?> getScheduleTypes() {
         Map<Integer, String> scheduleTypes = new TreeMap<>();
         scheduleTypes.put(Schedule.TYPE_ANNUALLY, "Annually");
         scheduleTypes.put(Schedule.TYPE_HALF_YEARLY, "Half-yearly");
@@ -280,15 +312,17 @@ public class Targets {
 
 
     /**
-     * The actual mapping of TargetDTO to Target and upsert of the latter
+     * The actual mapping of TargetDTO to Target and upsert of the latter. Also does a number of
+     * last-minute data-based authorisation checks
      */
-    private void upsert(Target target, TargetDTO targetDTO) throws BadRequestError {
+    private void upsert(Target target, TargetDTO targetDTO, HttpServletRequest request, boolean isUpdate) throws BadRequestError, AuthorizationException {
 
         String ownerStr = targetDTO.getGeneral().getOwner();
         User owner = userRoleDAO.getUserByName(ownerStr);
         if (owner == null) {
             throw new BadRequestError(String.format("Owner with username %s unknown", ownerStr));
         }
+
         if (target.isNew()) {
             target.setCreationDate(new Date());
         }
@@ -304,7 +338,6 @@ public class Targets {
         target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
         if (targetDTO.getSchedule() != null) {
-            Set<Schedule> schedules = new HashSet<>();
             if (targetDTO.getSchedule().getHarvestOptimization() != null) {
                 target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
             }
@@ -314,29 +347,31 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
+
+            // Upsert the schedules and distinguish existing ones to be updated from new ones to be added
+            ArrayList<Schedule> schedulesToBeDeleted = new ArrayList<>();
+            for (Schedule schedule : target.getSchedules()) {
+                boolean deleteSchedule = true;
+                for (ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
+                    if (schedule.getOid().equals(s.getId())) {
+                        deleteSchedule = false;
+                        fillSchedule(schedule, s);
+                        targetDTO.getSchedule().getSchedules().remove(s); // keep track of updates
+                        break;
+                    }
+                }
+                // The existing schedule was not found among the supplied schedules: delete it
+                if (deleteSchedule) {
+                    schedulesToBeDeleted.add(schedule);
+                }
+            }
+            target.getSchedules().removeAll(schedulesToBeDeleted);
+            // Any remaining supplied schedules are guaranteed to be new schedules: add them now
             for (ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
-                String cronExpression = s.getCron();
-                // we support classic cron, without the prepended SECONDS field expected by Quartz
-                cronExpression = "0 " + s.getCron();
-                try {
-                    new CronExpression(cronExpression);
-                } catch (ParseException ex) {
-                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
-                }
-                schedule.setCronPattern(cronExpression);
-                schedule.setStartDate(s.getStartDate());
-                schedule.setEndDate(s.getEndDate());
-                schedule.setScheduleType(s.getType());
-                User scheduleOwner = userRoleDAO.getUserByName(s.getOwner());
-                if (scheduleOwner == null) {
-                    throw new BadRequestError(String.format("Owner with username %s unknown", s.getOwner()));
-                }
-                schedule.setOwningUser(owner);
-                schedules.add(schedule);
+                fillSchedule(schedule, s);
+                target.getSchedules().add(schedule);
             }
-            target.getSchedules().clear();
-            target.getSchedules().addAll(schedules);
         }
 
         if (targetDTO.getAccess() != null) {
@@ -353,14 +388,12 @@ public class Targets {
                 seed.setSeed(s.getSeed());
                 seed.setPrimary(s.getPrimary());
                 Set<Permission> permissions = new HashSet<>();
-                for (long authorisation : s.getAuthorisations()) {
+                for (TargetDTO.Seed.Authorisation authorisation : s.getAuthorisations()) {
                     try {
-                        Site site = siteDAO.load(authorisation);
-                        for (Permission p : site.getPermissions()) {
-                            permissions.add(p);
-                        }
+                        Site site = siteDAO.load(authorisation.getId());
+                        permissions.addAll(site.getPermissions());
                     } catch (ObjectNotFoundException e) {
-                        throw new BadRequestError(String.format("Uknown authorisation: %s", authorisation));
+                        throw new BadRequestError(String.format("Unknown authorisation: %s", authorisation));
                     }
                 }
                 seed.setPermissions(permissions);
@@ -474,6 +507,31 @@ public class Targets {
             target.setDublinCoreMetaData(metadata);
         }
 
+        /*
+         * Authorisations
+         *
+         * All desired modifications have been collected, so now we can check whether
+         * we have the privileges required to apply them
+         */
+        String agency = owner.getAgency().getName();
+        if (isUpdate) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.MODIFY_TARGET);
+        } else {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CREATE_TARGET);
+        }
+        if (target.getState() != Target.STATE_APPROVED && targetDTO.getGeneral().getState() == Target.STATE_APPROVED) {
+            if (target.getState() == Target.STATE_COMPLETED) {
+                sessionManager.authorize(request, ownerStr, agency, Privilege.REINSTATE_TARGET);
+            }
+            sessionManager.authorize(request, ownerStr, agency, Privilege.APPROVE_TARGET);
+        }
+        if (target.getState() != Target.STATE_CANCELLED && targetDTO.getGeneral().getState() == Target.STATE_CANCELLED) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.CANCEL_TARGET);
+        }
+        if (!targetDTO.getSchedule().getSchedules().isEmpty()) {
+            sessionManager.authorize(request, ownerStr, agency, Privilege.ADD_SCHEDULE_TO_TARGET);
+        }
+
         // Persist the target
         try {
             if (targetDTO.getGroups() != null) {
@@ -481,7 +539,7 @@ public class Targets {
                 List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
                 for (TargetDTO.Group g : targetDTO.getGroups()) {
                     if (targetDAO.loadGroup(g.getId()) == null) {
-                        throw(new BadRequestError(String.format("Group %d does not exist", g.getId()))) ;
+                        throw new BadRequestError(String.format("Group %d does not exist", g.getId()));
                     }
                     GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
                     groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
@@ -494,12 +552,151 @@ public class Targets {
         } catch (DataIntegrityViolationException e) {
             String msg = e.getMessage();
             Throwable cause = e.getCause();
-            if (cause != null && cause instanceof ConstraintViolationException) {
+            if (cause instanceof ConstraintViolationException) {
                 if (((ConstraintViolationException) cause).getSQLException() != null) {
                     msg = "Database constraint violation, details: " + ((ConstraintViolationException) cause).getSQLException().getMessage();
                 }
             }
             throw new BadRequestError(msg);
+        }
+    }
+
+    private void fillSchedule(Schedule schedule, ScheduleDTO s) throws BadRequestError {
+        // we support classic cron, without the prepended SECONDS field expected by Quartz
+        String cronExpression = "0 " + s.getCron();
+        try {
+            new CronExpression(cronExpression);
+        } catch (ParseException ex) {
+            throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
+        }
+        schedule.setCronPattern(cronExpression);
+        schedule.setStartDate(s.getStartDate());
+        schedule.setEndDate(s.getEndDate());
+        schedule.setScheduleType(s.getType());
+        User owner = userRoleDAO.getUserByName(s.getOwner());
+        if (owner == null) {
+            throw new BadRequestError(String.format("Owner with username %s unknown", s.getOwner()));
+        }
+        schedule.setOwningUser(owner);
+    }
+
+    /**
+     * Traverses the supplied HashMap recursively, mapping any data it finds to the right setter in the supplied
+     * TargetDTO.
+     */
+    private void updateTargetDTO(TargetDTO targetDTO, HashMap<String, Object> map, Object parent) throws BadRequestError {
+
+        for (String key : map.keySet()) {
+            Object value = map.get(key);
+            String getMethodName = "get" + key.substring(0, 1).toUpperCase() + key.substring(1);
+            Object child = null;
+            Method getMethod = null;
+            try {
+                getMethod = parent.getClass().getMethod(getMethodName);
+            } catch (NoSuchMethodException e) {
+                throw new BadRequestError(String.format("Unknown key %s", key));
+            }
+            try {
+                child = getMethod.invoke(parent);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new BadRequestError(e.getMessage());
+            }
+            Class childType = getMethod.getReturnType(); // child.getClass() may return a narrower type
+            if (value instanceof HashMap) { // recurse
+                updateTargetDTO(targetDTO, (HashMap<String, Object>) value, child);
+            } else if (value instanceof List) {
+                if (key.equals("overrides")) { // The list of overrides is fixed, so we can locate and update its elements
+                    for (Object element : (List) value) {
+                        if (!(element instanceof HashMap)) {
+                            throw new BadRequestError("Bad item in list of profile overrides");
+                        }
+                        ProfileDTO.Override overrideToBeUpdated = null;
+                        for (ProfileDTO.Override override : (List<ProfileDTO.Override>) child) {
+                            if (override.getId().equals(((HashMap) element).get("id"))) {
+                                overrideToBeUpdated = override;
+                                break;
+                            }
+                        }
+                        if (overrideToBeUpdated == null) {
+                            throw new BadRequestError(String.format("Unknown override with id %s", ((HashMap) element).get("id")));
+                        }
+                        updateTargetDTO(targetDTO, (HashMap<String, Object>) element, overrideToBeUpdated);
+                    }
+                } else { // For all other types of lists: clear the list and fill it with the new supplied data
+                    ((List) child).clear();
+                    Type genericChildType = getMethod.getGenericReturnType();
+                    Type elementType;
+                    if (genericChildType instanceof ParameterizedType) {
+                        elementType = ((ParameterizedType) genericChildType).getActualTypeArguments()[0];
+                    } else { // A non-parameterized List is guaranteed to be a list with Strings (URL Strings in overrides)
+                        elementType = (Type) String.class;
+                    }
+                    for (Object element : (List) value) {
+                        if (element instanceof HashMap) {
+                            try {
+                                Constructor constructor = ((Class<?>) elementType).getDeclaredConstructor();
+                                constructor.setAccessible(true);
+                                Object newArrayItem = constructor.newInstance();
+                                ((List) child).add(newArrayItem);
+                                updateTargetDTO(targetDTO, (HashMap<String, Object>) element, newArrayItem);
+                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                                     InstantiationException e) {
+                                throw new BadRequestError(String.format("Cannot map list from key %s", key));
+                            }
+                        } else {
+                            // Since the list doesn't contain HashMaps, it contains Numbers or Strings
+                            if (elementType.equals(Long.class) && element instanceof Integer) {
+                                element = ((Number) element).longValue();
+                            } else if (elementType.equals(Integer.class) && element instanceof Long) {
+                                element = ((Number) element).intValue();
+                            }
+                            if (!elementType.equals(element.getClass())) {
+                                throw new BadRequestError(String.format("Bad type in key %s", key));
+                            }
+                            ((List) child).add(element);
+                        }
+                    }
+                }
+            } else {
+                if (value != null && (key.contains("Date") || key.contains("date"))) {
+                    List<String> patterns = Arrays.asList("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSX",
+                            "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                            "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
+                    for (String pattern : patterns) {
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                            sdf.setLenient(false);
+                            value = sdf.parse((String) value);
+                            break;
+                        } catch (ParseException e) {
+                        }
+                    }
+                    if (!(value instanceof Date)) {
+                        throw new BadRequestError(String.format("Badly formatted date in key %s", key));
+                    }
+                } else if (childType == Long.class && value instanceof Integer) {
+                    value = ((Number) value).longValue();
+                } else if (childType == Integer.class && value instanceof Long) {
+                    value = ((Number) value).intValue();
+                } else if (childType == Long.class && value instanceof String) {
+                    value = Long.valueOf((String) value);
+                } else if (childType == Integer.class && value instanceof String) {
+                    value = Integer.valueOf((String) value);
+                } else if (childType == Boolean.class && value instanceof String) {
+                    value = Boolean.valueOf((String) value);
+                }
+                String setMethodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+                try {
+                    Method setMethod = parent.getClass().getMethod(setMethodName, childType);
+                    try {
+                        setMethod.invoke(parent, value);
+                    } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
+                        throw new BadRequestError(e.getMessage());
+                    }
+                } catch (NoSuchMethodException e) {
+                    throw new BadRequestError(String.format("Unknown key or bad type in key %s", key));
+                }
+            }
         }
     }
 
@@ -509,12 +706,12 @@ public class Targets {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
+    public Map<String, Object> errorMessage(MethodArgumentNotValidException ex) {
         String msg = null;
         // Return the first error (typically there will only be one anyway)
         if (ex.getBindingResult().getErrorCount() > 0) {
             FieldError error = (FieldError) ex.getBindingResult().getAllErrors().get(0);
-            String fieldName = ((FieldError) error).getField();
+            String fieldName = (error).getField();
             String errorMessage = error.getDefaultMessage();
             msg = fieldName + ": " + errorMessage;
         }
@@ -526,11 +723,13 @@ public class Targets {
      * Handle the actual search using the old Target DAO search API
      */
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
-
         // defaults
         if (limit == null) {
             limit = DEFAULT_PAGE_LIMIT;
+        } else if (limit == -1) {
+            limit = Integer.MAX_VALUE;
         }
+
         if (offset == null) {
             offset = 0;
         }
@@ -563,11 +762,11 @@ public class Targets {
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
+        Pagination pagination = targetDAO.searchSummary(pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<HashMap<String, Object>> targetSummaries = new ArrayList<>();
-        for (Target t : (List<Target>) pagination.getList()) {
+        for (SimpleTarget t : (List<SimpleTarget>) pagination.getList()) {
             targetSummaries.add(getTargetSummary(t));
         }
         return new SearchResult(pagination.getTotal(), targetSummaries);
@@ -576,7 +775,7 @@ public class Targets {
     /**
      * Create the summary target info used for search results
      */
-    private HashMap<String, Object> getTargetSummary(Target t) {
+    private HashMap<String, Object> getTargetSummary(SimpleTarget t) {
         HashMap<String, Object> targetSummary = new HashMap<>();
         targetSummary.put("id", t.getOid());
         targetSummary.put("creationDate", t.getCreationDate());
@@ -585,7 +784,7 @@ public class Targets {
         targetSummary.put("owner", t.getOwner().getUsername());
         targetSummary.put("state", t.getState());
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
-        for (Seed s : t.getSeeds()) {
+        for (SimpleSeed s : t.getSeeds()) {
             HashMap<String, Object> seed = new HashMap<>();
             seed.put("seed", s.getSeed());
             seed.put("primary", s.isPrimary());

@@ -1,10 +1,6 @@
 Retrieve Group (GET)
-=====================
+====================
 Returns all information for a specific group.
-
-Version
--------
-1.0.0
 
 Request
 -------
@@ -34,11 +30,11 @@ Also the following parts can be retrieved separately by adding the part name to 
 +-------------+
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
@@ -62,4 +58,16 @@ Example
 -------
 .. code-block:: linux
 
-  TODO
+  curl \
+  --location --request GET 'http://localhost/wct/auth/v1/groups/<group-id>' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <token>' \
+  --data ''
+  
+.. code-block:: linux
+
+  curl \
+  --location --request GET 'http://localhost/wct/auth/v1/groups/<group-id>/general' \
+  --header 'Content-Type: application/json' \
+  --header 'Authorization: Bearer <token>' \
+  --data ''  

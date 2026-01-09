@@ -2,10 +2,6 @@ Retrieve Target (GET)
 =====================
 Returns all information for a specific target.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/targets/{target-id}``
@@ -34,18 +30,18 @@ Also the following parts can be retrieved separately by adding the part name to 
 +-------------+
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response
 --------
 200: OK
 
-.. include:: /guides/apis/descriptions/desc-target_response.rst
+.. include:: /guides/apis/descriptions/desc-target.rst
 
 Errors
 ------

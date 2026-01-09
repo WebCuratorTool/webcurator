@@ -2,10 +2,6 @@ Retrieve Target Instance (GET)
 ==============================
 Returns all information for a specific target instance.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/target-instances/{target-instance-id}``
@@ -32,11 +28,11 @@ Also the following parts can be retrieved separately by adding the part name to 
 +-----------------+
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response

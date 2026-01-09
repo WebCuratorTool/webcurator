@@ -3,6 +3,7 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,14 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
+import org.webcurator.rest.auth.AuthorizationException;
+import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetInstanceDTO;
 
@@ -35,8 +40,6 @@ import java.util.*;
 @RestController
 @RequestMapping(path = "/api/{version}/target-instances")
 public class TargetInstances {
-
-
     private static final int DEFAULT_PAGE_LIMIT = 10;
     private static final String DEFAULT_SORT_BY = "name,asc";
 
@@ -76,6 +79,9 @@ public class TargetInstances {
 
     @Autowired
     private DigitalAssetStoreClient digitalAssetStoreClient;
+
+    @Autowired
+    SessionManager sessionManager;
 
     // The back end uses Strings, but the API should use numerical state values, so we need this look-up table
     public static Map<Integer, String> stateMap;
@@ -119,8 +125,9 @@ public class TargetInstances {
         Integer offset = searchParams.getOffset();
         Integer limit = searchParams.getLimit();
         String sortBy = searchParams.getSortBy();
+        Boolean includeAnnotations = searchParams.getIncludeAnnotations();
         try {
-            SearchResult searchResult = search(filter, offset, limit, sortBy);
+            SearchResult searchResult = search(filter, offset, limit, sortBy, includeAnnotations);
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("filter", filter);
             responseMap.put("targetInstances", searchResult.targetInstanceSummaries);
@@ -139,11 +146,12 @@ public class TargetInstances {
             } else {
                 responseMap.put(OFFSET_FIELD, 0);
             }
+            responseMap.put("includeAnnotations", includeAnnotations);
             responseMap.put("amount", searchResult.amount);
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the target instances, Error: %s", e.getMessage()));
         }
     }
 
@@ -154,7 +162,7 @@ public class TargetInstances {
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
         }
         // Annotations are managed differently from normal associated entities
         targetInstance.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
@@ -166,9 +174,8 @@ public class TargetInstances {
         try {
             logsProperties = harvestLogManager.listLogFileAttributes(targetInstance);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(
-                                            String.format("Error getting log file info from store or agent, message: %s",
-                                                          e.getMessage())));
+            String errMsg = String.format("Error getting log file info from store or agent, message: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
         List<TargetInstanceDTO.Log> logs = new ArrayList<>();
         for (LogFilePropertiesDTO l : logsProperties) {
@@ -200,7 +207,8 @@ public class TargetInstances {
             case "profile":
                 return ResponseEntity.ok().body(targetInstanceDTO.getProfile());
             default:
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
+                String errMsg = String.format("No such target instance section: %s", section);
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
     }
 
@@ -209,38 +217,52 @@ public class TargetInstances {
      * Handler for patching harvest results (used by the harvest analysis and patching functionality)
      */
     @PutMapping(path = "/{id}/patch-harvest", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> patchHarvest(@PathVariable long id, @RequestBody HarvestParams harvestParams) {
+    public ResponseEntity<?> patchHarvest(@PathVariable long id, @RequestBody HarvestParams harvestParams,
+                                          HttpServletRequest request) {
+
         String harvestAgentName = harvestParams.getHarvestAgentName();
         Long harvestResultId = harvestParams.getHarvestResultId();
         if (harvestAgentName == null) {
-           return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Parameter harvestAgentName is required");
         }
         if (harvestResultId == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestResultId is required"));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Parameter harvestResultId is required");
         }
+
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
         }
+
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
         if (!targetInstance.getState().equals(TargetInstance.STATE_PATCHING)) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                    String.format("Cannot patch a harvest result unless its target instance has state %s",
-                                                                                    TargetInstance.STATE_PATCHING)));
+            String errMsg = String.format("Cannot patch a harvest result unless its target instance has state %s", TargetInstance.STATE_PATCHING);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         if (wctCoordinator.isQueuePaused()) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage("Cannot patch harvest: the queue is paused"));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Cannot patch harvest: the queue is paused");
         }
         HarvestAgentStatusDTO harvestAgentStatusDTO = wctCoordinator.getHarvestAgents().get(harvestAgentName);
         if (harvestAgentStatusDTO == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No harvest agent named %s", harvestAgentName)));
+            String errMsg = String.format("No harvest agent named %s", harvestAgentName);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         if (!harvestAgentStatusDTO.isAcceptTasks()) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Harvest agent %s is not accepting tasks",
-                                                                                        harvestAgentName)));
+            String errMsg = String.format("Harvest agent %s is not accepting tasks", harvestAgentName);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
         if (harvestResult == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Could not find harvest result with id %d", harvestResultId)));
+            String errMsg = String.format("Could not find harvest result with id %d", harvestResultId);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         wctCoordinator.patchHarvest(targetInstance, harvestResult, harvestAgentStatusDTO);
         return ResponseEntity.ok().build();
@@ -250,30 +272,39 @@ public class TargetInstances {
      * Handler for starting individual target instances
      */
     @PutMapping(path = "/{id}/start", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> start(@PathVariable long id, @RequestBody HarvestParams harvestParams) {
+    public ResponseEntity<?> start(@PathVariable long id, @RequestBody HarvestParams harvestParams,
+                                   HttpServletRequest request) {
         String harvestAgentName = harvestParams.getHarvestAgentName();
         if (harvestAgentName == null) {
-           return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Parameter harvestAgentName is required");
         }
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
         }
+        // Is the user allowed to manually start a target instance?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
+
         if (!targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                                String.format("Cannot start a target instance unless it has state %s",
-                                                                TargetInstance.STATE_SCHEDULED)));
+            String errMsg = String.format("Cannot start a target instance unless it has state %s", TargetInstance.STATE_SCHEDULED);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         if (wctCoordinator.isQueuePaused()) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage("Cannot start harvest: the queue is paused"));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Cannot start harvest: the queue is paused");
         }
         HarvestAgentStatusDTO harvestAgentStatusDTO = wctCoordinator.getHarvestAgents().get(harvestAgentName);
         if (harvestAgentStatusDTO == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No harvest agent named %s", harvestAgentName)));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("No harvest agent named %s", harvestAgentName));
         }
         if (!harvestAgentStatusDTO.isAcceptTasks()) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Harvest agent %s is not accepting tasks",
-                                                                                        harvestAgentName)));
+
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Harvest agent %s is not accepting tasks", harvestAgentName));
         }
         wctCoordinator.harvest(targetInstance, harvestAgentStatusDTO);
         return ResponseEntity.ok().build();
@@ -283,15 +314,23 @@ public class TargetInstances {
      * Handler for pausing individual target instances
      */
     @PutMapping(path = "/{id}/pause")
-    public ResponseEntity<?> pause(@PathVariable long id) {
+    public ResponseEntity<?> pause(@PathVariable long id, HttpServletRequest request) {
+
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
+        }
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         if (!targetInstance.getState().equals(TargetInstance.STATE_RUNNING)) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                                String.format("Cannot pause a target instance unless it has state %s",
-                                                                TargetInstance.STATE_RUNNING)));
+            String errMsg = String.format("Cannot pause a target instance unless it has state %s", TargetInstance.STATE_RUNNING);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         harvestAgentManager.pause(targetInstance);
         return ResponseEntity.ok().build();
@@ -301,17 +340,24 @@ public class TargetInstances {
      * Handler for aborting individual target instances
      */
     @PutMapping(path = "/{id}/abort")
-    public ResponseEntity<?> abort(@PathVariable long id) {
+    public ResponseEntity<?> abort(@PathVariable long id, HttpServletRequest request) {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
+        }
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         if (!(targetInstance.getState().equals(TargetInstance.STATE_RUNNING) ||
-                                                    targetInstance.getState().equals(TargetInstance.STATE_PAUSED) ||
-                                                    targetInstance.getState().equals(TargetInstance.STATE_STOPPING))) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                    String.format("Cannot abort a target instance unless it has state %s, %s or %s",
-                            TargetInstance.STATE_RUNNING, TargetInstance.STATE_PAUSED, TargetInstance.STATE_STOPPING)));
+                targetInstance.getState().equals(TargetInstance.STATE_PAUSED) ||
+                targetInstance.getState().equals(TargetInstance.STATE_STOPPING))) {
+            String errMsg = String.format("Cannot abort a target instance unless it has state %s, %s or %s", TargetInstance.STATE_RUNNING, TargetInstance.STATE_PAUSED, TargetInstance.STATE_STOPPING);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         harvestAgentManager.abort(targetInstance);
         return ResponseEntity.ok().build();
@@ -321,15 +367,22 @@ public class TargetInstances {
      * Handler for stopping individual target instances
      */
     @PutMapping(path = "/{id}/stop")
-    public ResponseEntity<?> stop(@PathVariable long id) {
+    public ResponseEntity<?> stop(@PathVariable long id, HttpServletRequest request) {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
+        }
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         if (!targetInstance.getState().equals(TargetInstance.STATE_RUNNING)) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                                String.format("Cannot stop a target instance unless it has state %s",
-                                                                TargetInstance.STATE_RUNNING)));
+            String errMsg = String.format("Cannot stop a target instance unless it has state %s", TargetInstance.STATE_RUNNING);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         harvestAgentManager.stop(targetInstance);
         return ResponseEntity.ok().build();
@@ -339,15 +392,22 @@ public class TargetInstances {
      * Handler for resuming individual target instances
      */
     @PutMapping(path = "/{id}/resume")
-    public ResponseEntity<?> resume(@PathVariable long id) {
+    public ResponseEntity<?> resume(@PathVariable long id, HttpServletRequest request) {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
+        }
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         if (!targetInstance.getState().equals(TargetInstance.STATE_PAUSED)) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                                String.format("Cannot resume a target instance unless it has state %s",
-                                                                TargetInstance.STATE_PAUSED)));
+            String errMsg = String.format("Cannot resume a target instance unless it has state %s", TargetInstance.STATE_PAUSED);
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         }
         harvestAgentManager.resume(targetInstance);
         return ResponseEntity.ok().build();
@@ -357,10 +417,18 @@ public class TargetInstances {
      * Handler for deleting individual target instances
      */
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<?> delete(@PathVariable long id) {
+    public ResponseEntity<?> delete(@PathVariable long id, HttpServletRequest request) {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Target Instance with id %s does not exist", id));
+        }
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
         }
         try {
             if (targetInstance.getState().equals(TargetInstance.STATE_QUEUED) || targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)) {
@@ -368,11 +436,12 @@ public class TargetInstances {
                 targetInstanceDAO.delete(targetInstance);
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
             } else {
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target instance could not be deleted, because it is in state %s",
-                        targetInstance.getState())));
+                String errMsg = String.format("Target instance could not be deleted, because it is in state %s", targetInstance.getState());
+                return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            String errMsg = String.format("Failed to delete the Target Instance, ID: %d, Error: %s", id, e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
         return ResponseEntity.ok().build();
     }
@@ -385,9 +454,17 @@ public class TargetInstances {
 
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target instance with id %s does not exist", id)));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Target instance with id %s does not exist", id));
         }
 
+        // Is the user allowed to manage target instances?
+        try {
+            User owner = targetInstance.getOwner();
+            sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                    Privilege.MANAGE_TARGET_INSTANCES);
+        } catch (AuthorizationException e) {
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        }
         // Annotations are managed differently from normal associated entities
         targetInstance.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
 
@@ -397,14 +474,14 @@ public class TargetInstances {
             if (owner != null) {
                 User user = userRoleDAO.getUserByName(owner);
                 if (user == null) {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("User %s does not exist", owner)));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("User %s does not exist", owner));
                 }
                 targetInstance.setOwner(user);
             }
             if (flagId != null) {
                 Flag flag = flagDAO.getFlagByOid(flagId);
                 if (flag == null) {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Flag with id %d does not exist", flagId)));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Flag with id %d does not exist", flagId));
                 }
                 targetInstance.setFlag(flag);
             }
@@ -413,28 +490,42 @@ public class TargetInstances {
         if (targetInstanceDTO.getHarvestResults() != null) {
             for (TargetInstanceDTO.HarvestResult h : targetInstanceDTO.getHarvestResults()) {
                 if (h.getNumber() == null) {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                                            "Missing required attribute harvestResult.number"));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, "Missing required attribute harvestResult.number");
                 }
                 HarvestResult harvestResult = targetInstance.getHarvestResult(h.getNumber());
                 if (harvestResult == null) {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(
-                                         String.format("Target instance %d does not have a harvest result with number %d",
-                                                        id, h.getNumber())));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Target instance %d does not have a harvest result with number %d", id, h.getNumber()));
                 }
                 if (h.getState() == HarvestResult.STATE_ENDORSED || h.getState() == HarvestResult.STATE_REJECTED) {
                     harvestResult.setState(h.getState());
                 } else {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("State may only be %d or %d",
-                                                        HarvestResult.STATE_ENDORSED, HarvestResult.STATE_REJECTED)));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("State may only be %d or %d", HarvestResult.STATE_ENDORSED, HarvestResult.STATE_REJECTED));
+                }
+
+                User owner = targetInstance.getOwner();
+                if (harvestResult.getState() != HarvestResult.STATE_ENDORSED && h.getState() == HarvestResult.STATE_ENDORSED) {
+                    try {
+                        sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                                Privilege.ENDORSE_HARVEST);
+                    } catch (AuthorizationException e) {
+                        return FailureResponse.error(HttpStatus.resolve(e.getStatus()), e.getMessage());
+                    }
+                }
+                if (harvestResult.getState() == HarvestResult.STATE_ENDORSED && h.getState() != HarvestResult.STATE_ENDORSED) {
+                    try {
+                        sessionManager.authorize(request, owner.getUsername(), owner.getAgency().getName(),
+                                Privilege.UNENDORSE_HARVEST);
+                    } catch (AuthorizationException e) {
+                        return FailureResponse.error(HttpStatus.resolve(e.getStatus()), e.getMessage());
+                    }
                 }
             }
         }
 
         if (targetInstanceDTO.getAnnotations() != null) {
             targetInstance.getDeletedAnnotations().addAll( // Make sure existing annotations are removed
-                        annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()),
-                                                    targetInstance.getOid()));
+                    annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()),
+                            targetInstance.getOid()));
             for (TargetInstanceDTO.Annotation a : targetInstanceDTO.getAnnotations()) {
                 Annotation annotation = new Annotation();
                 annotation.setDate(a.getDate());
@@ -442,7 +533,7 @@ public class TargetInstances {
                 String userName = a.getUser();
                 User user = userRoleDAO.getUserByName(userName);
                 if (user == null) {
-                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Unknown user %s", userName)));
+                    return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Unknown user %s", userName));
                 }
                 annotation.setUser(user);
                 annotation.setAlertable(a.getAlert());
@@ -471,7 +562,7 @@ public class TargetInstances {
             targetInstanceManager.save(targetInstance);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Failed to save the Target Instance, Error: %s", e.getMessage()));
         }
     }
 
@@ -479,7 +570,7 @@ public class TargetInstances {
      * Returns an overview of all possible target instance states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 
@@ -487,7 +578,7 @@ public class TargetInstances {
      * Returns an overview of all possible harvest result states
      */
     @GetMapping(path = "/harvest-result-states")
-    public ResponseEntity getHarvestResultStates() {
+    public ResponseEntity<?> getHarvestResultStates() {
         return ResponseEntity.ok().body(harvestResultStateMap);
     }
 
@@ -510,7 +601,9 @@ public class TargetInstances {
     /**
      * Handle the actual search using the old Target DAO search API
      */
-    private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
+    private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy,
+                                boolean includeAnnotations)
+            throws BadRequestError {
 
         // defaults
         if (limit == null) {
@@ -550,8 +643,8 @@ public class TargetInstances {
             }
         }
 
-        if (limit < 1) {
-            throw new BadRequestError("Limit must be positive");
+        if (limit < -1 || limit == 0) {
+            throw new BadRequestError("Limit must be positive or -1 (no limit)");
         }
         if (offset < 0) {
             throw new BadRequestError("Offset may not be negative");
@@ -579,18 +672,27 @@ public class TargetInstances {
         targetInstanceCriteria.setFlag(flag);
         targetInstanceCriteria.setTargetSearchOid(filter.targetId);
         targetInstanceCriteria.setSortorder(magicSortStringForDao);
-        Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
-        List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
-        for (TargetInstance t : (List<TargetInstance>) pagination.getList()) {
-            targetInstanceSummaries.add(getTargetInstanceSummary(t));
+        List<TargetInstance> result;
+        long total;
+        if (limit == -1) { // return all results without paging
+            result = targetInstanceDAO.search(targetInstanceCriteria);
+            total = result.size();
+        } else {
+            Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
+            result = pagination.getList();
+            total = pagination.getTotal();
         }
-        return new SearchResult(pagination.getTotal(), targetInstanceSummaries);
+        List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
+        for (TargetInstance t : result) {
+            targetInstanceSummaries.add(getTargetInstanceSummary(t, includeAnnotations));
+        }
+        return new SearchResult(total, targetInstanceSummaries);
     }
 
     /**
      * Create the summary target instance info used for search results
      */
-    private HashMap<String, Object> getTargetInstanceSummary(TargetInstance t) {
+    private HashMap<String, Object> getTargetInstanceSummary(TargetInstance t, boolean includeAnnotations) {
         HashMap<String, Object> targetInstanceSummary = new HashMap<>();
         targetInstanceSummary.put("id", t.getOid());
         // TODO Implement thumbnail reference if/when the screenshot functionality gets released
@@ -621,6 +723,19 @@ public class TargetInstances {
             flagId = t.getFlag().getOid();
         }
         targetInstanceSummary.put("flagId", flagId);
+        if (includeAnnotations) {
+            t.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(TargetInstance.class), t.getOid()));
+            List<TargetInstanceDTO.Annotation> annotations = new ArrayList<>();
+            for (org.webcurator.domain.model.core.Annotation a : t.getAnnotations()) {
+                TargetInstanceDTO.Annotation annotation = new TargetInstanceDTO.Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                annotation.setUser(a.getUser().getUsername());
+                annotation.setAlert(a.isAlertable());
+                annotations.add(annotation);
+            }
+            targetInstanceSummary.put("annotations", annotations);
+        }
         return targetInstanceSummary;
     }
 
@@ -686,6 +801,7 @@ public class TargetInstances {
         private Integer offset;
         private Integer limit;
         private String sortBy;
+        private Boolean includeAnnotations = false;
 
         SearchParams() {
             filter = new Filter();
@@ -721,6 +837,14 @@ public class TargetInstances {
 
         public void setSortBy(String sortBy) {
             this.sortBy = sortBy;
+        }
+
+        public Boolean getIncludeAnnotations() {
+            return includeAnnotations;
+        }
+
+        public void setIncludeAnnotations(Boolean includeAnnotations) {
+            this.includeAnnotations = includeAnnotations;
         }
     }
 

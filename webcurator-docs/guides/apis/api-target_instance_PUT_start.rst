@@ -2,23 +2,19 @@ Start Target Instance (PUT)
 ===========================
 Start harvest of a target instance immediately.
 
-Version
--------
-1.0.0
-
 Request
 -------
 ``https://--WCT_base--/api/v1/target-instances/{target-instance-id}/start``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 
 ================ ====== ========
-**Body**
+**Parameters**
 --------------------------------
 harvestAgentName String Required
 ================ ====== ========

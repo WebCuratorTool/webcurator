@@ -10,12 +10,12 @@ import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+//import java.util.TimeZone;
 
 /**
  * This class is used for mapping between the Target entity and the JSON representation of a target in the API.
  */
 public class TargetDTO {
-
     @Valid
     @NotNull(message = "General section is required")
     General general;
@@ -44,7 +44,9 @@ public class TargetDTO {
         for (org.webcurator.domain.model.core.Seed s : target.getSeeds()) {
             seeds.add(new Seed(s));
         }
-        profile = new ProfileDTO(target);
+        if (target.getProfile() != null) {
+            profile = new ProfileDTO(target);
+        }
         annotations = new Annotations(target);
         description = new DescriptionDTO(target.getDublinCoreMetaData());
         for (GroupMember m: target.getParents()) {
@@ -118,8 +120,16 @@ public class TargetDTO {
 
     public static class General {
         long id;
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        Date creationDate;
+
+        // This came from the groups API branch and seems to have been a fix for the date formatting issue
+        // Leaving it here for now, for when we revisit this issue
+        //@JsonFormat(shape = JsonFormat.Shape.STRING)
+        //Date creationDate;
+
+//        @JsonFormat(pattern="yyyy-MM-ddTHH:mm:ss", timezone = "UTC+0") // Return to the UI
+//        @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss") // Save to the DB
+//        Date creationDate;
+        Long creationDate;
         @NotBlank(message = "name is required")
         String name;
         String description;
@@ -139,13 +149,14 @@ public class TargetDTO {
         @NotNull(message = "referenceCrawl is required")
         Boolean referenceCrawl = false;
         String requestToArchivists;
+        int[] nextStates;
 
         public General() {
         }
 
         public General(Target target) {
             id = target.getOid();
-            creationDate = target.getCreationDate();
+            creationDate = target.getCreationDate().toInstant().toEpochMilli();
             name = target.getName();
             description = target.getDescription();
             referenceNumber = target.getReferenceNumber();
@@ -166,11 +177,11 @@ public class TargetDTO {
             this.id = id;
         }
 
-        public Date getCreationDate() {
+        public Long getCreationDate() {
             return creationDate;
         }
 
-        public void setCreationDate(Date creationDate) {
+        public void setCreationDate(Long creationDate) {
             this.creationDate = creationDate;
         }
 
@@ -253,6 +264,14 @@ public class TargetDTO {
         public void setRequestToArchivists(String requestToArchivists) {
             this.requestToArchivists = requestToArchivists;
         }
+
+        public int[] getNextStates() {
+            return nextStates;
+        }
+
+        public void setNextStates(int[] nextStates) {
+            this.nextStates = nextStates;
+        }
     }
 
     public static class Scheduling {
@@ -297,7 +316,6 @@ public class TargetDTO {
         public void setSchedules(List<ScheduleDTO> schedules) {
             this.schedules = schedules;
         }
-
     }
 
     public static class Seed {
@@ -307,7 +325,7 @@ public class TargetDTO {
         @NotNull(message = "primary is required")
         Boolean primary;
         @NotEmpty(message = "authorisations may not be empty")
-        List<Long> authorisations = new ArrayList<>();
+        List<Authorisation> authorisations = new ArrayList<>();
 
         public Seed() {
         }
@@ -317,9 +335,16 @@ public class TargetDTO {
             seed = s.getSeed();
             primary = s.isPrimary();
             for (Permission p : s.getPermissions()) {
-                Long authorisation = p.getSite().getOid();
-                if (!authorisations.contains(authorisation)) {
-                    authorisations.add(p.getSite().getOid());
+                Authorisation authorisation = new Authorisation();
+                authorisation.setId(p.getSite().getOid());
+                authorisation.setName(p.getSite().getTitle());
+                authorisation.setAgent(p.getAuthorisingAgent().getName());
+                authorisation.setPermissionId(p.getOid());
+                authorisation.setStartDate(p.getStartDate());
+                authorisation.setEndDate(p.getEndDate());
+                if (authorisations.stream()
+                        .noneMatch(existing -> existing.getPermissionId() == authorisation.getPermissionId())) {
+                    authorisations.add(authorisation);
                 }
             }
         }
@@ -348,12 +373,76 @@ public class TargetDTO {
             this.primary = primary;
         }
 
-        public List<Long> getAuthorisations() {
+        public List<Authorisation> getAuthorisations() {
             return authorisations;
         }
 
-        public void setAuthorisations(List<Long> authorisations) {
+        public void setAuthorisations(List<Authorisation> authorisations) {
             this.authorisations = authorisations;
+        }
+
+        public static class Authorisation {
+            long id;
+            String name;
+            String agent;
+            long permissionId;
+            Date startDate;
+            Date endDate;
+
+            public Authorisation() {}
+
+            public long getId() {
+                return id;
+            }
+
+            public void setId(long id) {
+                this.id = id;
+            }
+
+            public String getAgent() {
+                return agent;
+            }
+
+            public void setAgent(String agent) {
+                this.agent = agent;
+            }
+
+            public long getPermissionId() {
+                return permissionId;
+            }
+
+            public void setPermissionId(long permissionId) {
+                this.permissionId = permissionId;
+            }
+
+            public Date getStartDate() {
+                return startDate;
+            }
+
+            public void setStartDate(Date startDate) {
+                this.startDate = startDate;
+            }
+
+            public Date getEndDate() {
+                return endDate;
+            }
+
+            public void setEndDate(Date endDate) {
+                this.endDate = endDate;
+            }
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return this.id == ((Authorisation)other).id;
+            }
         }
     }
 

@@ -1,12 +1,18 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.model.auth.Privilege;
+import org.webcurator.rest.auth.AuthorizationException;
 import org.webcurator.rest.auth.SessionManager;
+import org.webcurator.rest.auth.Sessions;
+import org.webcurator.rest.common.FailureResponse;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * Handlers for the token endpoint
@@ -18,6 +24,15 @@ public class Token {
     @Autowired
     SessionManager sessionManager;
 
+    @GetMapping(path = "/{token}")
+    public ResponseEntity<?> get(@PathVariable String token) {
+        if (sessionManager.isValid(token)) {
+            return ResponseEntity.ok("valid");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    }
+
     /**
      * Login
      */
@@ -25,15 +40,17 @@ public class Token {
     public ResponseEntity<?> post(@RequestParam String username, @RequestParam String password) {
         try {
             String token = sessionManager.authenticate(username, password);
+            sessionManager.authorize(token, null, null, Privilege.LOGIN);
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Authentication failed");
+            return FailureResponse.error(HttpStatus.UNAUTHORIZED, "Authentication failed");
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.FORBIDDEN, "User is not allowed to login");
         }
     }
 
     /**
      * Logout
-     *
      */
     @DeleteMapping(path = "/{token}")
     public ResponseEntity<?> delete(@PathVariable String token) {

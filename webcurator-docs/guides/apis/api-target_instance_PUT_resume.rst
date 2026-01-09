@@ -1,21 +1,17 @@
 Resume Target Instance (PUT)
-===========================
+============================
 Resume harvest of a target instance immediately.
-
-Version
--------
-1.0.0
 
 Request
 -------
 ``https://--WCT_base--/api/v1/target-instances/{target-instance-id}/resume``
 
 Header
-------
+^^^^^^
 .. include:: /guides/apis/descriptions/desc-header-authentication.rst
 
 Body
-----
+^^^^
 .. include:: /guides/apis/descriptions/desc-request-body-empty.rst
 
 Response

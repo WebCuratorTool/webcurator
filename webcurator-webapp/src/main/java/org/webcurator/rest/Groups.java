@@ -4,6 +4,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.GroupDTO;
 import org.webcurator.rest.dto.ProfileDTO;
@@ -85,8 +87,8 @@ public class Groups {
      * Handler for search
      */
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
-       if (searchParams == null) {
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
+        if (searchParams == null) {
             searchParams = new SearchParams();
         }
         Filter filter = searchParams.getFilter();
@@ -111,7 +113,7 @@ public class Groups {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the groups, Error: %s", e.getMessage()));
         }
     }
 
@@ -472,7 +474,7 @@ public class Groups {
      * Returns an overview of all possible group states
      */
     @GetMapping(path = "/states")
-    public ResponseEntity getStates() {
+    public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
 
