@@ -62,6 +62,7 @@ first_group_id=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/
 
 if [ "$first_group_id" == "null" ]
 then
+	# TODO We could automatically add a group here, since there's now an API to do that
 	echo "Error: no target groups found. Please create a target group and run this script again"
 	exit 1
 fi

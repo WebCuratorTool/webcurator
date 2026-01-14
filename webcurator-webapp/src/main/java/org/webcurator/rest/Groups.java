@@ -124,7 +124,8 @@ public class Groups {
     public ResponseEntity get(@PathVariable long id, @PathVariable(required = false) String section) {
         TargetGroup targetGroup = targetDAO.loadGroup(id);
         if (targetGroup == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to retrieve group. Error: Group with id %s does not exist", id));
         }
         // Annotations are managed differently from normal associated entities
         targetGroup.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetGroup.getClass()), id));
@@ -150,7 +151,8 @@ public class Groups {
             case "access":
                 return ResponseEntity.ok().body(groupDTO.getAccess());
             default:
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such group section: %s", section)));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                        String.format("Failed to retrieve group section. Error: No such section: %s", section));
         }
     }
 
@@ -162,7 +164,8 @@ public class Groups {
     public ResponseEntity delete(@PathVariable long id) {
         TargetGroup targetGroup = targetDAO.loadGroup(id);
         if (targetGroup == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to delete group. Error: Group with id %s does not exist", id));
         }
         targetDAO.deleteGroup(targetGroup);
         // Annotations are managed differently from normal associated entities
@@ -180,9 +183,11 @@ public class Groups {
         try {
             upsert(targetGroup, groupDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to add group. Error: %s", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to add group. Error: %s", e.getMessage()));
         }
         try {
             String targetUrl = request.getRequestURL().toString();
@@ -192,7 +197,8 @@ public class Groups {
             targetUrl += targetGroup.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to construct URL for newly created group. Error: %s", e.getMessage()));
         }
     }
 
@@ -204,7 +210,8 @@ public class Groups {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> groupMap, HttpServletRequest request) {
         TargetGroup targetGroup = targetDAO.loadGroup(id, true);
         if (targetGroup == null) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to update group. Error: Group with id %s does not exist", id));
         }
         // Annotations are managed differently from normal associated entities
         targetGroup.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetGroup.getClass()), id));
@@ -214,9 +221,11 @@ public class Groups {
         try {
             Utils.mapToDTO(groupMap, groupDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to update group. Error: %s", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to update group. Error: %s", e.getMessage()));
         }
 
         // Validate updated DTO
@@ -225,7 +234,8 @@ public class Groups {
             // Return the first violation we find
             ConstraintViolation<GroupDTO> constraintViolation = violations.iterator().next();
             String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to update group. Error: %s", message));
         }
 
         // Finally, map the DTO to the entity and update the database
@@ -233,9 +243,11 @@ public class Groups {
             upsert(targetGroup, groupDTO);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to update group. Error: %s", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to update group. Error: %s", e.getMessage()));
         }
     }
 
@@ -323,9 +335,8 @@ public class Groups {
             Set<Schedule> schedules = new HashSet<>();
             for (ScheduleDTO s : groupDTO.getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(group);
-                String cronExpression = s.getCron();
                 // we support classic cron, without the prepended SECONDS field expected by Quartz
-                cronExpression = "0 " + s.getCron();
+                String cronExpression = "0 " + s.getCron();
                 try {
                     new CronExpression(cronExpression);
                 } catch (ParseException ex) {
@@ -415,18 +426,21 @@ public class Groups {
     public ResponseEntity add(@PathVariable long id, @PathVariable long memberId) {
         TargetGroup targetGroup = targetDAO.loadGroup(id);
         if (targetGroup == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to add member to group. Error: Group with id %s does not exist", id));
         }
         AbstractTarget abstractTarget = targetDAO.load(memberId);
         if (abstractTarget == null) {
             abstractTarget = targetDAO.loadGroup(memberId);
             if (abstractTarget == null) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No group or target with id %s exists", memberId)));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                        String.format("Failed to add member to group. Error: No group or target with id %s exists", memberId));
             }
         }
         for (GroupMember groupMember : targetGroup.getChildren()) {
             if (groupMember.getChild().getOid() == memberId) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Group already contains member with id %s", memberId)));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                        String.format("Failed to update group. Error: Group already contains member with id %s", memberId));
             }
         }
         GroupMemberDTO member = new GroupMemberDTO(targetGroup, abstractTarget);
@@ -434,7 +448,8 @@ public class Groups {
         try {
             targetDAO.save(targetGroup, true, null);
         } catch (Exception e) {
-            ResponseEntity.internalServerError().body(Utils.errorMessage(String.format("Error while trying to persist group member: %s", e.getMessage())));
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to update group. Error: %s", e.getMessage()));
         }
         return ResponseEntity.ok().build();
     }
@@ -446,13 +461,15 @@ public class Groups {
     public ResponseEntity remove(@PathVariable long id, @PathVariable long memberId) {
         TargetGroup targetGroup = targetDAO.loadGroup(id);
         if (targetGroup == null) {
-            return ResponseEntity.notFound().build();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to remove member from group. Error: Group with id %s does not exist", id));
         }
         AbstractTarget abstractTarget = targetDAO.load(memberId);
         if (abstractTarget == null) {
             abstractTarget = targetDAO.loadGroup(memberId);
             if (abstractTarget == null) {
-                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No group or target with id %s exists", memberId)));
+                return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                        String.format("Failed to remove group member. Error: No member with id %s exists", memberId));
             }
         }
         for (GroupMember groupMember : targetGroup.getChildren()) {
@@ -462,11 +479,13 @@ public class Groups {
                     targetDAO.save(targetGroup, true, null);
                     return ResponseEntity.ok().build();
                 } catch (Exception e) {
-                    ResponseEntity.internalServerError().body(Utils.errorMessage(String.format("Error while trying to remove group member: %s", e.getMessage())));
+                    return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                            String.format("Failed to update group. Error: %s", e.getMessage()));
                 }
             }
         }
-        return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Group does not contain member with id %s", memberId)));
+        return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                String.format("Failed to remove group member. Error: No member with id %s exists", memberId));
     }
 
 
