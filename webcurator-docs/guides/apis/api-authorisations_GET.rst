@@ -1,7 +1,7 @@
 Retrieve Authorisations (GET)
 =============================
 
-Returns a list of all the privileges that a user can have. Together with the highest scope of the privilege.
+Returns a list of all the privileges that a user can have. Together with the widest scope of the privilege.
 
 It is only possilbe to retrieve this list based upon a given and valid token. This is for security purposes.
 
