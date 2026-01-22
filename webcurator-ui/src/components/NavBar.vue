@@ -4,12 +4,18 @@
       <img class="logo" src="@/assets/wct_logo.png" />
       <div class="flex w-full justify-between">
         <div class="nav-bar-links">
-          <router-link class="nav-bar-link" to="/dashboard">Dashboard</router-link>
+          <router-link class="nav-bar-link" to="/dashboard"
+            >Dashboard</router-link
+          >
           <router-link class="nav-bar-link" to="/targets">Targets</router-link>
         </div>
         <div class="nav-bar-links pr-4">
           <Button label="Logout" @click="logout" />
-          <ToggleSwitch class="my-auto ml-4" :modelValue="layoutConfig.darkTheme.value" @update:modelValue="onDarkModeChange" />
+          <ToggleSwitch
+            class="my-auto ml-4"
+            :modelValue="layoutConfig.darkTheme.value"
+            @update:modelValue="onDarkModeChange"
+          />
         </div>
       </div>
     </div>
@@ -17,25 +23,23 @@
 </template>
 
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout';
-import { useUserProfileStore } from '@/stores/users';
-import { useAuthStore } from '@/utils/rest.api';
-import { toggleThemeMode } from '@/utils/themes';
+import { useLayout } from "@/layout/composables/layout";
+import { useAuthStore } from "@/utils/rest.api";
+import { toggleThemeMode } from "@/utils/themes";
 
 const authStore = useAuthStore();
 
 const { layoutConfig } = useLayout();
 
-const token = useUserProfileStore();
 const logout = () => {
   authStore.logout();
 };
 
-const onDarkModeChange = (value: any) => {
+const onDarkModeChange = (value: boolean) => {
   if (value) {
-    toggleThemeMode('dark');
+    toggleThemeMode("dark");
   } else {
-    toggleThemeMode('light');
+    toggleThemeMode("light");
   }
 };
 </script>

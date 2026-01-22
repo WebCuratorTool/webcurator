@@ -1,17 +1,40 @@
-import { getPresentationUserName, useUserProfileStore } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetAnnotations, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSchedule, type TargetSeeds } from '@/types/target';
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-const TARGET_STATE_PENDING = { name: 'Pending', code: 1 };
-const TARGET_STATE_REINSTATED = { name: 'Reinstated', code: 2 };
-const TARGET_STATE_NOMINATED = { name: 'Nominated', code: 3 };
-const TARGET_STATE_REJECTED = { name: 'Rejected', code: 4 };
-const TARGET_STATE_APPROVED = { name: 'Approved', code: 5 };
-const TARGET_STATE_CANCELLED = { name: 'Cancelled', code: 6 };
-const TARGET_STATE_COMPLETED = { name: 'Completed', code: 7 };
+import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
+import type { SelectItem } from "@/types/commons";
+import {
+  type Target,
+  type TargetAccess,
+  type TargetAnnotations,
+  type TargetDescription,
+  type TargetGeneral,
+  type TargetGroup,
+  type TargetGroups,
+  type TargetHarvest,
+  type TargetProfile,
+  type TargetSchedule,
+  type TargetSeed,
+  type TargetSeeds,
+} from "@/types/target";
 
-export const stateList = [TARGET_STATE_PENDING, TARGET_STATE_REINSTATED, TARGET_STATE_NOMINATED, TARGET_STATE_REJECTED, TARGET_STATE_APPROVED, TARGET_STATE_CANCELLED, TARGET_STATE_COMPLETED];
+const TARGET_STATE_PENDING = { name: "Pending", code: 1 } as SelectItem;
+const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 } as SelectItem;
+const TARGET_STATE_NOMINATED = { name: "Nominated", code: 3 } as SelectItem;
+const TARGET_STATE_REJECTED = { name: "Rejected", code: 4 } as SelectItem;
+const TARGET_STATE_APPROVED = { name: "Approved", code: 5 } as SelectItem;
+const TARGET_STATE_CANCELLED = { name: "Cancelled", code: 6 } as SelectItem;
+const TARGET_STATE_COMPLETED = { name: "Completed", code: 7 } as SelectItem;
+
+export const stateList = [
+  TARGET_STATE_PENDING,
+  TARGET_STATE_REINSTATED,
+  TARGET_STATE_NOMINATED,
+  TARGET_STATE_REJECTED,
+  TARGET_STATE_APPROVED,
+  TARGET_STATE_CANCELLED,
+  TARGET_STATE_COMPLETED,
+];
 
 export const initNewTarget = () => {
   useTargetDescriptionDTO().initData();
@@ -30,20 +53,24 @@ export const setTarget = (target: Target) => {
   useTargetGeneralDTO().setData(target.general);
   useTargetGropusDTO().setData(target.groups);
   useTargetHarvestsDTO().setData(target.schedule);
-  target.profile != null && useTargetProfileDTO().setData(target.profile);
+  if (target.profile != null) {
+    useTargetProfileDTO().setData(target.profile);
+  }
   useTargetSeedsDTO().setData(target.seeds);
   useTargetAccessDTO().setData(target.access);
-  useTargetAnnotationsDTO().setData(target.annotations)
+  useTargetAnnotationsDTO().setData(target.annotations);
 };
 
-export const formatTargetState = (state: number | any) => {
-  const placeHolder = 'Select a state';
+export const formatTargetState = (
+  state: number | { code: number; name: string },
+) => {
+  const placeHolder = "Select a state";
 
-  if (typeof state === 'undefined') {
+  if (typeof state === "undefined") {
     return placeHolder;
   }
 
-  if (typeof state === 'number') {
+  if (typeof state === "number") {
     if (state > 0 && state <= stateList.length) {
       return stateList[state - 1].name;
     } else {
@@ -54,102 +81,101 @@ export const formatTargetState = (state: number | any) => {
   }
 };
 
-export const useNextStateStore = defineStore('TargetNextStateList', () => {
+export const useNextStateStore = defineStore("TargetNextStateList", () => {
   const nextStateList = ref();
 
   const initData = () => {
     nextStateList.value = [
       {
-        name: 'Original',
-        code: 'original',
-        items: [TARGET_STATE_PENDING]
+        name: "Original",
+        code: "original",
+        items: [TARGET_STATE_PENDING],
       },
       {
-        name: 'Next States',
-        code: 'next',
-        items: [TARGET_STATE_NOMINATED, TARGET_STATE_APPROVED, TARGET_STATE_CANCELLED]
-      }
+        name: "Next States",
+        code: "next",
+        items: [
+          TARGET_STATE_NOMINATED,
+          TARGET_STATE_APPROVED,
+          TARGET_STATE_CANCELLED,
+        ],
+      },
     ];
   };
 
-  const setData = (originalState: any, data: any) => {
+  const setData = (originalState: SelectItem, data: Array<number>) => {
     const states = [];
     for (let i = 0; i < data.length; i++) {
       states.push(stateList[data[i] - 1]);
     }
     nextStateList.value = [
       {
-        name: 'Original',
-        code: 'original',
-        items: [originalState]
+        name: "Original",
+        code: "original",
+        items: [originalState],
       },
       {
-        name: 'Next States',
-        code: 'next',
-        items: states
-      }
+        name: "Next States",
+        code: "next",
+        items: states,
+      },
     ];
   };
 
   return { nextStateList, initData, setData };
 });
 
-export const showTargetAction = (target: any, actionName: string) => {
-  if (!target || !actionName) {
-    return false;
+export const showTargetAction = (
+  targetState: number,
+  actionName: string,
+): boolean => {
+  if (!targetState || !actionName) return false;
+
+  if (actionName === "view" || actionName === "edit") return true;
+  if (actionName === "new" || actionName === "copy") return true;
+
+  if (actionName === "delete") {
+    return (
+      targetState === TARGET_STATE_REJECTED.code ||
+      targetState === TARGET_STATE_CANCELLED.code
+    );
   }
 
-  //TODO: privilege applied
-
-  if (actionName === 'view') {
-    return true;
-  }
-
-  if (actionName === 'edit') {
-    return true;
-  }
-
-  if (actionName === 'new' || actionName === 'copy') {
-    return true;
-  }
-
-  if (actionName === 'delete') {
-    return target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code;
-  }
+  return false;
 };
 
-export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
+export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
   const id = ref();
-  const name = ref('');
+  const name = ref("");
   const creationDate = ref();
-  const description = ref('');
-  const referenceNumber = ref('');
+  const description = ref("");
+  const referenceNumber = ref("");
   const runOnApproval = ref(false);
   const automatedQA = ref(false);
   const selectedUser = ref();
   const selectedState = ref(TARGET_STATE_PENDING);
   const autoPrune = ref(false);
   const referenceCrawl = ref(false);
-  const requestToArchivists = ref('');
+  const requestToArchivists = ref("");
   const nextStates = ref([]);
 
   const userProfile = useUserProfileStore();
 
   const initData = () => {
     id.value = undefined;
-    name.value = '';
-    description.value = '';
-    referenceNumber.value = '';
+    name.value = "";
+    description.value = "";
+    referenceNumber.value = "";
     runOnApproval.value = false;
     automatedQA.value = false;
     selectedUser.value = {
       name: userProfile.currUserName,
-      code: userProfile.name
+      code: userProfile.name,
     };
     selectedState.value = TARGET_STATE_PENDING;
     autoPrune.value = false;
     referenceCrawl.value = false;
-    requestToArchivists.value = '';
+    requestToArchivists.value = "";
     nextStates.value = [];
   };
 
@@ -165,11 +191,11 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
       state: selectedState.value.code,
       autoPrune: autoPrune.value,
       referenceCrawl: referenceCrawl.value,
-      requestToArchivists: requestToArchivists.value
-    };
+      requestToArchivists: requestToArchivists.value,
+    } as TargetGeneral;
   };
 
-  const setData = (data: any) => {
+  const setData = (data: TargetGeneral) => {
     id.value = data.id;
     name.value = data.name;
     creationDate.value = data.creationDate;
@@ -179,11 +205,11 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     automatedQA.value = data.automatedQA;
     selectedUser.value = {
       name: getPresentationUserName(data.owner),
-      code: data.owner
+      code: data.owner,
     };
     selectedState.value = {
       code: data.state,
-      name: formatTargetState(data.state)
+      name: formatTargetState(data.state),
     };
     autoPrune.value = data.autoPrune;
     referenceCrawl.value = data.referenceCrawl;
@@ -197,70 +223,86 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     // });
   };
 
-  return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
+  return {
+    id,
+    name,
+    creationDate,
+    description,
+    referenceNumber,
+    runOnApproval,
+    automatedQA,
+    selectedUser,
+    selectedState,
+    autoPrune,
+    referenceCrawl,
+    requestToArchivists,
+    initData,
+    getData,
+    setData,
+  };
 });
 
 const profileOverrides = [
   {
-    id: 'documentLimit',
+    id: "documentLimit",
     value: 0,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'dataLimit',
+    id: "dataLimit",
     value: 0.0,
     enabled: false,
-    unit: 'B'
+    unit: "B",
   },
   {
-    id: 'timeLimit',
+    id: "timeLimit",
     value: 0.0,
     enabled: false,
-    unit: 'SECOND'
+    unit: "SECOND",
   },
   {
-    id: 'maxPathDepth',
+    id: "maxPathDepth",
     value: 0,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'maxHops',
+    id: "maxHops",
     value: 0,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'maxTransitiveHops',
+    id: "maxTransitiveHops",
     value: 0,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'ignoreRobots',
+    id: "ignoreRobots",
     value: false,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'extractJs',
+    id: "extractJs",
     value: false,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'ignoreCookies',
+    id: "ignoreCookies",
     value: false,
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'blockedUrls',
+    id: "blockedUrls",
     value: [],
-    enabled: false
+    enabled: false,
   },
   {
-    id: 'includedUrls',
+    id: "includedUrls",
     value: [],
-    enabled: false
-  }
+    enabled: false,
+  },
 ];
 
-export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
+export const useTargetProfileDTO = defineStore("TargetProfileDTO", () => {
   const targetProfile = ref({} as TargetProfile);
 
   const initData = () => {
@@ -270,7 +312,6 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
   };
 
   const getData = () => {
-
     return targetProfile.value;
   };
 
@@ -281,30 +322,32 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
   };
 
   const setData = (data: TargetProfile) => {
-
-    targetProfile.value = data;
+    Object.assign(targetProfile.value, data);
   };
 
   return { targetProfile, initData, getData, setData, setProfile };
 });
 
-export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () => {
-  const targetDescription = ref({} as TargetDescription);
+export const useTargetDescriptionDTO = defineStore(
+  "TargetDescriptionDTO",
+  () => {
+    const targetDescription = ref({} as TargetDescription);
 
-  const initData = () => {
-    targetDescription.value = {} as TargetDescription;
-  };
+    const initData = () => {
+      targetDescription.value = {} as TargetDescription;
+    };
 
-  const setData = (data: TargetDescription) => {
-    targetDescription.value = data;
-  };
+    const setData = (data: TargetDescription) => {
+      Object.assign(targetDescription.value, data);
+    };
 
-  const getData = () => targetDescription.value;
+    const getData = () => targetDescription.value;
 
-  return { targetDescription, initData, setData, getData };
-});
+    return { targetDescription, initData, setData, getData };
+  },
+);
 
-export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
+export const useTargetSeedsDTO = defineStore("TargetSeedsDTO", () => {
   const targetSeeds = ref([] as TargetSeeds);
 
   const initData = () => {
@@ -312,12 +355,12 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
   };
 
   const setData = (data: TargetSeeds) => {
-    targetSeeds.value = data;
+    Object.assign(targetSeeds.value, data);
   };
 
   const getData = () => targetSeeds.value;
 
-  const addSeed = (seed: any) => {
+  const addSeed = (seed: TargetSeed) => {
     targetSeeds.value.push(seed);
   };
 
@@ -325,14 +368,24 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
     targetSeeds.value = targetSeeds.value.filter((s) => s.id != seedId);
   };
 
-  const replaceSeed = (replacementSeed: any) => {
-    targetSeeds.value = targetSeeds.value.map((seed) => (seed.id === replacementSeed.id ? replacementSeed : seed));
+  const replaceSeed = (replacementSeed: TargetSeed) => {
+    targetSeeds.value = targetSeeds.value.map((seed) =>
+      seed.id === replacementSeed.id ? replacementSeed : seed,
+    );
   };
 
-  return { targetSeeds, addSeed, getData, initData, removeSeed, replaceSeed, setData };
+  return {
+    targetSeeds,
+    addSeed,
+    getData,
+    initData,
+    removeSeed,
+    replaceSeed,
+    setData,
+  };
 });
 
-export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
+export const useTargetGropusDTO = defineStore("TargetGroupsDTO", () => {
   const targetGroups = ref([] as TargetGroups);
 
   const initData = () => {
@@ -340,7 +393,7 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
   };
 
   const setData = (data: TargetGroups) => {
-    targetGroups.value = data;
+    targetGroups.value.splice(0, targetGroups.value.length, ...data);
   };
 
   const getData = () => targetGroups.value;
@@ -349,14 +402,14 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     targetGroups.value = targetGroups.value.filter((g) => g.id != groupId);
   };
 
-  const addGroup = (group: any) => {
+  const addGroup = (group: TargetGroup) => {
     targetGroups.value.push({ id: group.id, name: group.name });
   };
 
   return { targetGroups, initData, setData, getData, removeGroup, addGroup };
 });
 
-export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
+export const useTargetAccessDTO = defineStore("TargetAccessDTO", () => {
   const targetAccess = ref({} as TargetAccess);
 
   const initData = () => {
@@ -364,38 +417,42 @@ export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
   };
 
   const setData = (data: TargetAccess) => {
-    targetAccess.value = data;
+    Object.assign(targetAccess.value, data);
   };
+
   const getData = () => targetAccess.value;
 
   return { targetAccess, initData, setData, getData };
 });
 
-export const useTargetAnnotationsDTO = defineStore('TargetAnnotationsDTO', () => {
-  const targetAnnotations = ref({} as TargetAnnotations);
-  
-  const initData = () => {
-    targetAnnotations.value = {
-      evaluationNote: '',
-      harvestType: '',
-      annotations: [],
-      alert: false,
-      selection: { date: 0, type: '', note: '' },
-      date: 0,
-      type: '',
-      note: ''
-  } as TargetAnnotations;
-  }
+export const useTargetAnnotationsDTO = defineStore(
+  "TargetAnnotationsDTO",
+  () => {
+    const targetAnnotations = ref({} as TargetAnnotations);
 
-  const setData = (data: TargetAnnotations) => {
-      targetAnnotations.value = data;
-  }
-  const getData = () => targetAnnotations.value;
+    const initData = () => {
+      targetAnnotations.value = {
+        evaluationNote: "",
+        harvestType: "",
+        annotations: [],
+        alert: false,
+        selection: { date: 0, type: "", note: "" },
+        date: 0,
+        type: "",
+        note: "",
+      } as TargetAnnotations;
+    };
 
-  return { targetAnnotations, initData, setData, getData }
-});
+    const setData = (data: TargetAnnotations) => {
+      Object.assign(targetAnnotations.value, data);
+    };
+    const getData = () => targetAnnotations.value;
 
-export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
+    return { targetAnnotations, initData, setData, getData };
+  },
+);
+
+export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
   const targetSchedule = ref({} as TargetSchedule);
 
   const initData = () => {
@@ -403,22 +460,35 @@ export const useTargetHarvestsDTO = defineStore('TargetHarvestsDTO', () => {
   };
 
   const setData = (data: TargetSchedule) => {
-    targetSchedule.value = data;
+    Object.assign(targetSchedule.value, data);
   };
 
-  const addSchedule = (schedule: any) => {
+  const addSchedule = (schedule: TargetHarvest) => {
     targetSchedule.value.schedules.push(schedule);
   };
 
   const removeSchedule = (scheduleId: number) => {
-    targetSchedule.value.schedules = targetSchedule.value.schedules.filter((s) => s.id != scheduleId);
+    targetSchedule.value.schedules = targetSchedule.value.schedules.filter(
+      (s) => s.id != scheduleId,
+    );
   };
 
-  const replaceSchedule = (replacementSchedule: any) => {
-    targetSchedule.value.schedules = targetSchedule.value.schedules.map((schedule) => (schedule.id === replacementSchedule.id ? replacementSchedule : schedule));
+  const replaceSchedule = (replacementSchedule: TargetHarvest) => {
+    targetSchedule.value.schedules = targetSchedule.value.schedules.map(
+      (schedule) =>
+        schedule.id === replacementSchedule.id ? replacementSchedule : schedule,
+    );
   };
 
   const getData = () => targetSchedule.value;
 
-  return { targetSchedule, initData, setData, getData, addSchedule, removeSchedule, replaceSchedule };
+  return {
+    targetSchedule,
+    initData,
+    setData,
+    getData,
+    addSchedule,
+    removeSchedule,
+    replaceSchedule,
+  };
 });

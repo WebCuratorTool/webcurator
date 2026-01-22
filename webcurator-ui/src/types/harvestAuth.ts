@@ -1,12 +1,41 @@
+import type { AuthorisingAgent } from "./authorisingAgent";
+import type { Permission } from "./permission";
+
 interface HarvestAuth {
-    id: number;
-    name: string;
-    agent: string;
-    permissionId: number;
-    startDate: number;
-    endDate: number;
+  id: number;
+  name: string;
+  authorisingAgents: AuthorisingAgent[];
+  permissions: Permission[];
+  permissionId?: number;
 }
 
-interface HarvestAuths extends Array<HarvestAuth> {}
+interface HarvestAuthDisplay {
+  id: number;
+  name: string;
+  agent: string;
+  permissionId: number;
+  startDate: number;
+  endDate: number;
+  urlPatterns: string[];
+}
 
-export type { HarvestAuth, HarvestAuths };
+interface HarvestAuthSearchResponse {
+  Filter: Record<string, unknown>;
+  amount: number;
+  offset: number;
+  limit: number;
+  sortBy: string;
+  harvestAuthorisations: HarvestAuth[];
+}
+
+type HarvestAuths = Array<HarvestAuth>;
+
+type HarvestAuthDisplays = Array<HarvestAuthDisplay>;
+
+export type {
+  HarvestAuth,
+  HarvestAuthDisplay,
+  HarvestAuthDisplays,
+  HarvestAuths,
+  HarvestAuthSearchResponse,
+};

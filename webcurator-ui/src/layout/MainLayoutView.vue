@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
-import LoginView from '@/views/login/LoginView.vue';
-import NavBar from '@/components/NavBar.vue';
-import { useAuthStore } from '@/utils/rest.api';
-import { useProgressStore } from '@/utils/progress';
+import { RouterView } from "vue-router";
+
+import NavBar from "@/components/NavBar.vue";
+import { useProgressStore } from "@/utils/progress";
+import { useAuthStore } from "@/utils/rest.api";
+import LoginView from "@/views/login/LoginView.vue";
 const authStore = useAuthStore();
 const progress = useProgressStore();
 </script>
@@ -19,8 +20,11 @@ const progress = useProgressStore();
     </div>
   </div>
 
-  <div v-if="progress.visible" class="flex items-center justify-center p-progress-dialog" pt:mask:class="backdrop-blur-sm">
-    <!-- <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent" animationDuration=".5s" aria-label="Custom ProgressSpinner" /> -->
+  <div
+    v-if="progress.visible"
+    class="flex items-center justify-center p-progress-dialog"
+    pt:mask:class="backdrop-blur-sm"
+  >
     <div class="card">
       <ProgressSpinner />
     </div>

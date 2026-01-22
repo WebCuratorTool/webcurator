@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { formatTargetState, useNextStateStore, useTargetGeneralDTO } from '@/stores/target';
-import { useUsersStore } from '@/stores/users';
+import { computed } from "vue";
 
-import WctFormField from '@/components/WctFormField.vue';
-import WctTabViewPanel from '@/components/WctTabViewPanel.vue';
-import TargetTabPanelGeneralGroups from './TargetTabPanelGeneralGroups.vue';
-import TargetTabPanelGeneralSeeds from './TargetTabPanelGeneralSeeds.vue';
-import { computed } from 'vue';
+import WctFormField from "@/components/WctFormField.vue";
+import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
+import {
+  formatTargetState,
+  useNextStateStore,
+  useTargetGeneralDTO,
+} from "@/stores/target";
+import { useUsersStore } from "@/stores/users";
+
+import TargetTabPanelGeneralGroups from "./TargetTabPanelGeneralGroups.vue";
+import TargetTabPanelGeneralSeeds from "./TargetTabPanelGeneralSeeds.vue";
 
 defineProps<{
   editing: boolean;
@@ -19,7 +24,7 @@ const selectedUser = computed(() => {
   if (targetGeneral.selectedUser) {
     return targetGeneral.selectedUser.code;
   } else {
-    return '';
+    return "";
   }
 });
 </script>
@@ -31,17 +36,31 @@ const selectedUser = computed(() => {
     <div class="flex items-start justify-between gap-8 w-full">
       <div class="flex flex-col items-start gap-2 w-full">
         <WctFormField label="Id">
-          <InputText v-if="editing" v-model="targetGeneral.id" :disabled="true" />
+          <InputText
+            v-if="editing"
+            v-model="targetGeneral.id"
+            :disabled="true"
+          />
           <p v-else class="font-semibold">{{ targetGeneral.id }}</p>
         </WctFormField>
 
         <WctFormField label="Name(*)">
-          <InputText v-if="editing" v-model="targetGeneral.name" :disabled="!editing" />
+          <InputText
+            v-if="editing"
+            v-model="targetGeneral.name"
+            :disabled="!editing"
+          />
           <p v-else class="font-semibold">{{ targetGeneral.name }}</p>
         </WctFormField>
 
         <WctFormField label="Description">
-          <Textarea v-if="editing" v-model="targetGeneral.description" autoResize rows="6" :disabled="!editing" />
+          <Textarea
+            v-if="editing"
+            v-model="targetGeneral.description"
+            autoResize
+            rows="6"
+            :disabled="!editing"
+          />
           <p v-else class="font-semibold">{{ targetGeneral.description }}</p>
         </WctFormField>
       </div>
@@ -61,13 +80,30 @@ const selectedUser = computed(() => {
         </WctFormField>
 
         <WctFormField label="Reference Number">
-          <InputText v-if="editing" v-model="targetGeneral.referenceNumber" :disabled="!editing" />
-          <p v-else class="font-semibold">{{ targetGeneral.referenceNumber }}</p>
+          <InputText
+            v-if="editing"
+            v-model="targetGeneral.referenceNumber"
+            :disabled="!editing"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.referenceNumber }}
+          </p>
         </WctFormField>
 
         <WctFormField label="Run on Approval" inputId="run-on-approval">
-          <Checkbox v-if="editing" id="checkOption1" name="option1" value="Run on Approval" v-model="targetGeneral.runOnApproval" :binary="true" :disabled="!editing" inputId="run-on-approval" />
-          <p v-else class="font-semibold">{{ targetGeneral.runOnApproval ? 'Yes' : 'No' }}</p>
+          <Checkbox
+            v-if="editing"
+            id="checkOption1"
+            name="option1"
+            value="Run on Approval"
+            v-model="targetGeneral.runOnApproval"
+            :binary="true"
+            :disabled="!editing"
+            inputId="run-on-approval"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.runOnApproval ? "Yes" : "No" }}
+          </p>
         </WctFormField>
 
         <WctFormField label="State">
@@ -82,7 +118,9 @@ const selectedUser = computed(() => {
             class="w-full md:w-18rem"
             :disabled="!editing"
           />
-          <p v-else class="font-semibold">{{ formatTargetState(targetGeneral.selectedState) }}</p>
+          <p v-else class="font-semibold">
+            {{ formatTargetState(targetGeneral.selectedState) }}
+          </p>
         </WctFormField>
       </div>
     </div>
@@ -100,23 +138,59 @@ const selectedUser = computed(() => {
     <div class="flex items-start justify-between gap-8 w-full">
       <div class="flex flex-col items-start gap-2 w-full">
         <WctFormField checkbox label="Use Automated QA" inputId="automated-qa">
-          <Checkbox v-if="editing" v-model="targetGeneral.automatedQA" :binary="true" :disabled="!editing" inputId="automated-qa" />
-          <p v-else class="font-semibold">{{ targetGeneral.automatedQA ? 'Yes' : 'No' }}</p>
+          <Checkbox
+            v-if="editing"
+            v-model="targetGeneral.automatedQA"
+            :binary="true"
+            :disabled="!editing"
+            inputId="automated-qa"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.automatedQA ? "Yes" : "No" }}
+          </p>
         </WctFormField>
         <WctFormField checkbox label="Auto-prune" inputId="auto-prune">
-          <Checkbox v-if="editing" v-model="targetGeneral.autoPrune" :binary="true" :disabled="!editing" inputId="auto-prune" />
-          <p v-else class="font-semibold">{{ targetGeneral.autoPrune ? 'Yes' : 'No' }}</p>
+          <Checkbox
+            v-if="editing"
+            v-model="targetGeneral.autoPrune"
+            :binary="true"
+            :disabled="!editing"
+            inputId="auto-prune"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.autoPrune ? "Yes" : "No" }}
+          </p>
         </WctFormField>
-        <WctFormField checkbox label="Reference Crawl" inputId="reference-crawl">
-          <Checkbox v-if="editing" v-model="targetGeneral.referenceCrawl" :binary="true" :disabled="!editing" inputId="reference-crawl" />
-          <p v-else class="font-semibold">{{ targetGeneral.referenceCrawl ? 'Yes' : 'No' }}</p>
+        <WctFormField
+          checkbox
+          label="Reference Crawl"
+          inputId="reference-crawl"
+        >
+          <Checkbox
+            v-if="editing"
+            v-model="targetGeneral.referenceCrawl"
+            :binary="true"
+            :disabled="!editing"
+            inputId="reference-crawl"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.referenceCrawl ? "Yes" : "No" }}
+          </p>
         </WctFormField>
       </div>
 
       <div class="flex flex-col items-start gap-2 w-full">
         <WctFormField label="Request to Archivists">
-          <Textarea v-if="editing" v-model="targetGeneral.requestToArchivists" autoResize rows="6" :disabled="!editing" />
-          <p v-else class="font-semibold">{{ targetGeneral.requestToArchivists }}</p>
+          <Textarea
+            v-if="editing"
+            v-model="targetGeneral.requestToArchivists"
+            autoResize
+            rows="6"
+            :disabled="!editing"
+          />
+          <p v-else class="font-semibold">
+            {{ targetGeneral.requestToArchivists }}
+          </p>
         </WctFormField>
       </div>
     </div>

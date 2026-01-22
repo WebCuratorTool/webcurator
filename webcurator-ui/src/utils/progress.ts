@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const useProgressStore = defineStore('ProgressStore', () => {
+export const useProgressStore = defineStore("ProgressStore", () => {
   const timer = ref();
   const _visible = ref(false);
   const visible = ref(false);

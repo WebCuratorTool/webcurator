@@ -1,55 +1,57 @@
 <script setup lang="ts">
-import { inject, onMounted, reactive, ref } from 'vue';
-import type { DataTableRowClickEvent } from 'primevue/datatable';
-import { usePermissionStore } from '@/stores/permissions';
-import { useHarvestAuthorisationStatusStore } from '@/stores/harvestAuthorisations';
-import type { Permission } from '@/types/permission';
-import { formatDate } from '@/utils/helper';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import type { DataTableRowClickEvent } from "primevue/datatable";
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { inject, onMounted, reactive, type Ref, ref } from "vue";
 
-import Loading from '@/components/Loading.vue';
+import Loading from "@/components/Loading.vue";
+import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
+import { usePermissionStore } from "@/stores/permissions";
+import type { AuthorisingAgent } from "@/types/authorisingAgent";
+import type {
+  HarvestAuth,
+  HarvestAuthDisplay,
+  HarvestAuthSearchResponse,
+} from "@/types/harvestAuth";
+import type { Permission } from "@/types/permission";
+import { formatDate } from "@/utils/helper";
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
-const dialogRef: any = inject('dialogRef');
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
 const rest: UseFetchApis = useFetch();
-
-interface HarvestAuth {
-  id: number;
-  name: string;
-  authorisingAgents: any[];
-  permissions: any[];
-}
 
 const returnedHarvestAuths = ref<HarvestAuth[]>([]);
 const loading = ref(false);
 const loadingPermission = ref(false);
 
-const harvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '', urlPatterns: [] }[]>([]);
-const filteredHarvestAuths = ref<{ id: number, name: string, agent: '', permissionId: number, startDate: '', endDate: '',  urlPatterns: []  }[]>([]);
+const harvestAuths = ref<HarvestAuthDisplay[]>([]);
+const filteredHarvestAuths = ref<HarvestAuthDisplay[]>([]);
 
-const searchTerm = ref('');
+const searchTerm = ref("");
 
 const seed = ref();
 let expandedPermission = reactive<Permission>({} as Permission);
-const expandedRows = ref<any[]>([]);
+const expandedRows = ref<Permission[]>([]);
 const harvestAuthorisationStatuses = ref();
 
 const prepareData = (data: HarvestAuth[]) => {
   data.forEach((harvestAuth: HarvestAuth) => {
     if (harvestAuth.authorisingAgents.length > 0) {
-      harvestAuth.authorisingAgents.forEach((authorisingAgent: any) => {
-        if (authorisingAgent.permissions.length > 0) {
-          harvestAuths.value.push({
-            id: harvestAuth.id,
-            name: harvestAuth.name,
-            agent: authorisingAgent.name,
-            permissionId: authorisingAgent.permissions[0].id,
-            startDate: authorisingAgent.permissions[0].startDate,
-            endDate: authorisingAgent.permissions[0].endDate,
-            urlPatterns: authorisingAgent.permissions[0].urlPatterns
-          });
-        }
-      })
+      harvestAuth.authorisingAgents.forEach(
+        (authorisingAgent: AuthorisingAgent) => {
+          if (authorisingAgent.permissions.length > 0) {
+            harvestAuths.value.push({
+              id: harvestAuth.id,
+              name: harvestAuth.name,
+              agent: authorisingAgent.name,
+              permissionId: authorisingAgent.permissions[0].id,
+              startDate: authorisingAgent.permissions[0].startDate,
+              endDate: authorisingAgent.permissions[0].endDate,
+              urlPatterns: authorisingAgent.permissions[0].urlPatterns,
+            });
+          }
+        },
+      );
     }
   });
   filteredHarvestAuths.value = harvestAuths.value;
@@ -57,22 +59,23 @@ const prepareData = (data: HarvestAuth[]) => {
 
 const setExpandedRow = async (event: DataTableRowClickEvent) => {
   loadingPermission.value = true;
-  const isExpanded = (expandedRows.value as any[]).find((p) => p.id === event.data.id)
+  const isExpanded = (expandedRows.value as Permission[]).find(
+    (p) => p.id === event.data.id,
+  );
 
   if (isExpanded?.id) {
-    expandedRows.value = [event.data] as any
-    const fetchedPermission: any = await usePermissionStore().fetch(event.data.permissionId);
-    
-    expandedPermission = fetchedPermission;
+    expandedRows.value = [event.data] as Permission[];
+    await usePermissionStore().fetch(event.data.permissionId);
+    expandedPermission = usePermissionStore().permission;
   } else {
-    expandedRows.value = []; 
-    expandedPermission = ({} as Permission);
+    expandedRows.value = [];
+    expandedPermission = {} as Permission;
   }
 
   loadingPermission.value = false;
-}
+};
 
-const fetch = () => {
+const fetch = async () => {
   const searchParams = {
     offset: 0,
     limit: 1024,
@@ -80,38 +83,46 @@ const fetch = () => {
 
   loading.value = true;
 
-  rest
-    .post('harvest-authorisations', searchParams, { header: 'X-HTTP-Method-Override', value: 'GET' })
-    .then((data: any) => {
-      returnedHarvestAuths.value = data['harvestAuthorisations'];
-      prepareData(returnedHarvestAuths.value);
-      loading.value = false;
-    })
-    .catch((err: any) => {
-      console.log(err.message);
-      loading.value = false;
-    });
+  try {
+    const response: HarvestAuthSearchResponse = await rest.post(
+      "harvest-authorisations",
+      searchParams,
+      {
+        header: "X-HTTP-Method-Override",
+        value: "GET",
+      },
+    );
+    returnedHarvestAuths.value = response.harvestAuthorisations;
+    prepareData(returnedHarvestAuths.value);
+  } catch (err: unknown) {
+    const msg = err as Error;
+    console.log(msg.message);
+  } finally {
+    loading.value = false;
+  }
 };
-
 
 const search = () => {
   const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
-  filteredHarvestAuths.value = harvestAuths.value.filter((g: any) => 
-    g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-    g.urlPatterns.some((urlPattern: string) => {
-      // Ignore trailing slashes
-      const trimmedUrlPattern = urlPattern.replace(/\/$/, '');
-      const trimmedSearchTerm = lowerCaseSearchTerm.replace(/\/$/, '');
-      return trimmedUrlPattern.includes(trimmedSearchTerm);
-    })
+  filteredHarvestAuths.value = harvestAuths.value.filter(
+    (g: HarvestAuthDisplay) =>
+      g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+      g.urlPatterns.some((urlPattern: string) => {
+        // Ignore trailing slashes
+        const trimmedUrlPattern = urlPattern.replace(/\/$/, "");
+        const trimmedSearchTerm = lowerCaseSearchTerm.replace(/\/$/, "");
+        return trimmedUrlPattern.includes(trimmedSearchTerm);
+      }),
   );
 };
 
-const isAuthAdded = (authPermissionId: number) => 
-  seed.value.authorisations.some((a: { permissionId: number }) => a.permissionId === authPermissionId);
+const isAuthAdded = (authPermissionId: number) =>
+  seed.value.authorisations.some(
+    (a: { permissionId: number }) => a.permissionId === authPermissionId,
+  );
 
 onMounted(async () => {
-  seed.value = dialogRef.value.data.seed;
+  seed.value = dialogRef?.value.data.seed;
   const statuses = await useHarvestAuthorisationStatusStore().fetch();
   harvestAuthorisationStatuses.value = statuses;
 });
@@ -123,51 +134,79 @@ fetch();
   <div class="h-full">
     <h5>Search</h5>
     <div class="flex mb-4">
-      <InputText v-model="searchTerm" type="text" placeholder="Keyword" v-tooltip.bottom="'Search names and URL patterns'"
-      class="mr-4" />
-      <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
-      <Button 
+      <InputText
+        v-model="searchTerm"
+        type="text"
+        placeholder="Keyword"
+        v-tooltip.bottom="'Search names and URL patterns'"
+        class="mr-4"
+      />
+      <Button
+        label="Search&nbsp;&nbsp;"
+        icon="pi pi-search"
+        iconPos="right"
+        @click="search()"
+      />
+      <Button
         class="ml-2 wct-secondary-button"
-        label="Clear" icon="pi pi-times" 
-        iconPos="right" 
-        @click="searchTerm = ''; search()" 
+        label="Clear"
+        icon="pi pi-times"
+        iconPos="right"
+        @click="
+          searchTerm = '';
+          search();
+        "
       />
     </div>
-    <Button v-if="seed" class="p-0" :label="`Search for ${seed.seed}`" text iconPos="right" @click="searchTerm = seed.seed; search()" />
+    <Button
+      v-if="seed"
+      class="p-0"
+      :label="`Search for ${seed.seed}`"
+      text
+      iconPos="right"
+      @click="
+        searchTerm = seed.seed;
+        search();
+      "
+    />
 
     <DataTable
       v-model:expandedRows="expandedRows"
-      class="w-full mt-4" 
-      :value="filteredHarvestAuths" 
-      size="small" 
-      paginator :rows="10" 
-      scrollHeight="100%" 
-      :loading="loading" 
+      class="w-full mt-4"
+      :value="filteredHarvestAuths"
+      size="small"
+      paginator
+      :rows="10"
+      scrollHeight="100%"
+      :loading="loading"
       :pt="{
         // Use 'pcPaginator' to target the internal Paginator component to align to the right side
         pcPaginator: {
           root: '!flex !justify-end !items-center !p-4 w-full',
-          paginatorContainer: '!border-none'
+          paginatorContainer: '!border-none',
         },
         wrapper: {
-          root: 'h-26rem'
-        }
+          root: 'h-26rem',
+        },
       }"
       @rowExpand="setExpandedRow"
     >
       <Column expander style="width: 5rem" />
       <Column field="name" header="Harvest Authorisation" />
       <Column field="agent" header="Authorising Agent" />
-      <Column  header="URL Patterns">
+      <Column header="URL Patterns">
         <template #body="slotProps">
-          <div v-for="(urlPattern, index) in slotProps.data.urlPatterns" :key="index">
+          <div
+            v-for="(urlPattern, index) in slotProps.data.urlPatterns"
+            :key="index"
+          >
             {{ urlPattern }}
           </div>
         </template>
       </Column>
       <Column field="startDate" header="Start Date">
         <template #body="slotProps">
-          {{  slotProps.data.startDate && formatDate(slotProps.data.startDate) }}
+          {{ slotProps.data.startDate && formatDate(slotProps.data.startDate) }}
         </template>
       </Column>
       <Column field="endDate" header="End Date">
@@ -178,9 +217,22 @@ fetch();
       <Column>
         <template #body="slotProps">
           <div class="flex justify-center">
-            <div v-if="isAuthAdded(slotProps.data.permissionId)" class="flex items-center">
+            <div
+              v-if="isAuthAdded(slotProps.data.permissionId)"
+              class="flex items-center"
+            >
               <i class="pi pi-check" />
-              <Button icon="pi pi-trash" text v-tooltip.bottom="'Remove from Seed'" @click="seed.authorisations = seed.authorisations.filter((auth: any) => auth.permissionId !== slotProps.data.permissionId)" />
+              <Button
+                icon="pi pi-trash"
+                text
+                v-tooltip.bottom="'Remove from Seed'"
+                @click="
+                  seed.authorisations = seed.authorisations.filter(
+                    (auth: any) =>
+                      auth.permissionId !== slotProps.data.permissionId,
+                  )
+                "
+              />
             </div>
             <Button
               v-else
@@ -209,15 +261,23 @@ fetch();
         <div v-else class="p-4">
           <div class="grid grid-cols-5">
             <p class="font-semibold">Status:</p>
-            <p class="col-span-4">{{ harvestAuthorisationStatuses[expandedPermission.status] }}</p>
+            <p class="col-span-4">
+              {{ harvestAuthorisationStatuses[expandedPermission.status] }}
+            </p>
           </div>
           <div class="grid grid-cols-5">
             <p class="font-semibold">Auth Agency Response:</p>
-            <p class="col-span-4">{{ harvestAuthorisationStatuses[expandedPermission.authResponse] }}</p>
+            <p class="col-span-4">
+              {{
+                harvestAuthorisationStatuses[expandedPermission.authResponse]
+              }}
+            </p>
           </div>
           <div class="grid grid-cols-5">
             <p class="font-semibold">Quick Pick:</p>
-            <p class="col-span-4">{{ expandedPermission.quickPick === true ? 'Yes' : 'No'  }}</p>
+            <p class="col-span-4">
+              {{ expandedPermission.quickPick === true ? "Yes" : "No" }}
+            </p>
           </div>
           <div class="grid grid-cols-5">
             <p class="font-semibold">Display Name:</p>
@@ -225,14 +285,26 @@ fetch();
           </div>
           <div v-if="expandedPermission.exclusions.length > 0">
             <p class="font-semibold">Exclusions</p>
-            <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.exclusions">
+            <DataTable
+              size="small"
+              showGridlines
+              class="w-full"
+              :rowHover="true"
+              :value="expandedPermission.exclusions"
+            >
               <Column field="url" header="URL" />
               <Column field="reason" header="Reason" />
             </DataTable>
           </div>
           <div v-if="expandedPermission.annotations.length > 0" class="mt-4">
             <p class="font-semibold">Annotations</p>
-            <DataTable size="small" showGridlines class="w-full" :rowHover="true" :value="expandedPermission.annotations" >
+            <DataTable
+              size="small"
+              showGridlines
+              class="w-full"
+              :rowHover="true"
+              :value="expandedPermission.annotations"
+            >
               <Column field="date" header="Date" />
               <Column field="user" header="User" />
               <Column field="notes" header="Notes" />

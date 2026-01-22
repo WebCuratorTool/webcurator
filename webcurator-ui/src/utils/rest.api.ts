@@ -1,15 +1,18 @@
-import router from '@/router';
-import { useUserProfileStore } from '@/stores/users';
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { useAlertStore } from './alertStore';
-import { HttpStatus } from './rest.http.status';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const BasePath = '/wct';
-export const HomePagePath = '/';
-export const LoginPagePath = '/login';
-export const ApiRootPath = '/wct';
-const ApiContextPath = ApiRootPath + '/api/v1';
+import router from "@/router";
+import { useUserProfileStore } from "@/stores/users";
+import type { CustomHeader } from "@/types/customHeader";
+
+import { useAlertStore } from "./alertStore";
+import { HttpStatus } from "./rest.http.status";
+
+export const BasePath = "/wct";
+export const HomePagePath = "/";
+export const LoginPagePath = "/login";
+export const ApiRootPath = "/wct";
+const ApiContextPath = ApiRootPath + "/api/v1";
 const RetryDelay = 20 * 1000;
 const MaxRetryTimes = 3;
 
@@ -18,23 +21,31 @@ interface LoginResponse {
   title: string;
   detail: string;
 }
-export type { LoginResponse };
+
+interface ApiErrorResponse {
+  timestamp: string;
+  status: number;
+  error: string;
+  path: string;
+}
+
+export type { ApiErrorResponse, LoginResponse };
 
 const _login = async (username: string, password: string) => {
-  const credentials = 'username=' + username + '&password=' + password;
-  const rsp = await fetch(ApiRootPath + '/auth/v1/token', {
-    method: 'POST',
-    redirect: 'error',
+  const credentials = "username=" + username + "&password=" + password;
+  const rsp = await fetch(ApiRootPath + "/auth/v1/token", {
+    method: "POST",
+    redirect: "error",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: credentials
+    body: credentials,
   });
 
   const feedback = {
     ok: true,
-    title: '',
-    detail: ''
+    title: "",
+    detail: "",
   } as LoginResponse;
 
   if (!rsp.ok) {
@@ -42,13 +53,13 @@ const _login = async (username: string, password: string) => {
     let statusText = rsp.statusText;
     if (!statusText || statusText.length === 0) {
       if (status === 401) {
-        statusText = 'Unknown username or password, please try again.';
+        statusText = "Unknown username or password, please try again.";
       } else {
-        statusText = 'Unknown error.';
+        statusText = "Unknown error.";
       }
     }
     feedback.ok = false;
-    feedback.title = 'Error: ' + status;
+    feedback.title = "Error: " + status;
     feedback.detail = statusText;
   } else {
     const token = await rsp.text();
@@ -59,10 +70,17 @@ const _login = async (username: string, password: string) => {
   return feedback;
 };
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
+type HttpMethod =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"
+  | "HEAD"
+  | "OPTIONS";
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-export const useAuthStore = defineStore('AuthStore', () => {
+export const useAuthStore = defineStore("AuthStore", () => {
   const isAuthenticating = ref(false);
 
   const userProfile = useUserProfileStore();
@@ -77,11 +95,15 @@ export const useAuthStore = defineStore('AuthStore', () => {
     if (!token) {
       return false;
     }
-    const rsp = await fetch(ApiRootPath + '/auth/v1/token/' + token);
+    const rsp = await fetch(ApiRootPath + "/auth/v1/token/" + token);
     return rsp.ok;
   };
 
-  const authenticate = async (routePath: string, username: string, password: string) => {
+  const authenticate = async (
+    routePath: string,
+    username: string,
+    password: string,
+  ) => {
     const feedback = await _login(username, password);
     if (!feedback.ok) {
       return feedback;
@@ -113,31 +135,43 @@ export const useAuthStore = defineStore('AuthStore', () => {
     const token = userProfile.token;
     userProfile.clear();
     if (token) {
-      await fetch(ApiRootPath + '/auth/v1/token/' + token, {
-        method: 'DELETE',
-        redirect: 'error',
+      await fetch(ApiRootPath + "/auth/v1/token/" + token, {
+        method: "DELETE",
+        redirect: "error",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       });
     }
     setRedirectPath(HomePagePath);
     router.push(LoginPagePath);
   };
 
-  return { startLogin, authenticate, isAuthenticating, isAuthenticated, logout, setRedirectPath };
+  return {
+    startLogin,
+    authenticate,
+    isAuthenticating,
+    isAuthenticated,
+    logout,
+    setRedirectPath,
+  };
 });
 
+/* eslint-disable no-unused-vars */
 export interface UseFetchApis {
-  // methods
-  get: (path: string) => any;
-  post: (path: string, payload: any, customHeader?: any) => any;
-  put: (path: string, payload: any) => any;
-  delete: (path: string, payload: any) => any;
-  patch: (path: string, payload: any) => any;
-  head: (path: string) => any;
-  options: (path: string, payload: any) => any;
+  get<T = unknown>(path: string): Promise<T>;
+  post<T = unknown, P = unknown>(
+    path: string,
+    payload: P,
+    customHeader?: CustomHeader,
+  ): Promise<T>;
+  put<T = unknown, P = unknown>(path: string, payload: P): Promise<T>;
+  delete<T = unknown, P = unknown>(path: string, payload?: P): Promise<T>;
+  patch<T = unknown, P = unknown>(path: string, payload: P): Promise<T>;
+  head<T = unknown>(path: string): Promise<T>;
+  options<T = unknown, P = unknown>(path: string, payload?: P): Promise<T>;
 }
+/* eslint-enable no-unused-vars */
 
 // by convention, composable function names start with "use"
 export function useFetch() {
@@ -146,17 +180,21 @@ export function useFetch() {
 
   const shell: UseFetchApis = {
     // method
-    get: setMethod('GET'),
-    put: setMethod('PUT'),
-    post: setMethod('POST'),
-    delete: setMethod('DELETE'),
-    patch: setMethod('PATCH'),
-    head: setMethod('HEAD'),
-    options: setMethod('OPTIONS')
+    get: setMethod("GET"),
+    put: setMethod("PUT"),
+    post: setMethod("POST"),
+    delete: setMethod("DELETE"),
+    patch: setMethod("PATCH"),
+    head: setMethod("HEAD"),
+    options: setMethod("OPTIONS"),
   };
 
   function setMethod(methodValue: HttpMethod) {
-    return async (path: string, payload: any = null, customHeader: any = null) => {
+    return async (
+      path: string,
+      payload: unknown = null,
+      customHeader: CustomHeader | null = null,
+    ) => {
       // await sleep(1000);
 
       const userProfile = useUserProfileStore();
@@ -176,42 +214,54 @@ export function useFetch() {
 
         userProfile.load(); //Update the info from local storage
 
-        const requestHeaders: HeadersInit = new Headers();
-        requestHeaders.set('Content-Type', 'application/json');
-        requestHeaders.set('Authorization', userProfile.token);
+        const requestHeaders = new Headers();
+        requestHeaders.set("Content-Type", "application/json");
+        requestHeaders.set("Authorization", userProfile.token);
 
         if (customHeader) {
           requestHeaders.set(customHeader.header, customHeader.value);
         }
 
-        const reqOptions: RequestInit = {
+        const reqOptions = {
           method: methodValue,
-          redirect: 'error',
-          headers: requestHeaders
+          redirect: "error" as const,
+          headers: requestHeaders,
+          body: null as string | null,
         };
         if (payload !== null && payload !== undefined) {
           reqOptions.body = JSON.stringify(payload);
         }
 
         let reqPath;
-        if (path.startsWith('/')) {
+        if (path.startsWith("/")) {
           reqPath = ApiContextPath + path;
         } else {
-          reqPath = ApiContextPath + '/' + path;
+          reqPath = ApiContextPath + "/" + path;
         }
 
         let rsp;
         try {
           rsp = await fetch(reqPath, reqOptions);
-        } catch (err: any) {
+        } catch (err: unknown) {
+          let rspError = "Unknown error";
+          if (err instanceof Error) {
+            rspError = err.message;
+          }
+
           retriedTimes.value++;
           if (retriedTimes.value >= MaxRetryTimes) {
-            const errMsg = err.message;
-            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            const errMsg = `${rspError}`;
+            await confirm.error(
+              errMsg,
+              `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
+            );
             break;
           } else {
-            const errMsg = `${err.message}. Will retry in ${RetryDelay / 1000} seconds.`;
-            confirm.warning(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            const errMsg = `${rspError}. Will retry in ${RetryDelay / 1000} seconds.`;
+            confirm.warning(
+              errMsg,
+              `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
+            );
             await sleep(RetryDelay);
             continue;
           }
@@ -219,7 +269,7 @@ export function useFetch() {
 
         if (!rsp) {
           //Exception has happened
-          const errMsg = 'Unknown exception happened.';
+          const errMsg = "Unknown exception happened.";
           await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}`);
           break;
         } else if (rsp.status === 502 || rsp.status === 504) {
@@ -227,11 +277,17 @@ export function useFetch() {
           const errMsg = await extractErrorMessageFromResponse(rsp);
           retriedTimes.value++;
           if (retriedTimes.value >= MaxRetryTimes) {
-            await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+            await confirm.error(
+              errMsg,
+              `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
+            );
             break;
           } else {
             const errForRetry = `${errMsg}. Will retry in ${RetryDelay / 1000} seconds.`;
-            confirm.warning(errForRetry, `Failed to [${methodValue}] ${reqPath}: ${errForRetry}`);
+            confirm.warning(
+              errForRetry,
+              `Failed to [${methodValue}] ${reqPath}: ${errForRetry}`,
+            );
             await sleep(RetryDelay);
             continue;
           }
@@ -240,22 +296,35 @@ export function useFetch() {
           continue;
         } else if (rsp.status === 403) {
           const errMsg = await extractErrorMessageFromResponse(rsp);
-          await confirm.error(errMsg, `User does not have role to [${methodValue}] ${reqPath}: ${errMsg}`);
+          await confirm.error(
+            errMsg,
+            `User does not have role to [${methodValue}] ${reqPath}: ${errMsg}`,
+          );
           continue;
         } else if (!rsp.ok) {
           const errMsg = await extractErrorMessageFromResponse(rsp);
-          await confirm.error(errMsg, `Failed to [${methodValue}] ${reqPath}: ${errMsg}`);
+          await confirm.error(
+            errMsg,
+            `Failed to [${methodValue}] ${reqPath}: ${errMsg}`,
+          );
           break;
         }
 
-        const contentType = rsp.headers.get('content-type') || '';
-        const contentLength = parseInt(rsp.headers.get('content-length') || '-1');
+        const contentType = rsp.headers.get("content-type") || "";
+        const contentLength = parseInt(
+          rsp.headers.get("content-length") || "-1",
+        );
 
         if (!contentType && contentLength <= 0) {
           ret = rsp.status;
-        } else if (contentType.startsWith('application/json')) {
+        } else if (contentType.startsWith("application/json")) {
           ret = await rsp.json();
-        } else if (contentType.startsWith('application') || contentType.startsWith('image') || contentType.startsWith('video') || contentType.startsWith('audio')) {
+        } else if (
+          contentType.startsWith("application") ||
+          contentType.startsWith("image") ||
+          contentType.startsWith("video") ||
+          contentType.startsWith("audio")
+        ) {
           ret = await rsp.blob();
         } else {
           ret = await rsp.text();
@@ -272,19 +341,19 @@ export function useFetch() {
   return shell;
 }
 
-const extractErrorMessageFromResponse = async (rsp: any) => {
+const extractErrorMessageFromResponse = async (rsp: Response) => {
   let err = null;
 
   //If not able to get the status text, then try to get the error message from the response body.
-  const contentType = rsp.headers.get('content-type') || '';
+  const contentType = rsp.headers.get("content-type") || "";
   if (contentType) {
-    if (contentType.startsWith('text/html')) {
+    if (contentType.startsWith("text/html")) {
       const rawHtml = await rsp.text();
       const parser = new DOMParser();
-      const doc = parser.parseFromString(rawHtml, 'text/html');
-      err = doc.body.textContent || 'Unknown error';
-    } else if (contentType.startsWith('application/json')) {
-      const errMessage = await rsp.json();
+      const doc = parser.parseFromString(rawHtml, "text/html");
+      err = doc.body.textContent || "Unknown error";
+    } else if (contentType.startsWith("application/json")) {
+      const errMessage: ApiErrorResponse = await rsp.json();
       err = errMessage.error;
     } else {
       err = await rsp.text();
@@ -299,11 +368,11 @@ const extractErrorMessageFromResponse = async (rsp: any) => {
   }
   if (!err) {
     if (rsp.status >= 500 && rsp.status <= 599) {
-      err = 'System error';
+      err = "System error";
     } else if (rsp.status >= 400 && rsp.status <= 499) {
-      err = 'User request error';
+      err = "User request error";
     } else {
-      err = 'Unknown error';
+      err = "Unknown error";
     }
   }
   return err;

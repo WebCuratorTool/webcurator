@@ -1,0 +1,26 @@
+{
+  // Use ESLint as the formatter
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+
+  // Recommended for ESLint formatting
+  "editor.formatOnSave": true,
+  "editor.formatOnType": false,
+  "editor.formatOnPaste": true,
+  "editor.formatOnSaveMode": "file",
+
+  // Let ESLint handle saving logic
+  "files.autoSave": "onFocusChange",
+
+  // OPTIONAL: If you use the "prettier-eslint" extension
+  "vs-code-prettier-eslint.prettierLast": false,
+  
+  // Ensure ESLint is actually running fixes on save
+  "eslint.format.enable": true,
+  "eslint.codeActionsOnSave.rules": null,
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  }
+}

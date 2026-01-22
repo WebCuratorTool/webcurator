@@ -1,21 +1,26 @@
 <script setup lang="ts">
-// libraries
-import { inject, ref } from 'vue';
+import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import { inject, type Ref, ref } from "vue";
 
-const dialogRef: any = inject('dialogRef');
+const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
-const { annotation, addAnnotation } = dialogRef.value.data
+const payload = dialogRef?.value?.data;
+if (!payload) {
+  dialogRef?.value.close();
+}
+
+const { annotation, addAnnotation } = payload!;
+
 const newAnnotation = ref(annotation);
 
 const onSave = () => {
   addAnnotation(newAnnotation.value);
-  dialogRef.value.close();
-}
-
+  dialogRef?.value.close();
+};
 </script>
 
 <template>
-  <Textarea v-model="newAnnotation.note" cols="80" rows="3"/>
+  <Textarea v-model="newAnnotation.note" cols="80" rows="3" />
   <div class="flex items-start justify-between mt-4">
     <div class="flex items-center gap-2">
       <label>

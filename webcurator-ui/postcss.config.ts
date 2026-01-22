@@ -1,1 +1,2 @@
-module.exports = { plugins: { '@tailwindcss/postcss': {}, autoprefixer: {} } };
+// eslint-disable-next-line no-undef
+module.exports = { plugins: { "@tailwindcss/postcss": {}, autoprefixer: {} } };

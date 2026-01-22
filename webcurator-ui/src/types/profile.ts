@@ -1,12 +1,22 @@
 interface Profile {
-    agency: string,
-    name: string,
-    description: string,
-    id: number,
-    state: number,
-    type: string
+  agency: string;
+  name: string;
+  description: string;
+  id: number;
+  state: number;
+  type: string;
 }
 
-interface Profiles extends Array<Profile>{}
+type Profiles = Array<Profile>;
 
-export type { Profile, Profiles }
+interface ProfilesResponse {
+  filter: {
+    showOnlyActive: boolean;
+    agency: string;
+    type: string;
+  };
+  amount: number;
+  profiles: Profiles;
+}
+
+export type { Profile, Profiles, ProfilesResponse };

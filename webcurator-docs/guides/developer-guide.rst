@@ -315,6 +315,15 @@ coding style include:
     Note that this guide is significantly out of date and is only included here
     for historical purposes.
 
+The UI code uses eslint and prettier to enforce the Vue/Typescript code style. 
+This is defined in the `.eslint.config.ts` file in the webcurator-ui module.
+The recommended VS Code extensions and settings are defined in the `.vscode/` 
+directory. These will warn about style issues as you code in VS Code.
+
+To see style warnings and errors from the command line use `npm run lint` 
+in the webcurator-ui module. 
+`npm run lint:fix` will fix some of the issues automatically.
+
 Definition of Done
 ------------------
 

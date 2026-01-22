@@ -1,27 +1,22 @@
-import { ref } from 'vue';
-import { defineStore } from 'pinia';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import type { Permission } from '@/types/permission';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-export const usePermissionStore = defineStore('Permission', () => {
-    const permission = ref();
-    const loadingPermission = ref(false);
-    const rest: UseFetchApis = useFetch();  
+import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
-    const fetch = async (id: number): Promise<Permission> => {
-        loadingPermission.value = true;
-      
-        try {
-          const response = await rest.get(`permissions/${id}`);
-          permission.value = response;
-          loadingPermission.value = false;
-          return response;
-        } catch (err: any) {
-          console.log(err.message);
-          loadingPermission.value = false;
-          return err;
-        }
-      }
+export const usePermissionStore = defineStore("Permission", () => {
+  const permission = ref();
+  const loadingPermission = ref(false);
+  const rest: UseFetchApis = useFetch();
 
-    return { fetch, permission, loadingPermission }
-})
+  const fetch = async (id: number) => {
+    loadingPermission.value = true;
+
+    try {
+      permission.value = await rest.get(`permissions/${id}`);
+    } finally {
+      loadingPermission.value = false;
+    }
+  };
+
+  return { fetch, permission, loadingPermission };
+});

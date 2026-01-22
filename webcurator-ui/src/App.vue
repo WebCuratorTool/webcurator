@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
-import { togglePreset, toggleThemeMode } from './utils/themes';
-import IconWarning from '@/components/icons/IconWarning.vue';
+import { RouterView } from "vue-router";
 
-toggleThemeMode('light');
-togglePreset('indigo');
+import IconWarning from "@/components/icons/IconWarning.vue";
+
+import { togglePreset, toggleThemeMode } from "./utils/themes";
+
+toggleThemeMode("light");
+togglePreset("indigo");
 </script>
 
 <template>
@@ -32,7 +34,9 @@ togglePreset('indigo');
           <i class="pi pi-exclamation-triangle" />
           <span class="font-bold">{{ slotProps.message.summary }}</span>
         </div>
-        <div class="font-medium text-lg my-4">{{ slotProps.message.detail }}</div>
+        <div class="font-medium text-lg my-4">
+          {{ slotProps.message.detail }}
+        </div>
       </div>
     </template>
   </Toast>
@@ -47,15 +51,34 @@ togglePreset('indigo');
         <template #footer>
           <div class="flex flex-col items-center justify-center w-full">
             <Divider />
-            <Button label="OK" @click="acceptCallback" class="w-32" severity="primary"></Button>
+            <Button
+              label="OK"
+              @click="acceptCallback"
+              class="w-32"
+              severity="primary"
+            ></Button>
           </div>
         </template>
         <template #icons>
-          <Button icon="pi pi-times" severity="secondary" rounded text @click="rejectCallback" />
+          <Button
+            icon="pi pi-times"
+            severity="secondary"
+            rounded
+            text
+            @click="rejectCallback"
+          />
         </template>
         <div class="flex items-center gap-2">
           <IconWarning style="width: 30px; height: 30px" />
-          <div class="flex items-center justify-start" style="min-width: 30rem; max-width: 50rem; min-height: 4rem; max-height: 10rem">
+          <div
+            class="flex items-center justify-start"
+            style="
+              min-width: 30rem;
+              max-width: 50rem;
+              min-height: 4rem;
+              max-height: 10rem;
+            "
+          >
             <p class="m-0">{{ message.message }}</p>
           </div>
         </div>
