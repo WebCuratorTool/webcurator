@@ -88,7 +88,7 @@ public class BDBNetworkMapPool {
 
             BDBRepoHolder db = null;
             try {
-                db = BDBRepoHolder.getInstance(dbPath, dbName);
+                db = BDBRepoHolder.openInstance(dbPath, dbName);
             } catch (IOException ex) {
                 log.error("Failed to open db: {}-->{}", dbPath, dbName, ex);
             }

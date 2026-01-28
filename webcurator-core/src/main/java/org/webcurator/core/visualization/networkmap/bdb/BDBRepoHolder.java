@@ -57,13 +57,10 @@ public class BDBRepoHolder {
         this.dbName = dbName;
     }
 
-    public static BDBRepoHolder createInstance(String dbPath, String repoName) throws IOException {
+    public static BDBRepoHolder openInstance(String dbPath, String repoName) throws IOException {
         return safeOpenBdbRepoHolder(dbPath, repoName);
     }
 
-    public static BDBRepoHolder getInstance(String dbPath, String repoName) throws IOException {
-        return safeOpenBdbRepoHolder(dbPath, repoName);
-    }
 
     public static BDBRepoHolder safeOpenBdbRepoHolder(String dbPath, String repoName) {
         AtomicReference<BDBRepoHolder> db = new AtomicReference<>();
