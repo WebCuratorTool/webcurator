@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.*;
 
 import org.mockito.Mockito;
@@ -21,6 +20,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.Target;
+import org.webcurator.domain.model.core.GroupMember;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,14 +34,12 @@ import java.util.Map;
 @Import(Groups.class)
 public class GroupTest extends AbstractControllerTest {
     private TargetGroup mockGroup;
-    private User mockUser;
-    private Profile mockProfile;
     private Target mockTarget;
 
 
     @BeforeEach
     void setUp() {
-        mockUser = new User();
+        User mockUser = new User();
         mockUser.setUsername("testUser");
         Agency agency = new Agency();
         agency.setName("TestAgency");
@@ -49,7 +47,7 @@ public class GroupTest extends AbstractControllerTest {
         mockUser.setFirstname("Fairy");
         mockUser.setLastname("Tom");
 
-        mockProfile = new Profile();
+        Profile mockProfile = new Profile();
         mockProfile.setHarvesterType("H3");
 
         mockGroup = new TargetGroup();
@@ -160,8 +158,8 @@ public class GroupTest extends AbstractControllerTest {
     @Test
     void testRemoveMember_Success() throws Exception {
         // Setup group with a child
-        org.webcurator.domain.model.core.GroupMember member = new org.webcurator.domain.model.core.GroupMember();
-        org.webcurator.domain.model.core.Target child = new org.webcurator.domain.model.core.Target();
+        GroupMember member = new GroupMember();
+        Target child = new Target();
         child.setOid(456L);
         member.setChild(child);
 
