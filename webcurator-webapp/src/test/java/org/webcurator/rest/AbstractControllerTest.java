@@ -1,5 +1,6 @@
 package org.webcurator.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -20,6 +21,8 @@ public class AbstractControllerTest {
     static class TestConfig {
     }
 
+    @Autowired
+    public ObjectMapper objectMapper;
 
     @Autowired
     public MockMvc mockMvc;
