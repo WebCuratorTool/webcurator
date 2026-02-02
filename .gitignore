@@ -75,3 +75,8 @@ local.properties
 /webcurator-ui/.node/
 
 .vscode
+
+.venv
+/webcurator-webapp/out
+/**/credentials
+
