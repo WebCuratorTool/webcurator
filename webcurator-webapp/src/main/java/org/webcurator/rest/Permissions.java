@@ -34,7 +34,7 @@ public class Permissions {
     @Autowired
     TargetManager2 targetManager;
 
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "")
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             return FailureResponse.error(HttpStatus.BAD_REQUEST, "Expected a filter parameter with 'targetId' field");

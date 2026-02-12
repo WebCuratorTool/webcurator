@@ -97,7 +97,7 @@ public class TargetGroup extends AbstractTarget {
 	 * Protected constructor to ensure instantiation is through the 
 	 * BusinessObjectFactory.
 	 */
-	protected TargetGroup() {
+	public TargetGroup() {
 		super(AbstractTarget.TYPE_GROUP);
 	}
 
