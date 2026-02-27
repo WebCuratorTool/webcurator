@@ -22,7 +22,7 @@ public class GroupDTO {
     @Valid
     List<Member> memberOf = new ArrayList<>();
     @Valid
-    ProfileDTO profile;
+    ProfileInfoDTO profile;
     @Valid
     List<ScheduleDTO> schedules = new ArrayList<>();
     @Valid
@@ -49,7 +49,7 @@ public class GroupDTO {
                 memberOf.add(member);
             }
         }
-        profile = new ProfileDTO(targetGroup);
+        profile = new ProfileInfoDTO(targetGroup);
         for (Schedule s : targetGroup.getSchedules()) {
             ScheduleDTO scheduleDTO = new ScheduleDTO(s);
             schedules.add(scheduleDTO);
@@ -86,11 +86,11 @@ public class GroupDTO {
         this.memberOf = memberOf;
     }
 
-    public ProfileDTO getProfile() {
+    public ProfileInfoDTO getProfile() {
         return profile;
     }
 
-    public void setProfile(ProfileDTO profile) {
+    public void setProfile(ProfileInfoDTO profile) {
         this.profile = profile;
     }
 

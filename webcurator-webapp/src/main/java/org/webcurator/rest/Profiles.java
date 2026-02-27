@@ -4,15 +4,12 @@ package org.webcurator.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.ProfileDAO;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
+import org.webcurator.rest.dto.ProfileDTO;
 
 import java.util.*;
 
@@ -33,6 +30,16 @@ public class Profiles {
         states.put(Profile.STATUS_INACTIVE, "Inactive");
         states.put(Profile.STATUS_ACTIVE, "Active");
         states.put(Profile.STATUS_LOCKED, "Locked");
+    }
+
+
+    @GetMapping(path = "/{id}")
+    public ResponseEntity<?> get(@PathVariable Long id) {
+        Profile profile = profileDAO.get(id);
+        if (profile == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Profile with id %s does not exist", id));
+        }
+        return ResponseEntity.ok(new ProfileDTO(profile));
     }
 
     @GetMapping(path = "")
@@ -63,7 +70,7 @@ public class Profiles {
      */
     private SearchResult search(Filter filter) throws BadRequestError {
         List<HashMap<String, Object>> profiles = new ArrayList<>();
-        List<ProfileDTO> result;
+        List<org.webcurator.domain.model.dto.ProfileDTO> result;
         if (filter.agency != null) {
             result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.type);
         } else {
@@ -76,7 +83,7 @@ public class Profiles {
          * profile content for profiles not belonging to the user's agency (perhaps with
          * an indication that it's not being shown due to insufficient privileges)
          */
-        for (ProfileDTO p : result) {
+        for (org.webcurator.domain.model.dto.ProfileDTO p : result) {
             HashMap<String, Object> profile = new HashMap<>();
             profile.put("id", p.getOid());
             profile.put("name", p.getName());
