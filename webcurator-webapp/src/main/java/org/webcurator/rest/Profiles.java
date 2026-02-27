@@ -3,7 +3,6 @@ package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +13,6 @@ import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
-import org.webcurator.rest.common.Utils;
 
 import java.util.*;
 
@@ -28,7 +26,7 @@ public class Profiles {
     @Autowired
     ProfileDAO profileDAO;
 
-    private static Map<Integer, String> states;
+    private static final Map<Integer, String> states;
 
     static {
         states = new TreeMap<>();

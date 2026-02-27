@@ -94,6 +94,7 @@ Profiles
    :maxdepth: 1
    
    api-profiles_GET.rst
+   api-profile_GET.rst
    api-profile_states_GET.rst
    
 Targets
