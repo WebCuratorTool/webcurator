@@ -5,7 +5,7 @@ import { inject, onMounted, type Ref, ref } from "vue";
 import Loading from "@/components/Loading.vue";
 import WctFormField from "@/components/WctFormField.vue";
 import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
-import { usePermissionStore } from "@/stores/permissions";
+import { usePermissionStore } from "@/stores/permission";
 import type { Permission } from "@/types/permission";
 import { formatDate } from "@/utils/helper";
 

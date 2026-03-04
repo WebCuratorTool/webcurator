@@ -1,4 +1,5 @@
 import type { AuthorisingAgent } from "./authorisingAgent";
+import type { HarvestAuth } from "./harvestAuth";
 
 interface PermissionAnnotation {
   date: number;
@@ -15,19 +16,21 @@ interface Permission {
   id: number;
   startDate: number;
   endDate: number;
-  status: number;
+  status?: number;
   urlPatterns: string[];
-  harvestAuthorisationId: number;
-  accessStatus: null | string;
-  copyrightStatement: string;
-  copyrightUrl: string;
-  authResponse: string;
-  openAccessDate: null | string;
+  harvestAuthorisationId?: number;
+  harvestAuthorisation?: HarvestAuth;
+  accessStatus?: null | string;
+  copyrightStatement?: string;
+  copyrightUrl?: string;
+  authResponse?: string;
+  openAccessDate?: null | string;
   authorisingAgent: AuthorisingAgent;
-  quickPick: boolean;
-  annotations: PermissionAnnotation[];
-  displayName: string;
-  exclusions: {
+  authorisingAgentName?: string;
+  quickPick?: boolean;
+  annotations?: PermissionAnnotation[];
+  displayName?: string;
+  exclusions?: {
     [key: string]: PermissionExclusion;
   }[];
 }
