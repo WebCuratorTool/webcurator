@@ -175,7 +175,7 @@ public class SiteDAO extends HibernateDaoSupport {
 							 .add(Restrictions.eq("oid", anAgencyOid));
 
 						query.createCriteria("site")
-							 .add(Restrictions.ilike("title", aSiteTitle, MatchMode.START))
+							 .add(Restrictions.ilike("title", aSiteTitle, MatchMode.ANYWHERE))
 							 .add(Restrictions.eq("active", true))
 							 .addOrder(Order.asc("title"));
 						
@@ -188,7 +188,7 @@ public class SiteDAO extends HibernateDaoSupport {
 							 .add(Restrictions.eq("oid", anAgencyOid));
 
 						cntQuery.createCriteria("site")
-							 .add(Restrictions.ilike("title", aSiteTitle, MatchMode.START))
+							 .add(Restrictions.ilike("title", aSiteTitle, MatchMode.ANYWHERE))
 							 .add(Restrictions.eq("active", true));	
 
 						cntQuery.setProjection(Projections.rowCount());
