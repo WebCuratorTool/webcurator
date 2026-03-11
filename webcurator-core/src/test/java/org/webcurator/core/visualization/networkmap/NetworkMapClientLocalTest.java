@@ -1,12 +1,10 @@
 package org.webcurator.core.visualization.networkmap;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapSimpleNodeCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,7 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         assert db != null;
 
         List<Long> allIDs = db.tblUrl.getAllEntities();
-        if (allIDs.size() == 0) {
+        if (allIDs.isEmpty()) {
             return;
         }
         int randomIndex = this.random(allIDs.size());
@@ -46,7 +44,7 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         assert db != null;
 
         List<Long> allIDs = db.tblFolder.getAllEntities();
-        if (allIDs.size() == 0) {
+        if (allIDs.isEmpty()) {
             return;
         }
         int randomIndex = this.random(allIDs.size());

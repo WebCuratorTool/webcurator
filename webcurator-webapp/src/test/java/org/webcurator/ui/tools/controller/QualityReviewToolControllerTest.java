@@ -39,9 +39,6 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
         mockQRTCA.setTargetManager(new MockTargetManager(testFile));
         mockQRTCA.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
         mockQRTCA.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
-        HarvestResourceUrlMapper harvestResourceUrlMapper = new HarvestResourceUrlMapper();
-        harvestResourceUrlMapper.setUrlMap("http://test?url={$HarvestResource.Name}");
-        mockQRTCA.setHarvestResourceUrlMapper(harvestResourceUrlMapper);
     }
 
 

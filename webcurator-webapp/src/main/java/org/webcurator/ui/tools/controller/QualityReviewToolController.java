@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,17 +160,17 @@ public class QualityReviewToolController {
                 m.put("accessUrl", "");
             }
 
-            if (attr.archive1Url.isEmpty()) {
+            if (StringUtils.isEmpty(attr.archive1Url)) {
                 m.put("archive1Url", "");
             } else {
                 m.put("archive1Url", PlaceholderProcessor.generateUrl(attr.archive1Url, result) + s.getSeed());
             }
-            if (attr.archive2Url.isEmpty()) {
+            if (StringUtils.isEmpty(attr.archive2Url)) {
                 m.put("archive2Url", "");
             } else {
                 m.put("archive2Url", PlaceholderProcessor.generateUrl(attr.archive2Url, result) + s.getSeed());
             }
-            if (attr.archive3Url.isEmpty()) {
+            if (StringUtils.isEmpty(attr.archive3Url)) {
                 m.put("archive3Url", "");
             } else {
                 m.put("archive3Url", PlaceholderProcessor.generateUrl(attr.archive3Url, result) + s.getSeed());

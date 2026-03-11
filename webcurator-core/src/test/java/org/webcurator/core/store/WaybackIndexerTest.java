@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.Date;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -220,6 +221,10 @@ public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer> {
 
     @Test
     public void testSoftLinksForWayback() {
+        // Check if OS is Windows. If true, the test is skipped here.
+        String osName = System.getProperty("os.name").toLowerCase();
+        Assume.assumeFalse("Skipping test on Windows", osName.startsWith("win"));
+
         try {
             WaybackRunner testRunner = startWaybackSim(false);
             Long hrOid = testInstance.begin();

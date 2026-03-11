@@ -1,7 +1,10 @@
 package org.webcurator.core.util;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Assume;
 import org.junit.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -24,6 +27,10 @@ public class TestProcessBuilderUtils {
 
     @Test
     public void testForceDeleteDirectory() throws IOException {
+        // Check if OS is Windows. If true, the test is skipped here.
+        String osName = System.getProperty("os.name").toLowerCase();
+        Assume.assumeFalse("Skipping test on Windows", osName.startsWith("win"));
+
         File tmpDir = new File("/tmp/a-collection");
         assert tmpDir.exists() || tmpDir.mkdirs();
 
