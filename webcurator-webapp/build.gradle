@@ -73,7 +73,6 @@ dependencies {
     implementation(group: 'org.webcurator', name: 'webcurator-core', version: '3.2.5-SNAPSHOT') {
 
         exclude group: 'joda-time', module: 'joda-time'
-        exclude group: 'com.sleepycat', module: 'je'
         exclude group: 'org.archive', module: 'archive-commons'
         exclude group: 'org.apache.hadoop', module: 'hadoop-core'
     }
