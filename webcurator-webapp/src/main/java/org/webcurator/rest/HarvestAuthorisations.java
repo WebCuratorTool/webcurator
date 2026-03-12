@@ -48,7 +48,7 @@ public class HarvestAuthorisations {
         stateMap.put(Permission.STATUS_REJECTED, "Rejected");
     }
 
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "")
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();

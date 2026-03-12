@@ -1,9 +1,9 @@
 package org.webcurator.rest.dto;
 
-//import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-//import org.springframework.format.annotation.DateTimeFormat;
-import org.webcurator.domain.model.core.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.webcurator.domain.model.core.GroupMember;
+import org.webcurator.domain.model.core.Permission;
+import org.webcurator.domain.model.core.Target;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -22,15 +22,15 @@ public class TargetDTO {
     @Valid
     Scheduling schedule;
     @Valid
-    Access access;
+    AccessDTO access;
     @Valid
     List<Seed> seeds = new ArrayList<>();
     @Valid
-    Profile profile;
+    ProfileDTO profile;
     @Valid
     Annotations annotations;
     @Valid
-    Description description;
+    DescriptionDTO description;
     @Valid
     List<Group> groups = new ArrayList<>();
 
@@ -40,15 +40,15 @@ public class TargetDTO {
     public TargetDTO(Target target) {
         general = new General(target);
         schedule = new Scheduling(target);
-        access = new Access(target);
+        access = new AccessDTO(target);
         for (org.webcurator.domain.model.core.Seed s : target.getSeeds()) {
             seeds.add(new Seed(s));
         }
         if (target.getProfile() != null) {
-            profile = new Profile(target);
+            profile = new ProfileDTO(target);
         }
         annotations = new Annotations(target);
-        description = new Description(target);
+        description = new DescriptionDTO(target.getDublinCoreMetaData());
         for (GroupMember m: target.getParents()) {
             groups.add(new Group(m));
         }
@@ -70,11 +70,11 @@ public class TargetDTO {
         this.schedule = schedules;
     }
 
-    public Access getAccess() {
+    public AccessDTO getAccess() {
         return access;
     }
 
-    public void setAccess(Access access) {
+    public void setAccess(AccessDTO access) {
         this.access = access;
     }
 
@@ -86,11 +86,11 @@ public class TargetDTO {
         this.seeds = seeds;
     }
 
-    public Profile getProfile() {
+    public ProfileDTO getProfile() {
         return profile;
     }
 
-    public void setProfile(Profile profile) {
+    public void setProfile(ProfileDTO profile) {
         this.profile = profile;
     }
 
@@ -102,11 +102,11 @@ public class TargetDTO {
         this.annotations = annotations;
     }
 
-    public Description getDescription() {
+    public DescriptionDTO getDescription() {
         return description;
     }
 
-    public void setDescription(Description description) {
+    public void setDescription(DescriptionDTO description) {
         this.description = description;
     }
 
@@ -120,6 +120,11 @@ public class TargetDTO {
 
     public static class General {
         long id;
+
+        // This came from the groups API branch and seems to have been a fix for the date formatting issue
+        // Leaving it here for now, for when we revisit this issue
+        //@JsonFormat(shape = JsonFormat.Shape.STRING)
+        //Date creationDate;
 
 //        @JsonFormat(pattern="yyyy-MM-ddTHH:mm:ss", timezone = "UTC+0") // Return to the UI
 //        @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss") // Save to the DB
@@ -274,7 +279,7 @@ public class TargetDTO {
         Boolean harvestNow;
         Boolean harvestOptimization;
         @Valid
-        List<Schedule> schedules = new ArrayList<>();
+        List<ScheduleDTO> schedules = new ArrayList<>();
 
         public Scheduling() {
         }
@@ -283,16 +288,7 @@ public class TargetDTO {
             harvestNow = target.isHarvestNow();
             harvestOptimization = target.isAllowOptimize();
             for (org.webcurator.domain.model.core.Schedule s : target.getSchedules()) {
-                Schedule schedule = new Schedule();
-                schedule.setId(s.getOid());
-                // We only support classic cron, without the prepended SECONDS field used by Quartz
-                schedule.setCron(s.getCronPatternWithoutSeconds());
-                schedule.setStartDate(s.getStartDate());
-                schedule.setEndDate(s.getEndDate());
-                schedule.setType(s.getScheduleType());
-                schedule.setNextExecutionDate(s.getNextExecutionDate());
-                schedule.setLastProcessedDate(s.getLastProcessedDate());
-                schedule.setOwner(s.getOwningUser().getUsername());
+                ScheduleDTO schedule = new ScheduleDTO(s);
                 schedules.add(schedule);
             }
         }
@@ -313,160 +309,12 @@ public class TargetDTO {
             this.harvestOptimization = harvestOptimization;
         }
 
-        public List<Schedule> getSchedules() {
+        public List<ScheduleDTO> getSchedules() {
             return schedules;
         }
 
-        public void setSchedules(List<Schedule> schedules) {
+        public void setSchedules(List<ScheduleDTO> schedules) {
             this.schedules = schedules;
-        }
-
-        public static class Schedule {
-            Long id;
-            @NotBlank(message = "cron is required")
-            String cron;
-            @NotNull(message = "startDate is required")
-            Date startDate;
-            Date endDate;
-            @NotNull(message = "type is required")
-            @Min(value = -7, message = "invalid schedule type: value should be between -7 and 1")
-            @Max(value = 1, message = "invalid schedule type: value should be between -7 and 1")
-            Integer type;
-            @NotNull(message = "nextExecutionDate is required")
-            Date nextExecutionDate;
-            Date lastProcessedDate;
-            @NotNull(message = "owner is required")
-            String owner;
-
-            public Schedule() {
-            }
-
-            public Long getId() {
-                return id;
-            }
-
-            public void setId(Long id) {
-                this.id = id;
-            }
-
-            public String getCron() {
-                return cron;
-            }
-
-            public void setCron(String cron) {
-                this.cron = cron;
-            }
-
-            public Date getStartDate() {
-                return startDate;
-            }
-
-            public void setStartDate(Date startDate) {
-                this.startDate = startDate;
-            }
-
-            public Date getEndDate() {
-                return endDate;
-            }
-
-            public void setEndDate(Date endDate) {
-                this.endDate = endDate;
-            }
-
-            public Integer getType() {
-                return type;
-            }
-
-            public void setType(Integer type) {
-                this.type = type;
-            }
-
-            public Date getNextExecutionDate() {
-                return nextExecutionDate;
-            }
-
-            public void setNextExecutionDate(Date nextExecutionDate) {
-                this.nextExecutionDate = nextExecutionDate;
-            }
-
-            public Date getLastProcessedDate() {
-                return lastProcessedDate;
-            }
-
-            public void setLastProcessedDate(Date lastProcessedDate) {
-                this.lastProcessedDate = lastProcessedDate;
-            }
-
-            public String getOwner() {
-                return owner;
-            }
-
-            public void setOwner(String owner) {
-                this.owner = owner;
-            }
-        }
-    }
-
-    public static class Access {
-        @NotNull(message = "displayTarget is required")
-        Boolean displayTarget;
-        @NotNull(message = "accessZone is required")
-        @Min(value = AbstractTarget.AccessZone.PUBLIC, message = "invalid accessZone")
-        @Max(value = AbstractTarget.AccessZone.RESTRICTED, message = "invalid accessZone")
-        Integer accessZone;
-        String accessZoneText;
-        String displayChangeReason;
-        String displayNote;
-
-        public Access() {
-        }
-
-        public Access(Target target) {
-            displayTarget = target.isDisplayTarget();
-            accessZone = target.getAccessZone();
-            accessZoneText = target.getAccessZoneText();
-            displayChangeReason = target.getDisplayChangeReason();
-            displayNote = target.getDisplayNote();
-        }
-
-        public Boolean getDisplayTarget() {
-            return displayTarget;
-        }
-
-        public void setDisplayTarget(Boolean displayTarget) {
-            this.displayTarget = displayTarget;
-        }
-
-        public Integer getAccessZone() {
-            return accessZone;
-        }
-
-        public void setAccessZone(Integer accessZone) {
-            this.accessZone = accessZone;
-        }
-
-        public String getAccessZoneText() {
-            return accessZoneText;
-        }
-
-        public void setAccessZoneText(String accessZoneText) {
-            this.accessZoneText = accessZoneText;
-        }
-
-        public String getDisplayChangeReason() {
-            return displayChangeReason;
-        }
-
-        public void setDisplayChangeReason(String displayChangeReason) {
-            this.displayChangeReason = displayChangeReason;
-        }
-
-        public String getDisplayNote() {
-            return displayNote;
-        }
-
-        public void setDisplayNote(String displayNote) {
-            this.displayNote = displayNote;
         }
     }
 
@@ -598,229 +446,6 @@ public class TargetDTO {
         }
     }
 
-    public static class Profile {
-
-        String harvesterType;
-        @NotNull(message = "id is required")
-        Long id;
-        Boolean imported;
-        String name;
-        @Valid
-        List<Override> overrides = new ArrayList<>();
-
-
-        public Profile() {
-        }
-
-        public String getHarvesterType() {
-            return harvesterType;
-        }
-
-        public void setHarvesterType(String harvesterType) {
-            this.harvesterType = harvesterType;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public Boolean getImported() {
-            return imported;
-        }
-
-        public void setImported(Boolean imported) {
-            this.imported = imported;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public List<Override> getOverrides() {
-            return overrides;
-        }
-
-        public void setOverrides(List<Override> overrides) {
-            this.overrides = overrides;
-        }
-
-        public Profile(Target target) {
-
-            org.webcurator.domain.model.core.Profile p = target.getProfile();
-            harvesterType = p.getHarvesterType();
-            id = p.getOid();
-            imported = p.isImported();
-            name = p.getName();
-
-            // FIXME what do we do in the case of an imported profile (which doesn't have overrides, but is overridden entirely by a new profile)?
-            ProfileOverrides o = target.getProfileOverrides();
-            if (p.isHeritrix3Profile()) {
-                Override documentLimit = new Override();
-                documentLimit.setId("documentLimit");
-                documentLimit.setValue(o.getH3DocumentLimit());
-                documentLimit.setEnabled(o.isOverrideH3DocumentLimit());
-                overrides.add(documentLimit);
-                Override dataLimit = new Override();
-                dataLimit.setId("dataLimit");
-                dataLimit.setValue(o.getH3DataLimit());
-                dataLimit.setUnit(o.getH3DataLimitUnit());
-                dataLimit.setEnabled(o.isOverrideH3DataLimit());
-                overrides.add(dataLimit);
-                Override timeLimit = new Override();
-                timeLimit.setId("timeLimit");
-                timeLimit.setValue(o.getH3TimeLimit());
-                timeLimit.setUnit(o.getH3TimeLimitUnit());
-                timeLimit.setEnabled(o.isOverrideH3TimeLimit());
-                overrides.add(timeLimit);
-                Override maxPathDepth = new Override();
-                maxPathDepth.setId("maxPathDepth");
-                maxPathDepth.setValue(o.getH3MaxPathDepth());
-                maxPathDepth.setEnabled(o.isOverrideH3MaxPathDepth());
-                overrides.add(maxPathDepth);
-                Override maxHops = new Override();
-                maxHops.setId("maxHops");
-                maxHops.setValue(o.getH3MaxHops());
-                maxHops.setEnabled(o.isOverrideH3MaxHops());
-                overrides.add(maxHops);
-                Override maxTransitiveHops = new Override();
-                maxTransitiveHops.setId("maxTransitiveHops");
-                maxTransitiveHops.setValue(o.getH3MaxTransitiveHops());
-                maxTransitiveHops.setEnabled(o.isOverrideH3MaxTransitiveHops());
-                overrides.add(maxTransitiveHops);
-                Override ignoreRobots = new Override();
-                ignoreRobots.setId("ignoreRobots");
-                ignoreRobots.setValue(o.isH3IgnoreRobots());
-                ignoreRobots.setEnabled(o.isOverrideH3IgnoreRobots());
-                overrides.add(ignoreRobots);
-                Override extractJs = new Override();
-                extractJs.setId("extractJs");
-                extractJs.setValue(o.isH3ExtractJs());
-                extractJs.setEnabled(o.isOverrideH3ExtractJs());
-                overrides.add(extractJs);
-                Override ignoreCookies = new Override();
-                ignoreCookies.setId("ignoreCookies");
-                ignoreCookies.setValue(o.isH3IgnoreCookies());
-                ignoreCookies.setEnabled(o.isOverrideH3IgnoreCookies());
-                overrides.add(ignoreCookies);
-                Override blockedUrls = new Override();
-                blockedUrls.setId("blockedUrls");
-                blockedUrls.setValue(o.getH3BlockedUrls());
-                blockedUrls.setEnabled(o.isOverrideH3BlockedUrls());
-                overrides.add(blockedUrls);
-                Override includedUrls = new Override();
-                includedUrls.setId("includedUrls");
-                includedUrls.setValue(o.getH3IncludedUrls());
-                includedUrls.setEnabled(o.isOverrideH3IncludedUrls());
-                overrides.add(includedUrls);
-            } else { // Legacy H1 overrides
-                Override robotsHonouringPolicy = new Override();
-                robotsHonouringPolicy.setId("robotsHonouringPolicy");
-                robotsHonouringPolicy.setValue(o.getRobotsHonouringPolicy());
-                robotsHonouringPolicy.setEnabled(o.isOverrideRobotsHonouringPolicy());
-                overrides.add(robotsHonouringPolicy);
-                Override maxTimeSec = new Override();
-                maxTimeSec.setId("maxTimeSec");
-                maxTimeSec.setValue(o.getMaxTimeSec());
-                maxTimeSec.setEnabled(o.isOverrideMaxTimeSec());
-                overrides.add(maxTimeSec);
-                Override maxBytesDownload = new Override();
-                maxBytesDownload.setId("maxBytesDownload");
-                maxBytesDownload.setValue(o.getMaxBytesDownload());
-                maxBytesDownload.setEnabled(o.isOverrideMaxBytesDownload());
-                overrides.add(maxBytesDownload);
-                Override maxHarvestDocuments = new Override();
-                maxHarvestDocuments.setId("maxHarvestDocuments");
-                maxHarvestDocuments.setValue(o.getMaxHarvestDocuments());
-                maxHarvestDocuments.setEnabled(o.isOverrideMaxHarvestDocuments());
-                overrides.add(maxHarvestDocuments);
-                Override maxPathDepth = new Override();
-                maxPathDepth.setId("maxPathDepth");
-                maxPathDepth.setValue(o.getMaxPathDepth());
-                maxPathDepth.setEnabled(o.isOverrideMaxPathDepth());
-                overrides.add(maxPathDepth);
-                Override maxLinkHops = new Override();
-                maxLinkHops.setId("maxLinkHops");
-                maxLinkHops.setValue(o.getMaxLinkHops());
-                maxLinkHops.setEnabled(o.isOverrideMaxLinkHops());
-                overrides.add(maxLinkHops);
-                Override excludeFilters = new Override();
-                excludeFilters.setId("excludeFilters");
-                excludeFilters.setValue(o.getExcludeUriFilters());
-                excludeFilters.setEnabled(o.isOverrideExcludeUriFilters());
-                overrides.add(excludeFilters);
-                Override includeFilters = new Override();
-                includeFilters.setId("includeFilters");
-                includeFilters.setValue(o.getIncludeUriFilters());
-                includeFilters.setEnabled(o.isOverrideIncludeUriFilters());
-                overrides.add(includeFilters);
-                Override excludedMimeTypes = new Override();
-                excludedMimeTypes.setId("excludedMimeTypes");
-                excludedMimeTypes.setValue(o.getExcludedMimeTypes());
-                excludedMimeTypes.setEnabled(o.isOverrideExcludedMimeTypes());
-                overrides.add(excludedMimeTypes);
-                Override credentials = new Override();
-                credentials.setId("credentials");
-                credentials.setValue(o.getCredentials());
-                credentials.setEnabled(o.isOverrideCredentials());
-                overrides.add(credentials);
-            }
-        }
-
-        public static class Override {
-            @NotBlank(message = "id is required")
-            String id;
-            Object value;
-            @NotNull(message = "enabled is required")
-            Boolean enabled;
-            // FIXME we need better validation of the unit attribute
-            @JsonInclude(JsonInclude.Include.NON_NULL)
-            String unit;
-
-            public Override() {
-            }
-
-            public String getId() {
-                return id;
-            }
-
-            public void setId(String id) {
-                this.id = id;
-            }
-
-            public Object getValue() {
-                return value;
-            }
-
-            public void setValue(Object value) {
-                this.value = value;
-            }
-
-            public Boolean getEnabled() {
-                return enabled;
-            }
-
-            public void setEnabled(Boolean enabled) {
-                this.enabled = enabled;
-            }
-
-            public String getUnit() {
-                return unit;
-            }
-
-            public void setUnit(String unit) {
-                this.unit = unit;
-            }
-        }
-    }
-
     public static class Annotations {
 
         @Valid
@@ -884,6 +509,7 @@ public class TargetDTO {
         }
 
         public static class Selection {
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Date date;
             @Pattern(regexp = "Producer type|Publication type|Collection|Area|Other collections",
                     message = "invalid selection type")
@@ -918,6 +544,7 @@ public class TargetDTO {
         }
 
         public static class Annotation {
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Date date;
             String user;
             String note;
@@ -956,158 +583,6 @@ public class TargetDTO {
             public void setAlert(Boolean alert) {
                 this.alert = alert;
             }
-        }
-    }
-
-    public static class Description {
-
-        String identifier;
-        String description;
-        String subject;
-        String creator;
-        String publisher;
-        String type;
-        String format;
-        String language;
-        String source;
-        String relation;
-        String contributor;
-        String coverage;
-        String issn;
-        String isbn;
-
-        public Description() {}
-
-        public Description(Target target) {
-            DublinCore metadata = target.getDublinCoreMetaData();
-            if (metadata != null) {
-                identifier = metadata.getIdentifier();
-                description = metadata.getDescription();
-                subject = metadata.getSubject();
-                creator = metadata.getCreator();
-                publisher = metadata.getPublisher();
-                type = metadata.getType();
-                format = metadata.getFormat();
-                source = metadata.getSource();
-                language = metadata.getLanguage();
-                relation = metadata.getRelation();
-                contributor = metadata.getContributor();
-                coverage = metadata.getCoverage();
-                issn = metadata.getIssn();
-                isbn = metadata.getIsbn();
-            }
-        }
-
-        public String getIdentifier() {
-            return identifier;
-        }
-
-        public void setIdentifier(String identifier) {
-            this.identifier = identifier;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getSubject() {
-            return subject;
-        }
-
-        public void setSubject(String subject) {
-            this.subject = subject;
-        }
-
-        public String getCreator() {
-            return creator;
-        }
-
-        public void setCreator(String creator) {
-            this.creator = creator;
-        }
-
-        public String getPublisher() {
-            return publisher;
-        }
-
-        public void setPublisher(String publisher) {
-            this.publisher = publisher;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public String getFormat() {
-            return format;
-        }
-
-        public void setFormat(String format) {
-            this.format = format;
-        }
-
-        public String getSource() {
-            return source;
-        }
-
-        public void setSource(String source) {
-            this.source = source;
-        }
-
-        public String getLanguage() {
-            return language;
-        }
-
-        public void setLanguage(String language) {
-            this.language = language;
-        }
-
-        public String getRelation() {
-            return relation;
-        }
-
-        public void setRelation(String relation) {
-            this.relation = relation;
-        }
-
-        public String getContributor() {
-            return contributor;
-        }
-
-        public void setContributor(String contributor) {
-            this.contributor = contributor;
-        }
-
-        public String getCoverage() {
-            return coverage;
-        }
-
-        public void setCoverage(String coverage) {
-            this.coverage = coverage;
-        }
-
-        public String getIssn() {
-            return issn;
-        }
-
-        public void setIssn(String issn) {
-            this.issn = issn;
-        }
-
-        public String getIsbn() {
-            return isbn;
-        }
-
-        public void setIsbn(String isbn) {
-            this.isbn = isbn;
         }
     }
 

@@ -74,4 +74,13 @@ local.properties
 
 /webcurator-ui/.node/
 
-#.vscode
+# VS Code
+.vscode
+
+# Credentials for the ReST API tests
+credentials 
+
+# The .venv directory that is (potentially) used when generating the docs
+.venv
+
+

@@ -7,7 +7,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +27,8 @@ import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.ScheduleDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -95,7 +96,7 @@ public class Targets {
         stateMap.put(Target.STATE_COMPLETED, "Completed");
     }
 
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "")
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
@@ -198,7 +199,6 @@ public class Targets {
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
                 return FailureResponse.error(HttpStatus.BAD_REQUEST, "Target could not be deleted because its state is not Rejected or Cancelled");
             } else {
-                // FIXME This does not delete group memberships
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
@@ -253,7 +253,7 @@ public class Targets {
         TargetDTO targetDTO = new TargetDTO(target);
         // Then update the DTO with data from the supplied JSON
         try {
-            updateTargetDTO(targetDTO, targetMap, targetDTO);
+            Utils.mapToDTO(targetMap, targetDTO);
         } catch (BadRequestError e) {
             String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
@@ -347,11 +347,12 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
+
             // Upsert the schedules and distinguish existing ones to be updated from new ones to be added
             ArrayList<Schedule> schedulesToBeDeleted = new ArrayList<>();
             for (Schedule schedule : target.getSchedules()) {
                 boolean deleteSchedule = true;
-                for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+                for (ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
                     if (schedule.getOid().equals(s.getId())) {
                         deleteSchedule = false;
                         fillSchedule(schedule, s);
@@ -366,7 +367,7 @@ public class Targets {
             }
             target.getSchedules().removeAll(schedulesToBeDeleted);
             // Any remaining supplied schedules are guaranteed to be new schedules: add them now
-            for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+            for (ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 fillSchedule(schedule, s);
                 target.getSchedules().add(schedule);
@@ -414,12 +415,12 @@ public class Targets {
             target.setProfile(profile);
 
             ProfileOverrides profileOverrides = target.getProfileOverrides();
-            List<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
+            List<ProfileDTO.Override> overrides = targetDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
                 throw new BadRequestError("A target with a non-imported profile requires profile overrides");
             }
             // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
-            for (TargetDTO.Profile.Override override : overrides) {
+            for (ProfileDTO.Override override : overrides) {
                 String id = override.getId();
                 id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
                 String methodNameSetValue = "setH3" + id;
@@ -494,6 +495,7 @@ public class Targets {
             metadata.setSubject(targetDTO.getDescription().getSubject());
             metadata.setCreator(targetDTO.getDescription().getCreator());
             metadata.setPublisher(targetDTO.getDescription().getPublisher());
+            metadata.setContributor(targetDTO.getDescription().getContributor());
             metadata.setType(targetDTO.getDescription().getType());
             metadata.setFormat(targetDTO.getDescription().getFormat());
             metadata.setSource(targetDTO.getDescription().getSource());
@@ -559,7 +561,7 @@ public class Targets {
         }
     }
 
-    private void fillSchedule(Schedule schedule, TargetDTO.Scheduling.Schedule s) throws BadRequestError {
+    private void fillSchedule(Schedule schedule, ScheduleDTO s) throws BadRequestError {
         // we support classic cron, without the prepended SECONDS field expected by Quartz
         String cronExpression = "0 " + s.getCron();
         try {
@@ -608,8 +610,8 @@ public class Targets {
                         if (!(element instanceof HashMap)) {
                             throw new BadRequestError("Bad item in list of profile overrides");
                         }
-                        TargetDTO.Profile.Override overrideToBeUpdated = null;
-                        for (TargetDTO.Profile.Override override : (List<TargetDTO.Profile.Override>) child) {
+                        ProfileDTO.Override overrideToBeUpdated = null;
+                        for (ProfileDTO.Override override : (List<ProfileDTO.Override>) child) {
                             if (override.getId().equals(((HashMap) element).get("id"))) {
                                 overrideToBeUpdated = override;
                                 break;
