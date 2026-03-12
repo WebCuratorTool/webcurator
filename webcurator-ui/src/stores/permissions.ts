@@ -25,6 +25,7 @@ type PermissionSearchResponse = {
 
 export const usePermissionsStore = defineStore("Permissions", () => {
   const loadingPermissions = ref(false);
+  const amount = ref(0);
   const rest: UseFetchApis = useFetch();
 
   const search = async (searchTerms: PermissionSearchTerms) => {
@@ -40,6 +41,7 @@ export const usePermissionsStore = defineStore("Permissions", () => {
         },
       );
       permissions = data.permissions;
+      amount.value = data.amount;
     } finally {
       loadingPermissions.value = false;
     }
@@ -48,6 +50,7 @@ export const usePermissionsStore = defineStore("Permissions", () => {
   };
 
   return {
+    amount,
     loadingPermissions,
     search,
   };

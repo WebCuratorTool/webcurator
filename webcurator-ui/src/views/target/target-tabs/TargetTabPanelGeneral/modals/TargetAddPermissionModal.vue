@@ -22,6 +22,7 @@ const permissions = ref<Permission[]>([]);
 
 const searchTerm = ref("");
 const searchType = ref("harvestAuthorisationName");
+const currentPage = ref(0);
 
 const seed = ref();
 let expandedPermission = reactive<Permission>({} as Permission);
@@ -49,8 +50,7 @@ const setExpandedRow = async (event: DataTableRowClickEvent) => {
 const fetchPermissions = async () => {
   try {
     const searchParams = {
-      offset: 0,
-      limit: 1,
+      page: currentPage.value,
       filter: {
         targetId: targetId,
         url: searchType.value === "url" ? searchTerm.value : undefined,
@@ -64,6 +64,12 @@ const fetchPermissions = async () => {
   } catch (error) {
     console.error("Error fetching permissions:", error);
   }
+};
+
+const clearSearch = () => {
+  searchTerm.value = "";
+  currentPage.value = 0;
+  fetchPermissions();
 };
 
 const isAuthAdded = (authPermissionId: number) =>
@@ -122,10 +128,7 @@ fetchPermissions();
         label="Clear"
         icon="pi pi-times"
         iconPos="right"
-        @click="
-          searchTerm = '';
-          fetchPermissions();
-        "
+        @click="searchTerm && clearSearch()"
       />
     </div>
     <Button
@@ -146,7 +149,6 @@ fetchPermissions();
       class="w-full mt-4"
       :value="permissions"
       size="small"
-      paginator
       :rows="10"
       scrollHeight="100%"
       :loading="usePermissionsStore().loadingPermissions"
@@ -167,7 +169,7 @@ fetchPermissions();
         field="harvestAuthorisation.name"
         header="Harvest Authorisation"
       />
-      <Column field="agent" header="Authorising Agent" />
+      <Column field="authorisingAgentName" header="Authorising Agent" />
       <Column header="URL Patterns">
         <template #body="slotProps">
           <div
@@ -299,6 +301,16 @@ fetchPermissions();
               <Column field="notes" header="Notes" />
             </DataTable>
           </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end w-full">
+          <Paginator
+            :first="currentPage * 10"
+            :rows="10"
+            :totalRecords="usePermissionsStore().amount"
+            @page="((currentPage = $event.page), fetchPermissions())"
+          />
         </div>
       </template>
     </DataTable>
