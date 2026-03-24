@@ -2,15 +2,33 @@ package org.webcurator.rest;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.harvester.agent.HarvestAgent;
+import org.webcurator.core.harvester.agent.HarvestAgentClient;
+import org.webcurator.core.harvester.agent.HarvestAgentFactory;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.domain.ProfileDAO;
+import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.Profile;
+import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.TargetDTO;
+import org.webcurator.ui.util.HarvestAgentUtil;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -22,6 +40,15 @@ public class Profiles {
 
     @Autowired
     ProfileDAO profileDAO;
+
+    @Autowired
+    UserRoleDAO userRoleDAO;
+
+    @Autowired
+    HarvestAgentManager harvestAgentManager;
+
+    private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private Validator validator = factory.getValidator();
 
     private static final Map<Integer, String> states;
 
@@ -35,6 +62,7 @@ public class Profiles {
 
     @GetMapping(path = "/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
+        // FIXME implement check for VIEW_PROFILES privilege here
         Profile profile = profileDAO.get(id);
         if (profile == null) {
             return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Profile with id %s does not exist", id));
@@ -63,6 +91,66 @@ public class Profiles {
     @GetMapping(path = "/states")
     public ResponseEntity<?> getStates() {
         return ResponseEntity.ok().body(states);
+    }
+
+
+    @PostMapping(path = "")
+    public ResponseEntity post(@RequestBody ProfileDTO profileDTO, HttpServletRequest request) {
+
+        // FIXME implement check for MANAGE_PROFILES privilege here
+
+        // Validate submitted DTO
+        Set<ConstraintViolation<ProfileDTO>> violations = validator.validate(profileDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<ProfileDTO> constraintViolation = violations.iterator().next();
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        }
+
+        Profile profile = new Profile();
+        profile.setProfile(profileDTO.getProfile());
+        profile.setDefaultProfile(profileDTO.isDefault());
+        profile.setDescription(profileDTO.getDescription());
+        profile.setImported(profileDTO.isImported());
+        profile.setName(profileDTO.getName());
+        profile.setDataLimitUnit(profileDTO.getDataLimitUnit());
+        profile.setMaxFileSizeUnit(profileDTO.getMaxFileSizeUnit());
+        profile.setHarvesterType(profileDTO.getHarvesterType());
+        Agency agency = userRoleDAO.getAgencyByName(profileDTO.getAgency());
+        if (agency == null) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to save profile. Error: unkown agency %s",
+                    profileDTO.getAgency()));
+        }
+        profile.setOwningAgency(agency);
+        profile.setRequiredLevel(profileDTO.getLevel());
+
+        // Validate the profile XML (using one of the available harvest agents)
+        HarvestAgentStatusDTO harvestAgentStatusDTO = harvestAgentManager.getHarvester(profileDTO.getAgency(), profileDTO.getHarvesterType());
+        if (harvestAgentStatusDTO == null) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save profile. Error: could not validate profile XML");
+        }
+        HarvestAgent harvestAgent = new HarvestAgentClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
+        if (!harvestAgent.isValidProfile(profileDTO.getProfile())) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Failed to save profile. Error: profile XML is not valid");
+        }
+
+        // Finally persist the new profile
+        profileDAO.saveOrUpdate(profile);
+
+        // Return "created" response with the URL representation of the new profile
+        try {
+            String profileUrl = request.getRequestURL().toString();
+            if (!profileUrl.endsWith("/")) {
+                profileUrl += "/";
+            }
+            profileUrl += profile.getOid();
+            return ResponseEntity.created(new URI(profileUrl)).build();
+        } catch (URISyntaxException e) {
+            String errMsg = String.format("Malformed Profile URL. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
+        }
+
     }
 
     /**

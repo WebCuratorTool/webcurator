@@ -1,16 +1,15 @@
 =============== ======= ========
 **Body**
 --------------------------------
-id              Number  Required
 description     String  Optional
-profile         String  Optional
+profile         String  Required
 level           Number  Optional
 state           Number  Optional
 default         Boolean Optional
-agency          String  Optional
-harvesterType   String  Required
-dataLimitUnit   String  Optional
-maxFileSizeUnit String  Optional
+agency          String  Required
+harvesterType   String  Optional
+dataLimitUnit   String  Required
+maxFileSizeUnit String  Required
 imported        Boolean Optional
 =============== ======= ========
 

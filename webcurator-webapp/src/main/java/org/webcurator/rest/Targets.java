@@ -214,6 +214,8 @@ public class Targets {
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
 
+        // FIXME Validate submitted DTO
+
         Target target = new Target();
         try {
             upsert(target, targetDTO, request, false);

@@ -19,7 +19,31 @@ Response
 --------
 200: OK
 
-.. include:: /guides/apis/descriptions/desc-profile.rst
+=============== ======= ========
+**Body**
+--------------------------------
+id              Number  Required
+description     String  Optional
+profile         String  Required
+level           Number  Required
+state           Number  Required
+default         Boolean Required
+agency          String  Required
+harvesterType   String  Required
+dataLimitUnit   String  Required
+maxFileSizeUnit String  Required
+imported        Boolean Required
+=============== ======= ========
+
+| **profile**
+| The full profile as XML string.
+
+| **dataLimitUnit**
+| The unit used to specify the data limit in the profile. Possible values: B, KB, MB and GB.
+
+| **maxFileSizeUnit**
+| The unit used to specify the maximum file size limit in the profile. Possible values: B, KB, MB and GB.
+
 
 Errors
 ------
