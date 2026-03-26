@@ -4,8 +4,8 @@ import type { Permission } from "./permission";
 interface HarvestAuth {
   id: number;
   name: string;
-  authorisingAgents: AuthorisingAgent[];
-  permissions: Permission[];
+  authorisingAgents?: AuthorisingAgent[];
+  permissions?: Permission[];
   permissionId?: number;
 }
 
