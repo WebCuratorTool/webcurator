@@ -152,16 +152,6 @@ fetchPermissions();
       :rows="10"
       scrollHeight="100%"
       :loading="usePermissionsStore().loadingPermissions"
-      :pt="{
-        // Use 'pcPaginator' to target the internal Paginator component to align to the right side
-        pcPaginator: {
-          root: '!flex !justify-end !items-center !p-4 w-full',
-          paginatorContainer: '!border-none',
-        },
-        wrapper: {
-          root: 'h-26rem',
-        },
-      }"
       @rowExpand="setExpandedRow"
     >
       <Column expander style="width: 5rem" />
