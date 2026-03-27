@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.domain.model.core.Profile;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -37,6 +36,7 @@ public class ProfileDTO {
 
     public ProfileDTO(Profile prof) {
        id = prof.getOid();
+       name = prof.getName();
        description = prof.getDescription();
        level = prof.getRequiredLevel();
        state = prof.getStatus();
@@ -89,7 +89,7 @@ public class ProfileDTO {
         this.state = state;
     }
 
-    public boolean isDefault() {
+    public boolean getDefault() {
         return isDefault;
     }
 
@@ -129,7 +129,7 @@ public class ProfileDTO {
         this.maxFileSizeUnit = maxFileSizeUnit;
     }
 
-    public boolean isImported() {
+    public boolean getImported() {
         return imported;
     }
 

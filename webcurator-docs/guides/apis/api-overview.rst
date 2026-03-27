@@ -96,6 +96,7 @@ Profiles
    api-profiles_GET.rst
    api-profile_GET.rst
    api-profile_POST.rst
+   api-profile_PUT.rst
    api-profile_states_GET.rst
    
 Targets

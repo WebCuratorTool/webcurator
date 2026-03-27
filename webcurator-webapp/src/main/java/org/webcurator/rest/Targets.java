@@ -222,6 +222,9 @@ public class Targets {
         } catch (BadRequestError e) {
             String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
         } catch (Exception e) {
             String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
@@ -258,10 +261,10 @@ public class Targets {
         try {
             Utils.mapToDTO(targetMap, targetDTO);
         } catch (BadRequestError e) {
-            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to update the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to update the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
@@ -279,10 +282,13 @@ public class Targets {
             upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            String errMsg = String.format("Failed to save the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
         } catch (Exception e) {
-            String errMsg = String.format("Failed to dave the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }

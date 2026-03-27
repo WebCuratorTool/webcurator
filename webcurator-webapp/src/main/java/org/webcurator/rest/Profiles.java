@@ -3,24 +3,24 @@ package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentClient;
-import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.domain.ProfileDAO;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Agency;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
+import org.webcurator.rest.auth.AuthorizationException;
+import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
+import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.ProfileDTO;
-import org.webcurator.rest.dto.TargetDTO;
-import org.webcurator.ui.util.HarvestAgentUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
@@ -47,8 +47,11 @@ public class Profiles {
     @Autowired
     HarvestAgentManager harvestAgentManager;
 
-    private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    private Validator validator = factory.getValidator();
+    @Autowired
+    SessionManager sessionManager;
+
+    private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private final Validator validator = factory.getValidator();
 
     private static final Map<Integer, String> states;
 
@@ -61,8 +64,13 @@ public class Profiles {
 
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> get(@PathVariable Long id) {
-        // FIXME implement check for VIEW_PROFILES privilege here
+    public ResponseEntity<?> get(@PathVariable Long id, HttpServletRequest request) {
+        try {
+            sessionManager.authorize(request, null, null, Privilege.VIEW_PROFILES);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to retrieve profile with id %s. Error: %s", id, e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
+        }
         Profile profile = profileDAO.get(id);
         if (profile == null) {
             return FailureResponse.error(HttpStatus.NOT_FOUND, String.format("Profile with id %s does not exist", id));
@@ -97,7 +105,13 @@ public class Profiles {
     @PostMapping(path = "")
     public ResponseEntity post(@RequestBody ProfileDTO profileDTO, HttpServletRequest request) {
 
-        // FIXME implement check for MANAGE_PROFILES privilege here
+        // Authorize first
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_PROFILES);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to create profile. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
+        }
 
         // Validate submitted DTO
         Set<ConstraintViolation<ProfileDTO>> violations = validator.validate(profileDTO);
@@ -109,34 +123,15 @@ public class Profiles {
         }
 
         Profile profile = new Profile();
-        profile.setProfile(profileDTO.getProfile());
-        profile.setDefaultProfile(profileDTO.isDefault());
-        profile.setDescription(profileDTO.getDescription());
-        profile.setImported(profileDTO.isImported());
-        profile.setName(profileDTO.getName());
-        profile.setDataLimitUnit(profileDTO.getDataLimitUnit());
-        profile.setMaxFileSizeUnit(profileDTO.getMaxFileSizeUnit());
-        profile.setHarvesterType(profileDTO.getHarvesterType());
-        Agency agency = userRoleDAO.getAgencyByName(profileDTO.getAgency());
-        if (agency == null) {
-            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to save profile. Error: unkown agency %s",
-                    profileDTO.getAgency()));
-        }
-        profile.setOwningAgency(agency);
-        profile.setRequiredLevel(profileDTO.getLevel());
 
-        // Validate the profile XML (using one of the available harvest agents)
-        HarvestAgentStatusDTO harvestAgentStatusDTO = harvestAgentManager.getHarvester(profileDTO.getAgency(), profileDTO.getHarvesterType());
-        if (harvestAgentStatusDTO == null) {
-            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save profile. Error: could not validate profile XML");
+        try {
+            upsert(profile, profileDTO);
+        } catch (BadRequestError e) {
+            FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to create profile. Error: %s", e.getMessage()));
+        } catch (Exception e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to create profile. Error: %s", e.getMessage()));
         }
-        HarvestAgent harvestAgent = new HarvestAgentClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
-        if (!harvestAgent.isValidProfile(profileDTO.getProfile())) {
-            return FailureResponse.error(HttpStatus.BAD_REQUEST, "Failed to save profile. Error: profile XML is not valid");
-        }
-
-        // Finally persist the new profile
-        profileDAO.saveOrUpdate(profile);
 
         // Return "created" response with the URL representation of the new profile
         try {
@@ -150,6 +145,92 @@ public class Profiles {
             String errMsg = String.format("Malformed Profile URL. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
+
+    }
+
+
+    @PutMapping(path = "/{id}")
+    public ResponseEntity put(@PathVariable long id, @RequestBody HashMap<String, Object> profileMap, HttpServletRequest request) {
+
+        // Authorize first
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_PROFILES);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to update profile. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
+        }
+
+        Profile profile = profileDAO.load(id);
+        if (profile == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to update profile. Error: profile with id %s does not exist", id));
+        }
+        ProfileDTO profileDTO = new ProfileDTO(profile);
+
+        // Merge submitted data with existing profile
+        try {
+            Utils.mapToDTO(profileMap, profileDTO);
+        } catch (BadRequestError e) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to update profile. Error: %s",
+                    e.getMessage()));
+        }
+
+        // Validate the updated DTO
+        Set<ConstraintViolation<ProfileDTO>> violations = validator.validate(profileDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<ProfileDTO> constraintViolation = violations.iterator().next();
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        }
+
+        // Finally update the entity
+        try {
+            upsert(profile, profileDTO);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestError e) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to update profile. Error: %s",
+                    e.getMessage()));
+        } catch (Exception e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to update profile. Error: %s", e.getMessage()));
+        }
+    }
+
+    /**
+     * The actual mapping of ProfileDTO to Profile and upsert of the latter. Also validates
+     * the profile XML
+     */
+    private void upsert(Profile profile, ProfileDTO profileDTO) throws BadRequestError {
+
+        profile.setProfile(profileDTO.getProfile());
+        profile.setDefaultProfile(profileDTO.getDefault());
+        profile.setDescription(profileDTO.getDescription());
+        profile.setImported(profileDTO.getImported());
+        profile.setName(profileDTO.getName());
+        profile.setDataLimitUnit(profileDTO.getDataLimitUnit());
+        profile.setMaxFileSizeUnit(profileDTO.getMaxFileSizeUnit());
+        profile.setHarvesterType(profileDTO.getHarvesterType());
+        Agency agency = userRoleDAO.getAgencyByName(profileDTO.getAgency());
+        if (agency == null) {
+            throw new BadRequestError(String.format("Unkown agency %s", profileDTO.getAgency()));
+        }
+        profile.setOwningAgency(agency);
+        profile.setRequiredLevel(profileDTO.getLevel());
+        profile.setStatus(profileDTO.getState());
+
+        // Validate the profile XML (using one of the available harvest agents)
+        HarvestAgentStatusDTO harvestAgentStatusDTO = harvestAgentManager.getHarvester(profileDTO.getAgency(), profileDTO.getHarvesterType());
+        if (harvestAgentStatusDTO == null) {
+            throw new BadRequestError("Could not validate profile XML");
+        }
+        HarvestAgent harvestAgent = new HarvestAgentClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
+        if (!harvestAgent.isValidProfile(profileDTO.getProfile())) {
+            throw new BadRequestError("Profile XML is not valid");
+        }
+
+        // Finally persist the new profile
+        profileDAO.saveOrUpdate(profile);
 
     }
 
