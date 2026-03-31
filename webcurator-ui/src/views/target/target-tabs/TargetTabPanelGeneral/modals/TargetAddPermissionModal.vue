@@ -2,60 +2,32 @@
 import type { DataTableRowClickEvent } from "primevue/datatable";
 import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, onMounted, reactive, type Ref, ref } from "vue";
+import { useRoute } from "vue-router";
 
 import Loading from "@/components/Loading.vue";
 import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
-import { usePermissionStore } from "@/stores/permissions";
-import type { AuthorisingAgent } from "@/types/authorisingAgent";
-import type {
-  HarvestAuth,
-  HarvestAuthDisplay,
-  HarvestAuthSearchResponse,
-} from "@/types/harvestAuth";
+import { usePermissionStore } from "@/stores/permission";
+import { usePermissionsStore } from "@/stores/permissions";
 import type { Permission } from "@/types/permission";
 import { formatDate } from "@/utils/helper";
-import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
-const rest: UseFetchApis = useFetch();
+const route = useRoute();
+const targetId = route.params.id as string;
 
-const returnedHarvestAuths = ref<HarvestAuth[]>([]);
-const loading = ref(false);
 const loadingPermission = ref(false);
 
-const harvestAuths = ref<HarvestAuthDisplay[]>([]);
-const filteredHarvestAuths = ref<HarvestAuthDisplay[]>([]);
+const permissions = ref<Permission[]>([]);
 
 const searchTerm = ref("");
+const searchType = ref("harvestAuthorisationName");
+const currentPage = ref(0);
 
 const seed = ref();
 let expandedPermission = reactive<Permission>({} as Permission);
 const expandedRows = ref<Permission[]>([]);
 const harvestAuthorisationStatuses = ref();
-
-const prepareData = (data: HarvestAuth[]) => {
-  data.forEach((harvestAuth: HarvestAuth) => {
-    if (harvestAuth.authorisingAgents.length > 0) {
-      harvestAuth.authorisingAgents.forEach(
-        (authorisingAgent: AuthorisingAgent) => {
-          if (authorisingAgent.permissions.length > 0) {
-            harvestAuths.value.push({
-              id: harvestAuth.id,
-              name: harvestAuth.name,
-              agent: authorisingAgent.name,
-              permissionId: authorisingAgent.permissions[0].id,
-              startDate: authorisingAgent.permissions[0].startDate,
-              endDate: authorisingAgent.permissions[0].endDate,
-              urlPatterns: authorisingAgent.permissions[0].urlPatterns,
-            });
-          }
-        },
-      );
-    }
-  });
-  filteredHarvestAuths.value = harvestAuths.value;
-};
 
 const setExpandedRow = async (event: DataTableRowClickEvent) => {
   loadingPermission.value = true;
@@ -65,7 +37,7 @@ const setExpandedRow = async (event: DataTableRowClickEvent) => {
 
   if (isExpanded?.id) {
     expandedRows.value = [event.data] as Permission[];
-    await usePermissionStore().fetch(event.data.permissionId);
+    await usePermissionStore().fetch(event.data.id);
     expandedPermission = usePermissionStore().permission;
   } else {
     expandedRows.value = [];
@@ -75,45 +47,29 @@ const setExpandedRow = async (event: DataTableRowClickEvent) => {
   loadingPermission.value = false;
 };
 
-const fetch = async () => {
-  const searchParams = {
-    offset: 0,
-    limit: 1024,
-  };
-
-  loading.value = true;
-
+const fetchPermissions = async () => {
   try {
-    const response: HarvestAuthSearchResponse = await rest.post(
-      "harvest-authorisations",
-      searchParams,
-      {
-        header: "X-HTTP-Method-Override",
-        value: "GET",
+    const searchParams = {
+      page: currentPage.value,
+      filter: {
+        targetId: targetId,
+        url: searchType.value === "url" ? searchTerm.value : undefined,
+        harvestAuthorisationName:
+          searchType.value === "harvestAuthorisationName"
+            ? searchTerm.value
+            : undefined,
       },
-    );
-    returnedHarvestAuths.value = response.harvestAuthorisations;
-    prepareData(returnedHarvestAuths.value);
-  } catch (err: unknown) {
-    const msg = err as Error;
-    console.log(msg.message);
-  } finally {
-    loading.value = false;
+    };
+    permissions.value = await usePermissionsStore().search(searchParams);
+  } catch (error) {
+    console.error("Error fetching permissions:", error);
   }
 };
 
-const search = () => {
-  const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
-  filteredHarvestAuths.value = harvestAuths.value.filter(
-    (g: HarvestAuthDisplay) =>
-      g.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-      g.urlPatterns.some((urlPattern: string) => {
-        // Ignore trailing slashes
-        const trimmedUrlPattern = urlPattern.replace(/\/$/, "");
-        const trimmedSearchTerm = lowerCaseSearchTerm.replace(/\/$/, "");
-        return trimmedUrlPattern.includes(trimmedSearchTerm);
-      }),
-  );
+const clearSearch = () => {
+  searchTerm.value = "";
+  currentPage.value = 0;
+  fetchPermissions();
 };
 
 const isAuthAdded = (authPermissionId: number) =>
@@ -127,35 +83,52 @@ onMounted(async () => {
   harvestAuthorisationStatuses.value = statuses;
 });
 
-fetch();
+fetchPermissions();
 </script>
 
 <template>
   <div class="h-full">
     <h5>Search</h5>
+    <div class="flex flex-wrap gap-4 mb-4">
+      <div class="flex items-center gap-2">
+        <RadioButton
+          v-model="searchType"
+          inputId="harvestAuthorisationName"
+          name="searchType"
+          value="harvestAuthorisationName"
+        />
+        <label for="harvestAuthorisationName">Harvest Authorisation</label>
+      </div>
+      <div class="flex items-center gap-2">
+        <RadioButton
+          v-model="searchType"
+          inputId="url"
+          name="searchType"
+          value="url"
+        />
+        <label for="url">URL</label>
+      </div>
+    </div>
     <div class="flex mb-4">
       <InputText
         v-model="searchTerm"
         type="text"
         placeholder="Keyword"
-        v-tooltip.bottom="'Search names and URL patterns'"
+        v-tooltip.bottom="'Search for Harvest Authorisation or URL pattern'"
         class="mr-4"
       />
       <Button
         label="Search&nbsp;&nbsp;"
         icon="pi pi-search"
         iconPos="right"
-        @click="search()"
+        @click="fetchPermissions()"
       />
       <Button
         class="ml-2 wct-secondary-button"
         label="Clear"
         icon="pi pi-times"
         iconPos="right"
-        @click="
-          searchTerm = '';
-          search();
-        "
+        @click="searchTerm && clearSearch()"
       />
     </div>
     <Button
@@ -166,34 +139,27 @@ fetch();
       iconPos="right"
       @click="
         searchTerm = seed.seed;
-        search();
+        searchType = 'url';
+        fetchPermissions();
       "
     />
 
     <DataTable
       v-model:expandedRows="expandedRows"
       class="w-full mt-4"
-      :value="filteredHarvestAuths"
+      :value="permissions"
       size="small"
-      paginator
       :rows="10"
       scrollHeight="100%"
-      :loading="loading"
-      :pt="{
-        // Use 'pcPaginator' to target the internal Paginator component to align to the right side
-        pcPaginator: {
-          root: '!flex !justify-end !items-center !p-4 w-full',
-          paginatorContainer: '!border-none',
-        },
-        wrapper: {
-          root: 'h-26rem',
-        },
-      }"
+      :loading="usePermissionsStore().loadingPermissions"
       @rowExpand="setExpandedRow"
     >
       <Column expander style="width: 5rem" />
-      <Column field="name" header="Harvest Authorisation" />
-      <Column field="agent" header="Authorising Agent" />
+      <Column
+        field="harvestAuthorisation.name"
+        header="Harvest Authorisation"
+      />
+      <Column field="authorisingAgentName" header="Authorising Agent" />
       <Column header="URL Patterns">
         <template #body="slotProps">
           <div
@@ -262,13 +228,17 @@ fetch();
           <div class="grid grid-cols-5">
             <p class="font-semibold">Status:</p>
             <p class="col-span-4">
-              {{ harvestAuthorisationStatuses[expandedPermission.status] }}
+              {{
+                expandedPermission.status &&
+                harvestAuthorisationStatuses[expandedPermission.status]
+              }}
             </p>
           </div>
           <div class="grid grid-cols-5">
             <p class="font-semibold">Auth Agency Response:</p>
             <p class="col-span-4">
               {{
+                expandedPermission.authResponse &&
                 harvestAuthorisationStatuses[expandedPermission.authResponse]
               }}
             </p>
@@ -283,7 +253,12 @@ fetch();
             <p class="font-semibold">Display Name:</p>
             <p class="col-span-4">{{ expandedPermission.displayName }}</p>
           </div>
-          <div v-if="expandedPermission.exclusions.length > 0">
+          <div
+            v-if="
+              expandedPermission.exclusions &&
+              expandedPermission.exclusions.length > 0
+            "
+          >
             <p class="font-semibold">Exclusions</p>
             <DataTable
               size="small"
@@ -296,7 +271,13 @@ fetch();
               <Column field="reason" header="Reason" />
             </DataTable>
           </div>
-          <div v-if="expandedPermission.annotations.length > 0" class="mt-4">
+          <div
+            v-if="
+              expandedPermission.annotations &&
+              expandedPermission.annotations.length > 0
+            "
+            class="mt-4"
+          >
             <p class="font-semibold">Annotations</p>
             <DataTable
               size="small"
@@ -310,6 +291,16 @@ fetch();
               <Column field="notes" header="Notes" />
             </DataTable>
           </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end w-full">
+          <Paginator
+            :first="currentPage * 10"
+            :rows="10"
+            :totalRecords="usePermissionsStore().amount"
+            @page="((currentPage = $event.page), fetchPermissions())"
+          />
         </div>
       </template>
     </DataTable>
