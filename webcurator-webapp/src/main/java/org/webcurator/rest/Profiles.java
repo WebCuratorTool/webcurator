@@ -160,7 +160,7 @@ public class Profiles {
             return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
         }
 
-        Profile profile = profileDAO.load(id);
+        Profile profile = profileDAO.get(id);
         if (profile == null) {
             return FailureResponse.error(HttpStatus.NOT_FOUND,
                     String.format("Failed to update profile. Error: profile with id %s does not exist", id));
@@ -195,6 +195,37 @@ public class Profiles {
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("Failed to update profile. Error: %s", e.getMessage()));
         }
+    }
+
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity delete(@PathVariable long id, HttpServletRequest request) {
+        // Authorize first
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_PROFILES);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to delete profile. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
+        }
+
+        Profile profile = profileDAO.get(id);
+        if (profile == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to delete profile. Error: profile with id %s does not exist", id));
+        }
+
+        if (profileDAO.countProfileUsage(profile) > 0) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to delete profile. Error: profile with id %s is in use", id));
+        }
+
+        try {
+            profileDAO.delete(profile);
+        } catch (Exception e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to delete profile. Error: %s", e.getMessage()));
+        }
+        return ResponseEntity.ok().build();
     }
 
     /**
