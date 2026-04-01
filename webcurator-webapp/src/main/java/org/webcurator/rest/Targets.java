@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
+import org.junit.internal.runners.statements.Fail;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,7 +28,7 @@ import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
-import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.ProfileInfoDTO;
 import org.webcurator.rest.dto.ScheduleDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
@@ -191,7 +192,7 @@ public class Targets {
             try {
                 sessionManager.authorize(request, owner, agency, Privilege.DELETE_TARGET);
             } catch (AuthorizationException e) {
-                return ResponseEntity.status(e.getStatus()).body(Utils.errorMessage(e.getMessage()));
+                return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), String.format("Target could not be deleted: %s", e.getMessage()));
             }
 
             if (target.getCrawls() > 0) {
@@ -213,12 +214,17 @@ public class Targets {
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
 
+        // FIXME Validate submitted DTO
+
         Target target = new Target();
         try {
             upsert(target, targetDTO, request, false);
         } catch (BadRequestError e) {
             String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
         } catch (Exception e) {
             String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
@@ -255,10 +261,10 @@ public class Targets {
         try {
             Utils.mapToDTO(targetMap, targetDTO);
         } catch (BadRequestError e) {
-            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to update the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
         } catch (Exception e) {
-            String errMsg = String.format("Failed to update the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to update the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
 
@@ -276,10 +282,13 @@ public class Targets {
             upsert(target, targetDTO, request, true);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            String errMsg = String.format("Failed to save the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        } catch (AuthorizationException e) {
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()), errMsg);
         } catch (Exception e) {
-            String errMsg = String.format("Failed to dave the Target, Error: %s", e.getMessage());
+            String errMsg = String.format("Failed to save the Target. Error: %s", e.getMessage());
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
         }
     }
@@ -415,12 +424,12 @@ public class Targets {
             target.setProfile(profile);
 
             ProfileOverrides profileOverrides = target.getProfileOverrides();
-            List<ProfileDTO.Override> overrides = targetDTO.getProfile().getOverrides();
+            List<ProfileInfoDTO.Override> overrides = targetDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
                 throw new BadRequestError("A target with a non-imported profile requires profile overrides");
             }
             // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
-            for (ProfileDTO.Override override : overrides) {
+            for (ProfileInfoDTO.Override override : overrides) {
                 String id = override.getId();
                 id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
                 String methodNameSetValue = "setH3" + id;
@@ -578,126 +587,6 @@ public class Targets {
             throw new BadRequestError(String.format("Owner with username %s unknown", s.getOwner()));
         }
         schedule.setOwningUser(owner);
-    }
-
-    /**
-     * Traverses the supplied HashMap recursively, mapping any data it finds to the right setter in the supplied
-     * TargetDTO.
-     */
-    private void updateTargetDTO(TargetDTO targetDTO, HashMap<String, Object> map, Object parent) throws BadRequestError {
-
-        for (String key : map.keySet()) {
-            Object value = map.get(key);
-            String getMethodName = "get" + key.substring(0, 1).toUpperCase() + key.substring(1);
-            Object child = null;
-            Method getMethod = null;
-            try {
-                getMethod = parent.getClass().getMethod(getMethodName);
-            } catch (NoSuchMethodException e) {
-                throw new BadRequestError(String.format("Unknown key %s", key));
-            }
-            try {
-                child = getMethod.invoke(parent);
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                throw new BadRequestError(e.getMessage());
-            }
-            Class childType = getMethod.getReturnType(); // child.getClass() may return a narrower type
-            if (value instanceof HashMap) { // recurse
-                updateTargetDTO(targetDTO, (HashMap<String, Object>) value, child);
-            } else if (value instanceof List) {
-                if (key.equals("overrides")) { // The list of overrides is fixed, so we can locate and update its elements
-                    for (Object element : (List) value) {
-                        if (!(element instanceof HashMap)) {
-                            throw new BadRequestError("Bad item in list of profile overrides");
-                        }
-                        ProfileDTO.Override overrideToBeUpdated = null;
-                        for (ProfileDTO.Override override : (List<ProfileDTO.Override>) child) {
-                            if (override.getId().equals(((HashMap) element).get("id"))) {
-                                overrideToBeUpdated = override;
-                                break;
-                            }
-                        }
-                        if (overrideToBeUpdated == null) {
-                            throw new BadRequestError(String.format("Unknown override with id %s", ((HashMap) element).get("id")));
-                        }
-                        updateTargetDTO(targetDTO, (HashMap<String, Object>) element, overrideToBeUpdated);
-                    }
-                } else { // For all other types of lists: clear the list and fill it with the new supplied data
-                    ((List) child).clear();
-                    Type genericChildType = getMethod.getGenericReturnType();
-                    Type elementType;
-                    if (genericChildType instanceof ParameterizedType) {
-                        elementType = ((ParameterizedType) genericChildType).getActualTypeArguments()[0];
-                    } else { // A non-parameterized List is guaranteed to be a list with Strings (URL Strings in overrides)
-                        elementType = (Type) String.class;
-                    }
-                    for (Object element : (List) value) {
-                        if (element instanceof HashMap) {
-                            try {
-                                Constructor constructor = ((Class<?>) elementType).getDeclaredConstructor();
-                                constructor.setAccessible(true);
-                                Object newArrayItem = constructor.newInstance();
-                                ((List) child).add(newArrayItem);
-                                updateTargetDTO(targetDTO, (HashMap<String, Object>) element, newArrayItem);
-                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
-                                     InstantiationException e) {
-                                throw new BadRequestError(String.format("Cannot map list from key %s", key));
-                            }
-                        } else {
-                            // Since the list doesn't contain HashMaps, it contains Numbers or Strings
-                            if (elementType.equals(Long.class) && element instanceof Integer) {
-                                element = ((Number) element).longValue();
-                            } else if (elementType.equals(Integer.class) && element instanceof Long) {
-                                element = ((Number) element).intValue();
-                            }
-                            if (!elementType.equals(element.getClass())) {
-                                throw new BadRequestError(String.format("Bad type in key %s", key));
-                            }
-                            ((List) child).add(element);
-                        }
-                    }
-                }
-            } else {
-                if (value != null && (key.contains("Date") || key.contains("date"))) {
-                    List<String> patterns = Arrays.asList("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSX",
-                            "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                            "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
-                    for (String pattern : patterns) {
-                        try {
-                            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-                            sdf.setLenient(false);
-                            value = sdf.parse((String) value);
-                            break;
-                        } catch (ParseException e) {
-                        }
-                    }
-                    if (!(value instanceof Date)) {
-                        throw new BadRequestError(String.format("Badly formatted date in key %s", key));
-                    }
-                } else if (childType == Long.class && value instanceof Integer) {
-                    value = ((Number) value).longValue();
-                } else if (childType == Integer.class && value instanceof Long) {
-                    value = ((Number) value).intValue();
-                } else if (childType == Long.class && value instanceof String) {
-                    value = Long.valueOf((String) value);
-                } else if (childType == Integer.class && value instanceof String) {
-                    value = Integer.valueOf((String) value);
-                } else if (childType == Boolean.class && value instanceof String) {
-                    value = Boolean.valueOf((String) value);
-                }
-                String setMethodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
-                try {
-                    Method setMethod = parent.getClass().getMethod(setMethodName, childType);
-                    try {
-                        setMethod.invoke(parent, value);
-                    } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
-                        throw new BadRequestError(e.getMessage());
-                    }
-                } catch (NoSuchMethodException e) {
-                    throw new BadRequestError(String.format("Unknown key or bad type in key %s", key));
-                }
-            }
-        }
     }
 
 

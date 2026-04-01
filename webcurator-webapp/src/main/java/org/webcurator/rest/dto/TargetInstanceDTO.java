@@ -13,7 +13,7 @@ import java.util.*;
 public class TargetInstanceDTO {
 
     General general;
-    ProfileDTO profile;
+    ProfileInfoDTO profile;
     HarvestState harvestState;
     List<Log> logs;
     List<HarvestResult> harvestResults;
@@ -35,7 +35,7 @@ public class TargetInstanceDTO {
     public TargetInstanceDTO(TargetInstance targetInstance) {
         this();
         general = new General(targetInstance);
-        profile = new ProfileDTO(targetInstance);
+        profile = new ProfileInfoDTO(targetInstance);
         if (targetInstance.getStatus() != null) {
             harvestState = new HarvestState(targetInstance);
         }
@@ -73,11 +73,11 @@ public class TargetInstanceDTO {
         this.general = general;
     }
 
-    public ProfileDTO getProfile() {
+    public ProfileInfoDTO getProfile() {
         return profile;
     }
 
-    public void setProfile(ProfileDTO profile) {
+    public void setProfile(ProfileInfoDTO profile) {
         this.profile = profile;
     }
 
