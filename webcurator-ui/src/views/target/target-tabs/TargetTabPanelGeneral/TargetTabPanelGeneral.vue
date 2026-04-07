@@ -15,6 +15,7 @@ import TargetTabPanelGeneralSeeds from "./TargetTabPanelGeneralSeeds.vue";
 
 defineProps<{
   editing: boolean;
+  validationErrors: string;
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
@@ -49,8 +50,18 @@ const selectedUser = computed(() => {
             v-if="editing"
             v-model="targetGeneral.name"
             :disabled="!editing"
+            :invalid="!!validationErrors"
+            :formControl="{ validateOnValueUpdate: true }"
           />
           <p v-else class="font-semibold">{{ targetGeneral.name }}</p>
+          <Message
+            v-if="validationErrors"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ validationErrors }}
+          </Message>
         </WctFormField>
 
         <WctFormField label="Description">

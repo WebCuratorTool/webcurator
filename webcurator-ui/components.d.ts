@@ -21,6 +21,7 @@ declare module 'vue' {
     Divider: typeof import('primevue/divider')['default']
     DynamicDialog: typeof import('primevue/dynamicdialog')['default']
     Fluid: typeof import('primevue/fluid')['default']
+    FormField: typeof import('@primevue/forms/formfield')['default']
     IconCommunity: typeof import('./src/components/icons/IconCommunity.vue')['default']
     IconDocumentation: typeof import('./src/components/icons/IconDocumentation.vue')['default']
     IconEcosystem: typeof import('./src/components/icons/IconEcosystem.vue')['default']

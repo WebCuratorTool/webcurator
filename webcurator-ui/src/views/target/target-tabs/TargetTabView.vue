@@ -12,6 +12,7 @@ import TargetTabPanelProfile from "./TargetTabPanelProfile.vue";
 defineProps<{
   editing: boolean;
   isTargetAvailable: boolean;
+  validationErrors: string;
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
@@ -65,15 +66,28 @@ const targetGeneral = useTargetGeneralDTO();
     <Tabs value="0" class="tabview-custom w-full">
       <TabList>
         <Tab value="0">General</Tab>
-        <Tab value="1">Description</Tab>
-        <Tab value="2">Profile</Tab>
-        <Tab value="3">Harvests</Tab>
-        <Tab value="4">Annotations</Tab>
-        <Tab value="5">Access</Tab>
+        <Tab value="1" :disabled="editing && targetGeneral.name === ''"
+          >Description</Tab
+        >
+        <Tab value="2" :disabled="editing && targetGeneral.name === ''"
+          >Profile</Tab
+        >
+        <Tab value="3" :disabled="editing && targetGeneral.name === ''"
+          >Harvests</Tab
+        >
+        <Tab value="4" :disabled="editing && targetGeneral.name === ''"
+          >Annotations</Tab
+        >
+        <Tab value="5" :disabled="editing && targetGeneral.name === ''"
+          >Access</Tab
+        >
       </TabList>
       <TabPanels>
         <TabPanel value="0">
-          <TargetTabPanelGeneral :editing="editing" />
+          <TargetTabPanelGeneral
+            :editing="editing"
+            :validationErrors="validationErrors"
+          />
         </TabPanel>
         <TabPanel value="1">
           <TargetTabPanelDescription :editing="editing" />
