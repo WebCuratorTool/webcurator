@@ -11,6 +11,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.UserDTO;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,10 +42,24 @@ public class Users {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the users, Error: %s", e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to search the users. Error: %s", e.getMessage()));
         }
     }
 
+    @GetMapping(path = "/{id}")
+    public ResponseEntity get(@PathVariable long id) {
+
+        // FIXME Authorize
+
+        User user = userRoleDAO.getUserByOid(id);
+        if (user == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to retrieve user. Error: user with id %s does not exist", id));
+        }
+
+        return ResponseEntity.ok(new UserDTO(user));
+
+    }
 
     /**
      * Handle the actual search using the old DAO API
