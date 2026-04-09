@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { watch } from "vue";
 import { useRouter } from "vue-router";
 import z from "zod";
 
@@ -84,10 +85,12 @@ const showErrorMessage = (message: string) => {
 const showSuccessMessage = () => {
   alertStore.info("Target succesfully saved");
 };
-import { watch } from "vue";
+
+initNewTarget();
+useProfiles().fetchProfiles();
 
 watch(
-  () => targetGeneral.getData().name,
+  () => targetGeneral.name,
   (newName) => {
     const validationResult = targetName.safeParse(newName);
     if (!validationResult.success) {
@@ -99,8 +102,6 @@ watch(
     }
   },
 );
-initNewTarget();
-useProfiles().fetchProfiles();
 </script>
 
 <template>
