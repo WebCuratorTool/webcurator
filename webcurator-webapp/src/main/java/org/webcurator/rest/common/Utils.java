@@ -1,6 +1,6 @@
 package org.webcurator.rest.common;
 
-import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.ProfileInfoDTO;
 
 import java.lang.reflect.*;
 import java.text.ParseException;
@@ -51,8 +51,8 @@ public class Utils {
                         if (!(element instanceof HashMap)) {
                             throw new BadRequestError("Bad item in list of profile overrides");
                         }
-                        ProfileDTO.Override overrideToBeUpdated = null;
-                        for (ProfileDTO.Override override : (List<ProfileDTO.Override>) child) {
+                        ProfileInfoDTO.Override overrideToBeUpdated = null;
+                        for (ProfileInfoDTO.Override override : (List<ProfileInfoDTO.Override>) child) {
                             if (override.getId().equals(((HashMap) element).get("id"))) {
                                 overrideToBeUpdated = override;
                                 break;
