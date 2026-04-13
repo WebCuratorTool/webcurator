@@ -456,7 +456,10 @@ export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
   const targetSchedule = ref({} as TargetSchedule);
 
   const initData = () => {
-    targetSchedule.value = {} as TargetSchedule;
+    targetSchedule.value = {
+      schedules: [] as TargetHarvest[],
+    } as TargetSchedule;
+    console.log(targetSchedule.value);
   };
 
   const setData = (data: TargetSchedule) => {

@@ -10,6 +10,7 @@ import {
   useTargetDescriptionDTO,
   useTargetGeneralDTO,
   useTargetGropusDTO,
+  useTargetHarvestsDTO,
   useTargetProfileDTO,
 } from "@/stores/target";
 import type { NewTarget } from "@/types/target";
@@ -34,6 +35,7 @@ const targetDescription = useTargetDescriptionDTO();
 const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetProfile = useTargetProfileDTO();
+const targetSchedule = useTargetHarvestsDTO();
 
 const targetName = z.string().min(1, "Name is required");
 
@@ -50,6 +52,7 @@ const save = async () => {
         description: targetDescription.getData(),
         general: targetGeneral.getData(),
         groups: targetGroups.getData(),
+        schedule: targetSchedule.getData(),
       };
 
       if (targetProfile.getData().id != null) {
@@ -86,7 +89,6 @@ const showSuccessMessage = () => {
   alertStore.info("Target succesfully saved");
 };
 
-initNewTarget();
 useProfiles().fetchProfiles();
 
 watch(
@@ -102,6 +104,8 @@ watch(
     }
   },
 );
+
+initNewTarget();
 </script>
 
 <template>

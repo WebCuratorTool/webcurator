@@ -123,6 +123,7 @@ interface NewTarget {
   general: TargetGeneral;
   groups: TargetGroups;
   profile?: TargetProfile;
+  schedule?: TargetSchedule;
 }
 
 export type {

@@ -173,6 +173,14 @@ const saveSchedule = () => {
     return new Date(`${year}-${month}-${day}`);
   };
 
+  if (scheduleType.value === "Custom") {
+    const validationResult = customScheduleSchema.safeParse(cronFields.value);
+    if (!validationResult.success) {
+      validationErrors.value = z.flattenError(validationResult.error);
+      return;
+    }
+  }
+
   // Turn the start date into a date object
   const startDateObject =
     Object.prototype.toString.call(startDate.value) !== "[object Date]"
@@ -208,7 +216,7 @@ const saveSchedule = () => {
   };
 
   if (isNewSchedule.value) {
-    targetHarvests.addSchedule(scheduleToSave);
+    if (targetHarvests) targetHarvests.addSchedule(scheduleToSave);
   } else {
     targetHarvests.replaceSchedule(scheduleToSave);
   }
