@@ -1,32 +1,51 @@
 package org.webcurator.rest.dto;
 
+import org.hibernate.validator.constraints.Length;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 public class UserDTO {
 
+    // FIXME Maybe the booleans should be Boolean instances?
+
     private Long id;
+    @NotBlank(message = "userName is required")
     private String userName;
+    @NotBlank(message = "email is required")
+    @Email(message = "invalid email address")
     private String email;
     private boolean notificationsByEmail;
     private boolean tasksByEmail;
     private String title;
+    @NotBlank(message = "firstName is required")
     private String firstName;
+    @NotBlank(message = "lastName is required")
     private String lastName;
-    private boolean active;
-    private boolean forcePasswordChange; // FIXME Set this to true upon user creation if externalAuth is false
+    private boolean active = true;
+    private boolean forcePasswordChange;
     private boolean externalAuth;
+    @NotBlank(message = "password is required") // FIXME This might become a problem with PUT/update
+    @Pattern(regexp = ".*[a-z].*",
+            message = "password must contain at least one uppercase, one lowercase and one numeric character")
+    @Pattern(regexp = ".*[A-Z].*",
+            message = "password must contain at least one uppercase, one lowercase and one numeric character")
+    @Pattern(regexp = ".*[0-9].*",
+            message = "password must contain at least one uppercase, one lowercase and one numeric character")
+    @Length(min = 6, message = "password must have at least 6 characters")
     private String password; // write-only
     private String phone;
+    @Length(max = 200, message = "address must not exceed 200 characters")
     private String address;
     private Set<Role> roles = new HashSet<>();
+    @NotBlank
     private String agency;
     private Date deactivateDate;
-    private boolean notifyOnGeneral;
-    private boolean notifyOnHarvestWarnings;
+    private boolean notifyOnGeneral = false;
+    private boolean notifyOnHarvestWarnings = false;
 
     public UserDTO() {}
 

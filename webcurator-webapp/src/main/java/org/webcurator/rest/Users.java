@@ -4,18 +4,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.TargetDTO;
 import org.webcurator.rest.dto.UserDTO;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * Handlers for the users endpoint
@@ -26,6 +34,13 @@ public class Users {
 
     @Autowired
     UserRoleDAO userRoleDAO;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private Validator validator = factory.getValidator();
+
 
     @GetMapping(path = "")
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
@@ -58,6 +73,86 @@ public class Users {
         }
 
         return ResponseEntity.ok(new UserDTO(user));
+
+    }
+
+
+    @PostMapping(path = "")
+    public ResponseEntity post(@RequestBody UserDTO userDTO, HttpServletRequest request) {
+
+        // FIXME Authorize
+
+        User user = new User();
+
+        if (userRoleDAO.getUserByName(userDTO.getUserName()) != null) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to create user. Error: user with username %s already exists", userDTO.getUserName()));
+        }
+
+        // Validate DTO
+        Set<ConstraintViolation<UserDTO>> violations = validator.validate(userDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<UserDTO> constraintViolation = violations.iterator().next();
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        }
+
+        user.setUsername(userDTO.getUserName());
+        user.setEmail(userDTO.getEmail());
+        user.setNotificationsByEmail(userDTO.isNotificationsByEmail());
+        user.setTasksByEmail(userDTO.isTasksByEmail());
+        user.setTitle(userDTO.getTitle());
+        user.setFirstname(userDTO.getFirstName());
+        user.setLastname(userDTO.getLastName());
+        user.setActive(userDTO.isActive());
+        if (!userDTO.isExternalAuth()) {
+            // password will have to be reset when this newly created user logs in
+            user.setForcePasswordChange(true);
+        }
+        user.setExternalAuth(userDTO.isExternalAuth());
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setPhone(userDTO.getPhone());
+        user.setAddress(userDTO.getAddress());
+        Set<Role> roles = new HashSet<>();
+        for (UserDTO.Role r : userDTO.getRoles()) {
+            Role role = userRoleDAO.getRoleByOid(r.getId());
+            if (role == null) {
+                return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                        String.format("Failed to create user. Error: role %s does not exist", r.getName()));
+            }
+            roles.add(role);
+        }
+        user.setRoles(roles);
+        Agency agency = userRoleDAO.getAgencyByName(userDTO.getAgency());
+        if (agency == null) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to create user. Error: agency %s does not exist", userDTO.getAgency()));
+        }
+        user.setAgency(agency);
+        user.setDeactivateDate(userDTO.getDeactivateDate());
+        user.setNotifyOnGeneral(userDTO.isNotifyOnGeneral());
+        user.setNotifyOnHarvestWarnings(userDTO.isNotifyOnHarvestWarnings());
+
+        try {
+            userRoleDAO.saveOrUpdate(user);
+        } catch (Exception e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Failed to persist user. Error: %s",
+                    e.getMessage()));
+        }
+
+        // Finally, return 201 with a URL pointing to a representation of the newly created user
+        try {
+            String userUrl = request.getRequestURL().toString();
+            if (!userUrl.endsWith("/")) {
+                userUrl += "/";
+            }
+            userUrl += user.getOid();
+            return ResponseEntity.created(new URI(userUrl)).build();
+        } catch (URISyntaxException e) {
+            String errMsg = String.format("Malformed User URL. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
+        }
 
     }
 
