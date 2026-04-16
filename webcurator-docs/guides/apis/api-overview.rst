@@ -155,3 +155,5 @@ Users
    :maxdepth: 1
    
    api-users_GET.rst
+   api-user_GET.rst
+   api-user_POST.rst

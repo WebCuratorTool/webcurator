@@ -46,8 +46,7 @@ notifyOnHarvestWarnings Boolean Optional
 | Every object in this list has attributes *id* and *name*. 
 
 | **active**
-| The default value for this key is *true*, which means a newly created user is able to login
-| immediately by default.
+| The default value for this key is *true*, which means a newly created user is able to login immediately by default.
 
 
 Errors
@@ -73,8 +72,8 @@ Example
         "lastName": "bar", \
         "email": "testuser@foo.bar", \
         "password": <password>, \ 
-        "agency": "fbi", \
-        "active": false\
+        "agency": "KB", \
+        "active": false \
   }'
 
  
