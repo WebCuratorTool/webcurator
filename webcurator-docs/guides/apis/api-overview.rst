@@ -158,3 +158,4 @@ Users
    api-user_GET.rst
    api-user_POST.rst
    api-user_PUT.rst
+   api-user_DELETE.rst

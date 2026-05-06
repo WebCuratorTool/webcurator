@@ -13,13 +13,6 @@ Header
 
 Body
 ^^^^
-.. include:: /guides/apis/descriptions/desc-query-method.rst
-
-
-Response
---------
-200: OK
-
 ======================= ======= ========
 **Body**
 ----------------------------------------
@@ -48,6 +41,10 @@ notifyOnHarvestWarnings Boolean Optional
 | **active**
 | The default value for this key is *true*, which means a newly created user is able to login immediately by default.
 
+
+Response
+--------
+201: Created
 
 Errors
 ------

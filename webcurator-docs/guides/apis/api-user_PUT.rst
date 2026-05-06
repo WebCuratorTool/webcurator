@@ -13,13 +13,6 @@ Header
 
 Body
 ^^^^
-.. include:: /guides/apis/descriptions/desc-query-method.rst
-
-
-Response
---------
-200: OK
-
 ======================= ======= ========
 **Body**
 ----------------------------------------
@@ -44,6 +37,11 @@ notifyOnHarvestWarnings Boolean Optional
 
 | **roles**
 | Every object in this list has attributes *id* and *name*, although for PUT and POST *name* is optional.
+
+
+Response
+--------
+200: OK
 
 
 Errors
