@@ -1,11 +1,11 @@
-Create User (POST)
+Update User (PUT)
 ====================
 
-Creates a new user.
+Updates the new user identified by the supplied identifier.
 
 Request
 -------
-``https://--WCT_base--/api/v1/users``
+``https://--WCT_base--/api/v1/users/{user-id}``
 
 Header
 ^^^^^^
@@ -23,12 +23,12 @@ Response
 ======================= ======= ========
 **Body**
 ----------------------------------------
-userName                String  Required
-firstName               String  Required
-lastName                String  Required
-email                   String  Required
-agency                  String  Required
-password                String  Required
+userName                String  Optional
+firstName               String  Optional
+lastName                String  Optional
+email                   String  Optional
+agency                  String  Optional
+password                String  Optional
 notificationsByEmail    Boolean Optional
 tasksByEmail            Boolean Optional
 title                   String  Optional
@@ -45,16 +45,14 @@ notifyOnHarvestWarnings Boolean Optional
 | **roles**
 | Every object in this list has attributes *id* and *name*, although for PUT and POST *name* is optional.
 
-| **active**
-| The default value for this key is *true*, which means a newly created user is able to login immediately by default.
-
 
 Errors
 ------
 
 === ========================================================================================
-400 Bad Request, including reason why.
+400 Bad Request, including reason why. 
 403 Not authorized, user is no longer logged in.
+404 There is no user corresponding to the supplied identifier.
 405 Method not allowed, only GET is allowed.
 === ========================================================================================
 
@@ -63,17 +61,11 @@ Example
 .. code-block:: linux
 
   curl \
-  --location --request POST 'http://localhost/wct/api/v1/users' \
+  --location --request PUT 'http://localhost/wct/api/v1/users/<id>' \
   --header 'Authorization: Bearer <token>' \
   --header 'Content-Type: application/json' \
   --data-raw '{ \
-        "userName": "testuser", \
         "firstName": "foo", \
-        "lastName": "bar", \
-        "email": "testuser@foo.bar", \
-        "password": <password>, \ 
-        "agency": "KB", \
-        "active": false \
   }'
 
  
