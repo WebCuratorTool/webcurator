@@ -1,6 +1,9 @@
 package org.webcurator.rest;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -137,6 +140,38 @@ public class Users {
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Failed to update user. Error: %s",
                     e.getMessage()));
         }
+    }
+
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity delete(@PathVariable long id) {
+
+        // FIXME Authorize
+
+        User user = userRoleDAO.getUserByOid(id);
+        if (user == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to delete user. Error: user with id %s does not exist", id));
+        }
+
+        user.removeAllRoles();
+        try {
+            userRoleDAO.delete(user);
+        } catch (DataIntegrityViolationException e) {
+            String msg = e.getMessage();
+            Throwable cause = e.getCause();
+            if (cause instanceof ConstraintViolationException) {
+                if (((ConstraintViolationException) cause).getSQLException() != null) {
+                    msg = "Database constraint violation, details: " + ((ConstraintViolationException) cause).getSQLException().getMessage();
+                }
+            }
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to delete user. Error: %s", msg));
+        } catch (Exception e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
+                    String.format("Failed to delete user. Error: %s", e.getMessage()));
+        }
+        return ResponseEntity.ok().build();
+
     }
 
 
