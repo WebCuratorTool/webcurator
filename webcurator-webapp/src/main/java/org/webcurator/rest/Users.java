@@ -2,7 +2,6 @@ package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +12,6 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
-import org.webcurator.rest.dto.TargetDTO;
 import org.webcurator.rest.dto.UserDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -82,63 +80,18 @@ public class Users {
 
         // FIXME Authorize
 
-        User user = new User();
 
         if (userRoleDAO.getUserByName(userDTO.getUserName()) != null) {
             return FailureResponse.error(HttpStatus.BAD_REQUEST,
                     String.format("Failed to create user. Error: user with username %s already exists", userDTO.getUserName()));
         }
 
-        // Validate DTO
-        Set<ConstraintViolation<UserDTO>> violations = validator.validate(userDTO);
-        if (!violations.isEmpty()) {
-            // Return the first violation we find
-            ConstraintViolation<UserDTO> constraintViolation = violations.iterator().next();
-            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
-            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
-        }
-
-        user.setUsername(userDTO.getUserName());
-        user.setEmail(userDTO.getEmail());
-        user.setNotificationsByEmail(userDTO.isNotificationsByEmail());
-        user.setTasksByEmail(userDTO.isTasksByEmail());
-        user.setTitle(userDTO.getTitle());
-        user.setFirstname(userDTO.getFirstName());
-        user.setLastname(userDTO.getLastName());
-        user.setActive(userDTO.isActive());
-        if (!userDTO.isExternalAuth()) {
-            // password will have to be reset when this newly created user logs in
-            user.setForcePasswordChange(true);
-        }
-        user.setExternalAuth(userDTO.isExternalAuth());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setPhone(userDTO.getPhone());
-        user.setAddress(userDTO.getAddress());
-        Set<Role> roles = new HashSet<>();
-        for (UserDTO.Role r : userDTO.getRoles()) {
-            Role role = userRoleDAO.getRoleByOid(r.getId());
-            if (role == null) {
-                return FailureResponse.error(HttpStatus.BAD_REQUEST,
-                        String.format("Failed to create user. Error: role %s does not exist", r.getName()));
-            }
-            roles.add(role);
-        }
-        user.setRoles(roles);
-        Agency agency = userRoleDAO.getAgencyByName(userDTO.getAgency());
-        if (agency == null) {
-            return FailureResponse.error(HttpStatus.BAD_REQUEST,
-                    String.format("Failed to create user. Error: agency %s does not exist", userDTO.getAgency()));
-        }
-        user.setAgency(agency);
-        user.setDeactivateDate(userDTO.getDeactivateDate());
-        user.setNotifyOnGeneral(userDTO.isNotifyOnGeneral());
-        user.setNotifyOnHarvestWarnings(userDTO.isNotifyOnHarvestWarnings());
-
+        User user = new User();
         try {
-            userRoleDAO.saveOrUpdate(user);
-        } catch (Exception e) {
-            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Failed to persist user. Error: %s",
-                    e.getMessage()));
+            upsert(user, userDTO, false);
+        } catch (BadRequestError e) {
+            return FailureResponse.error(HttpStatus.BAD_REQUEST,
+                    String.format("Failed to create user. Error: %s", e.getMessage()));
         }
 
         // Finally, return 201 with a URL pointing to a representation of the newly created user
@@ -155,6 +108,99 @@ public class Users {
         }
 
     }
+
+    @PutMapping(path = "/{id}")
+    public ResponseEntity put(@PathVariable long id, @RequestBody HashMap<String, Object> userMap, HttpServletRequest request) {
+
+        // FIXME Authorize
+
+        User user = userRoleDAO.getUserByOid(id);
+        if (user == null) {
+            return FailureResponse.error(HttpStatus.NOT_FOUND,
+                    String.format("Failed to update user. Error: user with id %s does not exist", id));
+        }
+        UserDTO userDTO = new UserDTO(user);
+        try {
+            Utils.mapToDTO(userMap, userDTO);
+        } catch (BadRequestError e) {
+            String errMsg = String.format("Failed to update user. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, errMsg);
+        } catch (Exception e) {
+            String errMsg = String.format("Failed to update user. Error: %s", e.getMessage());
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, errMsg);
+        }
+
+        try {
+            upsert(user, userDTO, true);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestError e) {
+            return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Failed to update user. Error: %s",
+                    e.getMessage()));
+        }
+    }
+
+
+    /**
+     * The actual mapping of UserDTO to User and upsert of the latter
+     */
+    private void upsert(User user, UserDTO userDTO, boolean isUpdate) throws BadRequestError {
+        // Validate DTO
+        Set<ConstraintViolation<UserDTO>> violations = validator.validate(userDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<UserDTO> constraintViolation = violations.iterator().next();
+            String errMsg = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            throw new BadRequestError(errMsg);
+        }
+
+        // Start mapping
+        user.setUsername(userDTO.getUserName());
+        user.setEmail(userDTO.getEmail());
+        user.setNotificationsByEmail(userDTO.getNotificationsByEmail());
+        user.setTasksByEmail(userDTO.getTasksByEmail());
+        user.setTitle(userDTO.getTitle());
+        user.setFirstname(userDTO.getFirstName());
+        user.setLastname(userDTO.getLastName());
+        user.setActive(userDTO.getActive());
+        if (!(userDTO.getExternalAuth() || isUpdate)) {
+            // password will have to be reset when the newly created user logs in
+            user.setForcePasswordChange(true);
+            if (userDTO.getPassword() == null) {
+                throw new BadRequestError("Password field is required for new users");
+            }
+        }
+        user.setExternalAuth(userDTO.getExternalAuth());
+        if (userDTO.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+        user.setPhone(userDTO.getPhone());
+        user.setAddress(userDTO.getAddress());
+        Set<Role> roles = new HashSet<>();
+        for (UserDTO.Role r : userDTO.getRoles()) {
+            Role role = userRoleDAO.getRoleByOid(r.getId());
+            if (role == null) {
+                throw new BadRequestError(String.format("Role %s does not exist", r.getName()));
+            }
+            roles.add(role);
+        }
+        user.setRoles(roles);
+        Agency agency = userRoleDAO.getAgencyByName(userDTO.getAgency());
+        if (agency == null) {
+            throw new BadRequestError(String.format("Agency %s does not exist", userDTO.getAgency()));
+        }
+        user.setAgency(agency);
+        user.setDeactivateDate(userDTO.getDeactivateDate());
+        user.setNotifyOnGeneral(userDTO.getNotifyOnGeneral());
+        user.setNotifyOnHarvestWarnings(userDTO.getNotifyOnHarvestWarnings());
+
+        // And finally save
+        try {
+            userRoleDAO.saveOrUpdate(user);
+        } catch (Exception e) {
+            throw new BadRequestError(e.getMessage());
+        }
+    }
+
 
     /**
      * Handle the actual search using the old DAO API
