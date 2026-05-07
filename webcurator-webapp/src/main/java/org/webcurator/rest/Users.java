@@ -2,7 +2,6 @@ package org.webcurator.rest;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Agency;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
+import org.webcurator.rest.auth.AuthorizationException;
+import org.webcurator.rest.auth.SessionManager;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
@@ -34,6 +36,9 @@ import java.util.*;
 public class Users {
 
     @Autowired
+    SessionManager sessionManager;
+
+    @Autowired
     UserRoleDAO userRoleDAO;
 
     @Autowired
@@ -43,8 +48,20 @@ public class Users {
     private Validator validator = factory.getValidator();
 
 
+    /**
+     * Search users
+     */
     @GetMapping(path = "")
-    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams, HttpServletRequest request) {
+
+        // First authorize
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_USERS);
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()),
+                    String.format("Failed to search users. Error: %s", e.getMessage()));
+        }
+
         if (searchParams == null) {
             searchParams = new SearchParams();
         }
@@ -62,10 +79,19 @@ public class Users {
         }
     }
 
+    /**
+     * Retrieve individual users
+     */
     @GetMapping(path = "/{id}")
-    public ResponseEntity get(@PathVariable long id) {
+    public ResponseEntity get(@PathVariable long id, HttpServletRequest request) {
 
-        // FIXME Authorize
+        // First authorize
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_USERS);
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()),
+                    String.format("Failed to retrieve user. Error: %s", e.getMessage()));
+        }
 
         User user = userRoleDAO.getUserByOid(id);
         if (user == null) {
@@ -81,8 +107,13 @@ public class Users {
     @PostMapping(path = "")
     public ResponseEntity post(@RequestBody UserDTO userDTO, HttpServletRequest request) {
 
-        // FIXME Authorize
-
+        // First authorize
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_USERS);
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()),
+                    String.format("Failed to create user. Error: %s", e.getMessage()));
+        }
 
         if (userRoleDAO.getUserByName(userDTO.getUserName()) != null) {
             return FailureResponse.error(HttpStatus.BAD_REQUEST,
@@ -115,7 +146,13 @@ public class Users {
     @PutMapping(path = "/{id}")
     public ResponseEntity put(@PathVariable long id, @RequestBody HashMap<String, Object> userMap, HttpServletRequest request) {
 
-        // FIXME Authorize
+        // First authorize
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_USERS);
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()),
+                    String.format("Failed to update user. Error: %s", e.getMessage()));
+        }
 
         User user = userRoleDAO.getUserByOid(id);
         if (user == null) {
@@ -144,9 +181,15 @@ public class Users {
 
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity delete(@PathVariable long id) {
+    public ResponseEntity delete(@PathVariable long id, HttpServletRequest request) {
 
-        // FIXME Authorize
+        // First authorize
+        try {
+            sessionManager.authorize(request, null, null, Privilege.MANAGE_USERS);
+        } catch (AuthorizationException e) {
+            return FailureResponse.error(HttpStatus.valueOf(e.getStatus()),
+                    String.format("Failed to delete user. Error: %s", e.getMessage()));
+        }
 
         User user = userRoleDAO.getUserByOid(id);
         if (user == null) {

@@ -3,8 +3,12 @@ package org.webcurator.rest.dto;
 import org.hibernate.validator.constraints.Length;
 import org.webcurator.domain.model.auth.User;
 
-import javax.validation.constraints.*;
-import java.util.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class UserDTO {
 
