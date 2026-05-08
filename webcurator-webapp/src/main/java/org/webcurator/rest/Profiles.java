@@ -127,7 +127,7 @@ public class Profiles {
         try {
             upsert(profile, profileDTO);
         } catch (BadRequestError e) {
-            FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to create profile. Error: %s", e.getMessage()));
+            return FailureResponse.error(HttpStatus.BAD_REQUEST, String.format("Failed to create profile. Error: %s", e.getMessage()));
         } catch (Exception e) {
             return FailureResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
                     String.format("Failed to create profile. Error: %s", e.getMessage()));
@@ -244,7 +244,7 @@ public class Profiles {
         profile.setHarvesterType(profileDTO.getHarvesterType());
         Agency agency = userRoleDAO.getAgencyByName(profileDTO.getAgency());
         if (agency == null) {
-            throw new BadRequestError(String.format("Unkown agency %s", profileDTO.getAgency()));
+            throw new BadRequestError(String.format("Unknown agency %s", profileDTO.getAgency()));
         }
         profile.setOwningAgency(agency);
         profile.setRequiredLevel(profileDTO.getLevel());
