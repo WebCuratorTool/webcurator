@@ -290,9 +290,6 @@ fetch();
   <Loading v-if="loading" />
   <div v-else-if="targetSchedule && !loading" class="h-full mt-3 flex">
     <div :class="editing && scheduleType == 'Custom' ? 'w-70' : 'w-full'">
-      <!-- <p v-if="editing && validationErrors" class="text-red-600 font-semibold">
-        Missing fields
-      </p> -->
       <!-- From Date -->
       <WctFormField label="From Date">
         <DatePicker

@@ -45,7 +45,7 @@ const selectedUser = computed(() => {
           <p v-else class="font-semibold">{{ targetGeneral.id }}</p>
         </WctFormField>
 
-        <WctFormField label="Name(*)">
+        <WctFormField label="Name *">
           <InputText
             v-if="editing"
             v-model="targetGeneral.name"
