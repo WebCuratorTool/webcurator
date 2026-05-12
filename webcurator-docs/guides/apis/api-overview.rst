@@ -12,6 +12,7 @@ Agencies
    :maxdepth: 1
 
    api-agencies_GET
+   api-agency_GET
 
 Authentication
 ==============
