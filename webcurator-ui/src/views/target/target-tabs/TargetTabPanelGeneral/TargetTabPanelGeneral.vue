@@ -22,11 +22,7 @@ const targetGeneral = useTargetGeneralDTO();
 const users = useUsersStore();
 const nextStates = useNextStateStore();
 const selectedUser = computed(() => {
-  if (targetGeneral.selectedUser) {
-    return targetGeneral.selectedUser.code;
-  } else {
-    return "";
-  }
+  return targetGeneral.selectedUser || "";
 });
 </script>
 
@@ -83,6 +79,7 @@ const selectedUser = computed(() => {
             v-model="targetGeneral.selectedUser"
             :options="users.userListWithEmptyItem"
             optionLabel="name"
+            optionValue="code"
             placeholder="Select a User"
             class="w-full md:w-18rem"
             :disabled="!editing"

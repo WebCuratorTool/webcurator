@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
+import { useUserProfileStore } from "@/stores/users";
 import type { SelectItem } from "@/types/commons";
 import {
   type Target,
@@ -168,10 +168,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     referenceNumber.value = "";
     runOnApproval.value = false;
     automatedQA.value = false;
-    selectedUser.value = {
-      name: userProfile.currUserName,
-      code: userProfile.name,
-    };
+    selectedUser.value = userProfile.name;
     selectedState.value = TARGET_STATE_PENDING;
     autoPrune.value = false;
     referenceCrawl.value = false;
@@ -187,7 +184,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
       referenceNumber: referenceNumber.value,
       runOnApproval: runOnApproval.value,
       automatedQA: automatedQA.value,
-      owner: selectedUser.value.code,
+      owner: selectedUser.value,
       state: selectedState.value.code,
       autoPrune: autoPrune.value,
       referenceCrawl: referenceCrawl.value,
@@ -203,10 +200,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     referenceNumber.value = data.referenceNumber;
     runOnApproval.value = data.runOnApproval;
     automatedQA.value = data.automatedQA;
-    selectedUser.value = {
-      name: getPresentationUserName(data.owner),
-      code: data.owner,
-    };
+    selectedUser.value = data.owner;
     selectedState.value = {
       code: data.state,
       name: formatTargetState(data.state),
