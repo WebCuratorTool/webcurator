@@ -12,7 +12,13 @@ import TargetTabPanelProfile from "./TargetTabPanelProfile.vue";
 defineProps<{
   editing: boolean;
   isTargetAvailable: boolean;
-  validationErrors: string;
+  validationErrors?: string | undefined;
+  loading?: boolean;
+}>();
+
+defineEmits<{
+  setEditing: [value: boolean];
+  save: [];
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
@@ -86,7 +92,7 @@ const targetGeneral = useTargetGeneralDTO();
         <TabPanel value="0">
           <TargetTabPanelGeneral
             :editing="editing"
-            :validationErrors="validationErrors"
+            :validationErrors="validationErrors ?? ''"
           />
         </TabPanel>
         <TabPanel value="1">

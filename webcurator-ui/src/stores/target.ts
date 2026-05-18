@@ -435,11 +435,7 @@ export const useTargetAnnotationsDTO = defineStore(
         evaluationNote: "",
         harvestType: "",
         annotations: [],
-        alert: false,
         selection: { date: 0, type: "", note: "" },
-        date: 0,
-        type: "",
-        note: "",
       } as TargetAnnotations;
     };
 

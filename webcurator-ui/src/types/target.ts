@@ -24,7 +24,6 @@ interface TargetAnnotations {
   evaluationNote: string;
   harvestType: string;
   annotations: Array<Annotation>;
-  alert: boolean;
   selection: {
     date: number;
     type: string;
