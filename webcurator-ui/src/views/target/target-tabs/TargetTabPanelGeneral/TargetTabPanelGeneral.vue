@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
-
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import {
@@ -21,9 +19,6 @@ defineProps<{
 const targetGeneral = useTargetGeneralDTO();
 const users = useUsersStore();
 const nextStates = useNextStateStore();
-const selectedUser = computed(() => {
-  return targetGeneral.selectedUser || "";
-});
 </script>
 
 <template>
@@ -84,7 +79,9 @@ const selectedUser = computed(() => {
             class="w-full md:w-18rem"
             :disabled="!editing"
           />
-          <p v-else class="font-semibold">{{ selectedUser }}</p>
+          <p v-else class="font-semibold">
+            {{ targetGeneral.selectedUserName }}
+          </p>
         </WctFormField>
 
         <WctFormField label="Reference Number">

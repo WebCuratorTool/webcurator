@@ -154,12 +154,16 @@ export const useUsersStore = defineStore("users", () => {
 
   initialFetch();
 
-  return { data, userList, userListWithEmptyItem, initialFetch };
+  return {
+    data,
+    userList,
+    userListWithEmptyItem,
+    initialFetch,
+  };
 });
 
 export const getPresentationUserName = (selectedUser: string) => {
   if (!selectedUser) {
-    console.log("The input selectedUser is " + selectedUser);
     return "";
   }
 
@@ -170,7 +174,7 @@ export const getPresentationUserName = (selectedUser: string) => {
   for (let i = 0; i < data.length; i++) {
     const user: User = data[i];
     if (user.name === userName) {
-      return user.firstName + " " + user.lastName + " (" + user.name + ")";
+      return user.firstName + " " + user.lastName;
     }
   }
   return "";

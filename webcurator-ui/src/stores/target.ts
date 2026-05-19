@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
-import { useUserProfileStore } from "@/stores/users";
+import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
 import type { SelectItem } from "@/types/commons";
 import {
   type Target,
@@ -158,6 +158,9 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
   const referenceCrawl = ref(false);
   const requestToArchivists = ref("");
   const nextStates = ref([]);
+  const selectedUserName = computed(() =>
+    getPresentationUserName(selectedUser.value),
+  );
 
   const userProfile = useUserProfileStore();
 
@@ -226,6 +229,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     runOnApproval,
     automatedQA,
     selectedUser,
+    selectedUserName,
     selectedState,
     autoPrune,
     referenceCrawl,
