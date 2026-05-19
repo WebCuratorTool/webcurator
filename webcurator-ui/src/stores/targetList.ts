@@ -24,6 +24,13 @@ interface TargetListResponse {
   targets: Array<Target>;
 }
 
+interface TargetSearchParams {
+  filter: SearchConditions;
+  offset: number;
+  limit: number;
+  sortBy: string;
+}
+
 export const targetListPageState = reactive({
   totalRecords: 1,
   rows: 10,
@@ -61,6 +68,7 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
   const userProfile = useUserProfileStore();
   const targetList = ref(Array<Target>());
   const loadingTargetList = ref(false);
+  const searchRequestId = ref(0);
   const searchTerms = useTargetListSearchStore();
   const searchConditions = ref<SearchConditions>({
     targetId: null,
@@ -74,6 +82,28 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
     states: Array<number>(),
   });
   const rest: UseFetchApis = useFetch();
+
+  const getSearchConditions = () => {
+    const conditions = {
+      targetId: searchTerms.targetId,
+      name: searchTerms.targetName,
+      seed: searchTerms.targetSeed,
+      description: searchTerms.targetDescription,
+      groupName: searchTerms.targetMemberOf,
+      nonDisplayOnly: searchTerms.nonDisplayOnly,
+      agency: searchTerms.targetAgency?.name,
+      userId: searchTerms.targetUser?.code,
+      states: Array<number>(),
+    };
+
+    if (searchTerms.targetState?.length > 0) {
+      for (const i in searchTerms.targetState) {
+        conditions.states.push(searchTerms.targetState[i].code);
+      }
+    }
+
+    return conditions;
+  };
 
   const resetFilter = () => {
     searchTerms.targetUser = {
@@ -98,28 +128,33 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
   };
 
   const search = () => {
-    const conditions = {
-      targetId: searchTerms.targetId,
-      name: searchTerms.targetName,
-      seed: searchTerms.targetSeed,
-      description: searchTerms.targetDescription,
-      groupName: searchTerms.targetMemberOf,
-      nonDisplayOnly: searchTerms.nonDisplayOnly,
-      agency: searchTerms.targetAgency?.name,
-      userId: searchTerms.targetUser?.code,
-      states: Array<number>(),
-    };
-
-    if (searchTerms.targetState?.length > 0) {
-      for (const i in searchTerms.targetState) {
-        conditions.states.push(searchTerms.targetState[i].code);
-      }
-    }
-
-    searchConditions.value = conditions;
+    searchConditions.value = getSearchConditions();
     targetListPageState.first = 0; // Reset to first page
 
     updatePage(0, targetListPageState.rows);
+  };
+
+  const executeSearch = (searchParams: TargetSearchParams) => {
+    const requestId = ++searchRequestId.value;
+    loadingTargetList.value = true;
+
+    return rest
+      .post<TargetListResponse>("targets", searchParams, {
+        header: "X-HTTP-Method-Override",
+        value: "GET",
+      })
+      .then((data: TargetListResponse) => {
+        if (requestId !== searchRequestId.value) {
+          return undefined;
+        }
+
+        return data;
+      })
+      .finally(() => {
+        if (requestId === searchRequestId.value) {
+          loadingTargetList.value = false;
+        }
+      });
   };
 
   const updatePage = (first: number, rows: number) => {
@@ -130,21 +165,16 @@ export const useTargetListDataStore = defineStore("TargetListDataStore", () => {
       sortBy: "creationDate,asc",
     };
 
-    loadingTargetList.value = true;
-    rest
-      .post<TargetListResponse>("targets", searchParams, {
-        header: "X-HTTP-Method-Override",
-        value: "GET",
-      })
-      .then((data: TargetListResponse) => {
-        targetList.value = data["targets"];
-        targetListPageState.totalRecords = data["amount"];
-        targetListPageState.first = data["offset"];
-        targetListPageState.rows = data["limit"];
-      })
-      .finally(() => {
-        loadingTargetList.value = false;
-      });
+    executeSearch(searchParams).then((data) => {
+      if (!data) {
+        return;
+      }
+
+      targetList.value = data["targets"];
+      targetListPageState.totalRecords = data["amount"];
+      targetListPageState.first = data["offset"];
+      targetListPageState.rows = data["limit"];
+    });
   };
 
   search();

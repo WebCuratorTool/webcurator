@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useConfirm } from "primevue/useconfirm";
+import { onMounted } from "vue";
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 
@@ -59,10 +60,17 @@ const deleteTarget = (id: number) => {
   });
 };
 
-watch(userProfile, (newUserProfile, oldUserProfile) => {
-  if (!oldUserProfile || newUserProfile.id !== oldUserProfile.id) {
-    targetListData.resetFilter();
-  }
+watch(
+  () => userProfile.id,
+  (newUserId, oldUserId) => {
+    if (oldUserId !== undefined && newUserId !== oldUserId) {
+      targetListData.resetFilter();
+    }
+  },
+);
+
+onMounted(() => {
+  targetListData.search();
 });
 </script>
 
