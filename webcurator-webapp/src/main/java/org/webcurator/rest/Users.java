@@ -298,7 +298,7 @@ public class Users {
             }
             HashMap<String, Object> user = new HashMap<>();
             user.put("id", u.getOid());
-            user.put("name", u.getUsername());
+            user.put("userName", u.getUsername());
             user.put("firstName", u.getFirstname());
             user.put("lastName", u.getLastname());
             user.put("email", u.getEmail());
