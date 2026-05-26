@@ -83,4 +83,6 @@ credentials
 # The .venv directory that is (potentially) used when generating the docs
 .venv
 
+# Directory copied to the local build context of the container
+/webcurator-integration-tests/postgres/webcurator-db
 

@@ -1,0 +1,9 @@
+FROM postgres:16
+ENV POSTGRES_PASSWORD password # Maybe not needed?
+
+RUN mkdir -p /docker-entrypoint-initdb.d
+
+COPY init.sh /docker-entrypoint-initdb.d
+COPY webcurator-db /docker-entrypoint-initdb.d/webcurator-db
+
+
