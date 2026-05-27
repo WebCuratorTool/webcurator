@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { watch } from "vue";
 import { useRouter } from "vue-router";
+import z from "zod";
 
 import { useProfiles } from "@/stores/profiles";
 import {
@@ -8,6 +10,7 @@ import {
   useTargetDescriptionDTO,
   useTargetGeneralDTO,
   useTargetGropusDTO,
+  useTargetHarvestsDTO,
   useTargetProfileDTO,
 } from "@/stores/target";
 import type { NewTarget } from "@/types/target";
@@ -24,6 +27,7 @@ const alertStore = useAlertStore();
 const editing = ref(true);
 const loading = ref(false);
 const isTargetAvailable = ref(false);
+const validationErrors = ref();
 
 const rest: UseFetchApis = useFetch();
 
@@ -31,31 +35,42 @@ const targetDescription = useTargetDescriptionDTO();
 const targetGeneral = useTargetGeneralDTO();
 const targetGroups = useTargetGropusDTO();
 const targetProfile = useTargetProfileDTO();
+const targetSchedule = useTargetHarvestsDTO();
+
+const targetName = z.string().min(1, "Name is required");
 
 const save = async () => {
-  progress.start();
-  try {
-    const dataReq: NewTarget = {
-      description: targetDescription.getData(),
-      general: targetGeneral.getData(),
-      groups: targetGroups.getData(),
-    };
+  const validationResult = targetName.safeParse(targetGeneral.name);
+  if (!validationResult.success) {
+    validationErrors.value = z.flattenError(
+      validationResult.error,
+    ).formErrors[0];
+  } else {
+    progress.start();
+    try {
+      const dataReq: NewTarget = {
+        description: targetDescription.getData(),
+        general: targetGeneral.getData(),
+        groups: targetGroups.getData(),
+        schedule: targetSchedule.getData(),
+      };
 
-    if (targetProfile.getData().id != null) {
-      dataReq.profile = targetProfile.getData();
-    }
+      if (targetProfile.getData().id != null) {
+        dataReq.profile = targetProfile.getData();
+      }
 
-    const response = await rest.post("targets/", dataReq);
-    if (response == 200) {
-      showSuccessMessage();
-      editing.value = false;
+      const response = await rest.post("targets/", dataReq);
+      if (response == 200) {
+        showSuccessMessage();
+        editing.value = false;
+      }
+    } catch (err: unknown) {
+      const msg = err as Error;
+      showErrorMessage(msg.message);
+    } finally {
+      progress.end();
+      router.push("/targets/");
     }
-  } catch (err: unknown) {
-    const msg = err as Error;
-    showErrorMessage(msg.message);
-  } finally {
-    progress.end();
-    router.push("/targets/");
   }
 };
 
@@ -74,8 +89,23 @@ const showSuccessMessage = () => {
   alertStore.info("Target succesfully saved");
 };
 
-initNewTarget();
 useProfiles().fetchProfiles();
+
+watch(
+  () => targetGeneral.name,
+  (newName) => {
+    const validationResult = targetName.safeParse(newName);
+    if (!validationResult.success) {
+      validationErrors.value = z.flattenError(
+        validationResult.error,
+      ).formErrors[0];
+    } else {
+      validationErrors.value = undefined;
+    }
+  },
+);
+
+initNewTarget();
 </script>
 
 <template>
@@ -83,6 +113,7 @@ useProfiles().fetchProfiles();
     :editing="editing"
     :isTargetAvailable="isTargetAvailable"
     :loading="useProfiles().loadingProfiles || loading"
+    :validationErrors="validationErrors"
     @setEditing="setEditing"
     @save="save"
   />

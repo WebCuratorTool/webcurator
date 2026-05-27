@@ -24,7 +24,6 @@ interface TargetAnnotations {
   evaluationNote: string;
   harvestType: string;
   annotations: Array<Annotation>;
-  alert: boolean;
   selection: {
     date: number;
     type: string;
@@ -123,6 +122,7 @@ interface NewTarget {
   general: TargetGeneral;
   groups: TargetGroups;
   profile?: TargetProfile;
+  schedule?: TargetSchedule;
 }
 
 export type {

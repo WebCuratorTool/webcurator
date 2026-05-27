@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import { getPresentationUserName, useUserProfileStore } from "@/stores/users";
 import type { SelectItem } from "@/types/commons";
@@ -158,6 +158,9 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
   const referenceCrawl = ref(false);
   const requestToArchivists = ref("");
   const nextStates = ref([]);
+  const selectedUserName = computed(() =>
+    getPresentationUserName(selectedUser.value),
+  );
 
   const userProfile = useUserProfileStore();
 
@@ -168,10 +171,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     referenceNumber.value = "";
     runOnApproval.value = false;
     automatedQA.value = false;
-    selectedUser.value = {
-      name: userProfile.currUserName,
-      code: userProfile.name,
-    };
+    selectedUser.value = userProfile.name;
     selectedState.value = TARGET_STATE_PENDING;
     autoPrune.value = false;
     referenceCrawl.value = false;
@@ -187,7 +187,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
       referenceNumber: referenceNumber.value,
       runOnApproval: runOnApproval.value,
       automatedQA: automatedQA.value,
-      owner: selectedUser.value.code,
+      owner: selectedUser.value,
       state: selectedState.value.code,
       autoPrune: autoPrune.value,
       referenceCrawl: referenceCrawl.value,
@@ -203,10 +203,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     referenceNumber.value = data.referenceNumber;
     runOnApproval.value = data.runOnApproval;
     automatedQA.value = data.automatedQA;
-    selectedUser.value = {
-      name: getPresentationUserName(data.owner),
-      code: data.owner,
-    };
+    selectedUser.value = data.owner;
     selectedState.value = {
       code: data.state,
       name: formatTargetState(data.state),
@@ -232,6 +229,7 @@ export const useTargetGeneralDTO = defineStore("TargetDTOGeneral", () => {
     runOnApproval,
     automatedQA,
     selectedUser,
+    selectedUserName,
     selectedState,
     autoPrune,
     referenceCrawl,
@@ -435,11 +433,7 @@ export const useTargetAnnotationsDTO = defineStore(
         evaluationNote: "",
         harvestType: "",
         annotations: [],
-        alert: false,
         selection: { date: 0, type: "", note: "" },
-        date: 0,
-        type: "",
-        note: "",
       } as TargetAnnotations;
     };
 
@@ -456,7 +450,10 @@ export const useTargetHarvestsDTO = defineStore("TargetHarvestsDTO", () => {
   const targetSchedule = ref({} as TargetSchedule);
 
   const initData = () => {
-    targetSchedule.value = {} as TargetSchedule;
+    targetSchedule.value = {
+      schedules: [] as TargetHarvest[],
+    } as TargetSchedule;
+    console.log(targetSchedule.value);
   };
 
   const setData = (data: TargetSchedule) => {

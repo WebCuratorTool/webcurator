@@ -49,7 +49,6 @@ const showScheduleModal = (
       header: "Schedule",
       modal: true,
       dismissableMask: true,
-      style: { width: "20vw" },
     },
     data: {
       targetSchedule: targetSchedule,

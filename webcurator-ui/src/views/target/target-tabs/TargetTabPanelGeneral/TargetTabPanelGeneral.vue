@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from "vue";
-
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import {
@@ -15,18 +13,12 @@ import TargetTabPanelGeneralSeeds from "./TargetTabPanelGeneralSeeds.vue";
 
 defineProps<{
   editing: boolean;
+  validationErrors: string;
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
 const users = useUsersStore();
 const nextStates = useNextStateStore();
-const selectedUser = computed(() => {
-  if (targetGeneral.selectedUser) {
-    return targetGeneral.selectedUser.code;
-  } else {
-    return "";
-  }
-});
 </script>
 
 <template>
@@ -44,13 +36,23 @@ const selectedUser = computed(() => {
           <p v-else class="font-semibold">{{ targetGeneral.id }}</p>
         </WctFormField>
 
-        <WctFormField label="Name(*)">
+        <WctFormField label="Name *">
           <InputText
             v-if="editing"
             v-model="targetGeneral.name"
             :disabled="!editing"
+            :invalid="!!validationErrors"
+            :formControl="{ validateOnValueUpdate: true }"
           />
           <p v-else class="font-semibold">{{ targetGeneral.name }}</p>
+          <Message
+            v-if="validationErrors"
+            severity="error"
+            size="small"
+            variant="simple"
+          >
+            {{ validationErrors }}
+          </Message>
         </WctFormField>
 
         <WctFormField label="Description">
@@ -72,11 +74,14 @@ const selectedUser = computed(() => {
             v-model="targetGeneral.selectedUser"
             :options="users.userListWithEmptyItem"
             optionLabel="name"
+            optionValue="code"
             placeholder="Select a User"
             class="w-full md:w-18rem"
             :disabled="!editing"
           />
-          <p v-else class="font-semibold">{{ selectedUser }}</p>
+          <p v-else class="font-semibold">
+            {{ targetGeneral.selectedUserName }}
+          </p>
         </WctFormField>
 
         <WctFormField label="Reference Number">
