@@ -27,9 +27,9 @@ Errors
 If any error is raised no output is returned. Nor is the target removed.
 
 === =======================================================================================
-400 Bad request, non-existing target-id has been given.
-400	Bad request, cannot delete as there are still target instances connected to the target.
-400	Bad request, cannot delete as target is not rejected or cancelled. 
+400 Bad request, cannot delete as there are still target instances connected to the target.
+400 Bad request, cannot delete as target is not rejected or cancelled. 
+404 Not found, non-existing target-id has been given.
 403 Not authorized, user is no longer logged in.
 405 Method not allowed, only POST, GET, PUT, DELETE are allowed.
 === =======================================================================================

@@ -45,15 +45,16 @@ The following information is returned per found user:
 ============ ====== ========
 **Body**
 ----------------------------
-id           Number Required
-userName     String Required
-firstName    String Required
-lastName     String Required
-email        String Required
-agency       String Required
+id           Number  Required
+userName     String  Required
+firstName    String  Required
+lastName     String  Required
+email        String  Required
+agency       String  Required
+isActive     Boolean Required
+roles        List    Required
 ============ ====== ========
 
-.. include:: /guides/apis/descriptions/desc-userId.rst
 
 Errors
 ------
