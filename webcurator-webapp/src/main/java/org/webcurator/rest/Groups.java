@@ -18,7 +18,7 @@ import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.FailureResponse;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.GroupDTO;
-import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.ProfileInfoDTO;
 import org.webcurator.rest.dto.ScheduleDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -283,12 +283,12 @@ public class Groups {
             group.setProfile(profile);
 
             ProfileOverrides profileOverrides = group.getProfileOverrides();
-            List<ProfileDTO.Override> overrides = groupDTO.getProfile().getOverrides();
+            List<ProfileInfoDTO.Override> overrides = groupDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
                 throw new BadRequestError("A group with a non-imported profile requires profile overrides");
             }
             // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
-            for (ProfileDTO.Override override : overrides) {
+            for (ProfileInfoDTO.Override override : overrides) {
                 String id = override.getId();
                 id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
                 String methodNameSetValue = "setH3" + id;

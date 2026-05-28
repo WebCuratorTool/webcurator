@@ -34,10 +34,15 @@ import java.util.Set;
 @Table(name = "AGENCY")
 @NamedQuery(name = "org.webcurator.domain.model.auth.Agency.getAllAgencies",
         query = "from Agency agc order by agc.name")
+@NamedQuery(name = "org.webcurator.domain.model.auth.Agency.getAgencyByName",
+        query = "SELECT agc FROM Agency agc WHERE agc.name=?1")
 public class Agency implements Serializable {
     /** Identifier for query to get all agencies in an ordered list */
     public static final String QRY_GET_ALL_AGENCIES = "org.webcurator.domain.model.auth.Agency.getAllAgencies";
-    
+
+    /** Identifier for query to get agency by name */
+    public static final String QRY_GET_AGENCY_BY_NAME = "org.webcurator.domain.model.auth.Agency.getAgencyByName";
+
     /** The serial version ID */
     private static final long serialVersionUID = -126650342213891294L;
     

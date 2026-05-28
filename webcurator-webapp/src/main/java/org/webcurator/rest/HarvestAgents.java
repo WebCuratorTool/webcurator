@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.domain.UserRoleDAO;
-import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.ArrayList;

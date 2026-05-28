@@ -82,14 +82,25 @@ public class UserRoleDAO {
 
         if(results.size() == 1) {
             return (User) results.get(0);
-        }
-        else {
+        } else { // results.size() is zero, since there is a uniqueness constraint on user name
             return null;
         }
     }
 
     public Agency getAgencyByOid(Long oid) {
         return (Agency)sessionFactory.getCurrentSession().get(Agency.class, oid);
+    }
+
+    public Agency getAgencyByName(String name) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_AGENCY_BY_NAME);
+        q.setParameter(1, name);
+        List results = q.getResultList();
+
+        if(results.size() == 1) {
+            return (Agency) results.get(0);
+        } else { // results.size() is zero, since there is a uniqueness constraint on agency name
+            return null;
+        }
     }
     
     public List getUserPrivileges(String username) {

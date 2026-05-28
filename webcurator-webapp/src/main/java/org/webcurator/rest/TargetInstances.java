@@ -51,7 +51,7 @@ public class TargetInstances {
     private static final Log logger = LogFactory.getLog(TargetInstances.class);
 
     private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-    private Validator validator = factory.getValidator();
+    private Validator validator = factory.getValidator(); // FIXME Add validations or remove this field
 
     @Autowired
     private TargetInstanceDAO targetInstanceDAO;

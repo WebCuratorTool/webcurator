@@ -26,7 +26,7 @@ public class TargetDTO {
     @Valid
     List<Seed> seeds = new ArrayList<>();
     @Valid
-    ProfileDTO profile;
+    ProfileInfoDTO profile;
     @Valid
     Annotations annotations;
     @Valid
@@ -45,7 +45,7 @@ public class TargetDTO {
             seeds.add(new Seed(s));
         }
         if (target.getProfile() != null) {
-            profile = new ProfileDTO(target);
+            profile = new ProfileInfoDTO(target);
         }
         annotations = new Annotations(target);
         description = new DescriptionDTO(target.getDublinCoreMetaData());
@@ -86,11 +86,11 @@ public class TargetDTO {
         this.seeds = seeds;
     }
 
-    public ProfileDTO getProfile() {
+    public ProfileInfoDTO getProfile() {
         return profile;
     }
 
-    public void setProfile(ProfileDTO profile) {
+    public void setProfile(ProfileInfoDTO profile) {
         this.profile = profile;
     }
 
