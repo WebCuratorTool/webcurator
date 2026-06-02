@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.Transaction;
+import org.apache.commons.lang.StringUtils;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
@@ -113,6 +114,19 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
 
+        //Filter out empty url nodes
+        List<String> emptyUrlKeys = new ArrayList<>();
+        this.urls.forEach((k, v) -> {
+            if (StringUtils.isEmpty(v.getTopDomain()) || StringUtils.isEmpty(v.getDomain()) || StringUtils.isEmpty(v.getUrl())) {
+                emptyUrlKeys.add(k);
+            }
+        });
+        emptyUrlKeys.forEach(k -> {
+            this.urls.remove(k);
+            log.warn("Ignored the unknown url: {}", k);
+        });
+        emptyUrlKeys.clear();
+
         //Statistic by domain
         NetworkMapDomain rootDomainNode = new NetworkMapDomain(NetworkMapDomain.DOMAIN_NAME_LEVEL_ROOT, 0);
         rootDomainNode.addChildren(this.urls.values(), domainIdGenerator, domainManager);
@@ -162,9 +176,16 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
         //Using the transaction to improve the performance of bulk insert
+        if (this.status == HarvestResult.STATUS_TERMINATED) {
+            return;
+        }
         Transaction txn = db.env.beginTransaction(null, null);
         AtomicInteger batch_num = new AtomicInteger(0);
         for (NetworkMapNodeUrlDTO e : this.urls.values()) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                break;
+            }
+
             this.tryBlock();
             NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
             urlEntity.copy(e);
@@ -187,6 +208,10 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         txn.commit();
         this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
         this.urls.clear();
+
+        if (this.status == HarvestResult.STATUS_TERMINATED) {
+            return;
+        }
 
         //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
         long rootFolderNodeId = FolderTreeViewGenerator.classifyTreePaths(db);
@@ -281,6 +306,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
                 progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
             }
+
+            log.info("Finished url extracting of all the harvest files: {} {}", this.targetInstanceId, this.harvestResultNumber);
 
             this.statAndSave();
 

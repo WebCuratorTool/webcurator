@@ -33,7 +33,7 @@ public class BDBNetworkMapTest extends BaseVisualizationTest {
 
         BDBRepoHolder db2 = null;
         try {
-            db2 = BDBRepoHolder.createInstance(baseDir + "_db_temp", "resource2.db");
+            db2 = BDBRepoHolder.openInstance(baseDir + "_db_temp", "resource2.db");
         } catch (IOException e) {
             e.printStackTrace();
         }

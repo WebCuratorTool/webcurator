@@ -311,8 +311,14 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${abortHarvestOnScreenshotFailure}")
     private boolean abortHarvestOnScreenshotFailure;
 
-    @Value("${pywbIndexer.enable}")
-    private boolean pywbIndexerEnable;
+    @Value("${pywbIndexer.enabled}")
+    private boolean pywbIndexerEnabled;
+
+    @Value("${pywbIndexer.individualCollectionMode}")
+    private boolean individualCollectionMode;
+
+    @Value("${pywbIndexer.useSymLinkForArchive}")
+    private boolean useSymLinkForArchive;
 
     @Value("${pywbIndexer.wb-manager.store}")
     private String pywbIndexerWaybackManagerStore;
@@ -480,7 +486,7 @@ public class DasConfig implements WebMvcConfigurer {
     @SuppressWarnings("unchecked")
     @Bean
     public Indexer indexer() {
-        Indexer bean = new Indexer();
+        Indexer bean = new Indexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         ListFactoryBean runnableIndexers = runnableIndexers();
 
         try {
@@ -501,10 +507,23 @@ public class DasConfig implements WebMvcConfigurer {
         ListFactoryBean bean = new ListFactoryBean();
 
         List<RunnableIndex> sourceList = new ArrayList<>();
-//        sourceList.add(wctIndexer());
-        sourceList.add(waybackIndexer());
-        sourceList.add(cdxIndexer());
-        sourceList.add(pywbIndexer());
+        if (waybackIndexerEnabled) {
+            LOGGER.info("Enabled Wayback Indexer.");
+            sourceList.add(waybackIndexer());
+        }
+
+        if (cdxIndexerEnabled) {
+            LOGGER.info("Enabled CDX Indexer.");
+            sourceList.add(cdxIndexer());
+        }
+
+        if (pywbIndexerEnabled) {
+            LOGGER.info("Enabled PYWB Indexer.");
+            sourceList.add(pywbIndexer());
+        }
+
+        LOGGER.info("Enabled WCT Indexer.");
+        sourceList.add(wctIndexer());
 
         bean.setSourceList(sourceList);
         return bean;
@@ -512,9 +531,8 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public WaybackIndexer waybackIndexer() {
-        WaybackIndexer bean = new WaybackIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        WaybackIndexer bean = new WaybackIndexer();
         bean.setEnabled(waybackIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
         bean.setTimeout(waybackIndexerTimeout);
         bean.setUseSymLinks(waybackIndexerUseSymLinks);
@@ -527,7 +545,7 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public CDXIndexer cdxIndexer() {
-        CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        CDXIndexer bean = new CDXIndexer();
         bean.setEnabled(cdxIndexerEnabled);
         bean.setFormat(cdxIndexerFormat);
         bean.setUseSurt(cdxIndexerUseSurt);
@@ -536,10 +554,21 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public PywbIndexer pywbIndexer() {
-        PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(pywbIndexerEnable);
+        PywbIndexer bean = new PywbIndexer();
+        bean.setEnabled(pywbIndexerEnabled);
         bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
+        bean.setIndividualCollectionMode(individualCollectionMode);
+        bean.setUseSymLinkForArchive(useSymLinkForArchive);
+        return bean;
+    }
+
+    @Bean
+    public WCTIndexer wctIndexer() {
+        WCTIndexer bean = new WCTIndexer();
+        bean.setEnabled(true);
+        bean.setPool(bdbDatabasePool());
+        bean.setVisProcessorManager(visualizationProcessorQueue());
         return bean;
     }
 
@@ -553,6 +582,7 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
         bean.setWaybackName(waybackName);
         bean.setWaybackVersion(waybackVersion);
+        bean.setIndividualCollectionMode(individualCollectionMode);
         return bean;
     }
 

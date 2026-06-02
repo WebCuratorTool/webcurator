@@ -8,14 +8,16 @@ public class QualityReviewToolControllerAttribute {
     protected TargetInstanceManager targetInstanceManager;
     protected TargetInstanceDAO targetInstanceDao;
     protected TargetManager targetManager = null;
-    protected String archiveUrl = null;
-    protected String archiveName = null;
-    protected String archiveUrlAlternative = null;
-    protected String archiveUrlAlternativeName = null;
-    protected HarvestResourceUrlMapper harvestResourceUrlMapper;
+    protected String archive1Url = null;
+    protected String archive1Name = null;
+    protected String archive2Url = null;
+    protected String archive2Name = null;
+    protected String archive3Url = null;
+    protected String archive3Name = null;
+    protected String accessToolUrl;
+    protected String accessToolName;
     protected boolean enableBrowseTool = true;
     protected boolean enableAccessTool = false;
-    protected String webArchiveTarget = null;
     protected String thumbnailRenderer = null;
     protected String dasBaseUrl = null;
 
@@ -31,24 +33,52 @@ public class QualityReviewToolControllerAttribute {
         this.targetManager = targetManager;
     }
 
-    public void setArchiveUrl(String archiveUrl) {
-        this.archiveUrl = archiveUrl;
+    public void setArchive1Url(String archive1Url) {
+        this.archive1Url = archive1Url;
     }
 
-    public void setArchiveName(String archiveName) {
-        this.archiveName = archiveName;
+    public void setArchive1Name(String archive1Name) {
+        this.archive1Name = archive1Name;
     }
 
-    public void setArchiveUrlAlternative(String archiveUrlAlternative) {
-        this.archiveUrlAlternative = archiveUrlAlternative;
+    public void setArchive2Url(String archive2Url) {
+        this.archive2Url = archive2Url;
     }
 
-    public void setArchiveUrlAlternativeName(String archiveUrlAlternativeName) {
-        this.archiveUrlAlternativeName = archiveUrlAlternativeName;
+    public void setArchive2Name(String archive2Name) {
+        this.archive2Name = archive2Name;
     }
 
-    public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
-        this.harvestResourceUrlMapper = harvestResourceUrlMapper;
+    public String getArchive3Url() {
+        return archive3Url;
+    }
+
+    public void setArchive3Url(String archive3Url) {
+        this.archive3Url = archive3Url;
+    }
+
+    public String getArchive3Name() {
+        return archive3Name;
+    }
+
+    public void setArchive3Name(String archive3Name) {
+        this.archive3Name = archive3Name;
+    }
+
+    public String getAccessToolUrl() {
+        return accessToolUrl;
+    }
+
+    public void setAccessToolUrl(String accessToolUrl) {
+        this.accessToolUrl = accessToolUrl;
+    }
+
+    public String getAccessToolName() {
+        return accessToolName;
+    }
+
+    public void setAccessToolName(String accessToolName) {
+        this.accessToolName = accessToolName;
     }
 
     public void setEnableBrowseTool(boolean enableBrowseTool) {
@@ -57,10 +87,6 @@ public class QualityReviewToolControllerAttribute {
 
     public void setEnableAccessTool(boolean enableAccessTool) {
         this.enableAccessTool = enableAccessTool;
-    }
-
-    public void setWebArchiveTarget(String webArchiveTarget) {
-        this.webArchiveTarget = webArchiveTarget;
     }
 
     public void setThumbnailRenderer(String thumbnailRenderer) {

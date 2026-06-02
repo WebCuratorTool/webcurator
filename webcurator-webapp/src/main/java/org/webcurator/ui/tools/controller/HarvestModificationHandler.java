@@ -40,6 +40,7 @@ import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
+import org.webcurator.ui.util.PlaceholderProcessor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -100,11 +101,11 @@ public class HarvestModificationHandler {
     @Value("${core.base.dir}")
     private String baseDir;
 
-    @Value("${qualityReviewToolController.archiveUrl}")
+    @Value("${qualityReviewToolController.archive1.url}")
     private String archiveUrl;
 
-    @Autowired
-    private HarvestResourceUrlMapper harvestResourceUrlMapper;
+    @Value("${qualityReviewToolController.accessTool.url}")
+    private String accessToolUrlWithPlaceholders;
 
     @Autowired
     private BrowseHelper browseHelper;
@@ -125,138 +126,6 @@ public class HarvestModificationHandler {
         } else {
             throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hrDTO.getState(), hrDTO.getStatus()));
         }
-    }
-
-    public void clickPause(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
-        HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
-        if (hrDTO.getStatus() != HarvestResult.STATUS_RUNNING) {
-            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hrDTO.getState(), hrDTO.getStatus()));
-        }
-
-        if (hrDTO.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.pausePatching(PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
-
-            //Change the status of Harvest Result
-            hrDTO.setStatus(HarvestResult.STATUS_PAUSED);
-        } else {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_ALL, "pause", targetInstanceId, harvestResultNumber);
-        }
-
-        //Change the status of Harvest Result
-        harvestResultManager.updateHarvestResultStatus(targetInstanceId, harvestResultNumber, hrDTO.getState(), HarvestResult.STATUS_PAUSED);
-    }
-
-    public void clickResume(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
-        HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
-        if (hrDTO.getStatus() != HarvestResult.STATUS_PAUSED) {
-            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hrDTO.getState(), hrDTO.getStatus()));
-        }
-
-        if (hrDTO.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.resumePatching(PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
-            //Change the status of Harvest Result
-            hrDTO.setStatus(HarvestResult.STATUS_PAUSED);
-        } else {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "resume", targetInstanceId, harvestResultNumber);
-        }
-
-        //Change the status of Harvest Result
-        harvestResultManager.updateHarvestResultStatus(targetInstanceId, harvestResultNumber, hrDTO.getState(), HarvestResult.STATUS_RUNNING);
-    }
-
-    public void clickTerminate(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
-        HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
-
-        //Change the state of HR firstly before changing the state on Harvest Agent
-        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
-        if (ti == null) {
-            log.error("Could not get TargetInstance with targetInstanceId: {}", targetInstanceId);
-            return;
-        }
-
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-        if (hr == null) {
-            log.error("Could not get HarvestResult with targetInstanceId: {}, harvestResultNumber: {}", targetInstanceId, harvestResultNumber);
-            return;
-        }
-
-        hr.setState(HarvestResult.STATE_ABORTED);
-        targetInstanceDAO.save(hr);
-
-        //=========================Trying to terminate tasks at every stage======================================================================================
-        try {
-            String jobName = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
-            harvestAgentManager.stopPatching(jobName);
-            harvestAgentManager.abortPatching(jobName);
-        } catch (Exception e) {
-            log.warn("Failed to terminate harvest: {} {}", targetInstanceId, harvestResultNumber);
-        }
-
-        try {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_ALL, "terminate", targetInstanceId, harvestResultNumber);
-        } catch (Exception e) {
-            log.warn("Failed to terminate processors on store: {} {}", targetInstanceId, harvestResultNumber);
-        }
-        //==========================================================================================================================================================
-
-        harvestResultManager.updateHarvestResultStatus(targetInstanceId, harvestResultNumber, HarvestResult.STATE_ABORTED, HarvestResult.STATUS_TERMINATED);
-    }
-
-    public void clickDelete(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
-        HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
-        if (hrDTO.getState() != HarvestResult.STATE_ABORTED) {
-            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hrDTO.getState(), hrDTO.getStatus()));
-        }
-
-        //=========================Trying to delete tasks at every stage======================================================================================
-        try {
-            String jobName = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
-            harvestAgentManager.abortPatching(jobName);
-            List<String> jobList = new ArrayList<>();
-            jobList.add(jobName);
-            harvestAgentManager.purgeAbortedTargetInstances(jobList);
-        } catch (Exception e) {
-            log.warn("Failed to delete harvest: {} {}", targetInstanceId, harvestResultNumber);
-        }
-
-        try {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_ALL, "delete", targetInstanceId, harvestResultNumber);
-        } catch (Exception e) {
-            log.warn("Failed to delete files on store: {} {}", targetInstanceId, harvestResultNumber);
-        }
-        //==========================================================================================================================================================
-
-        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
-
-        //Delete the selected Harvest Result
-        List<HarvestResult> hrList = ti.getHarvestResults();
-        int indexToBeDeleted = -1;
-        for (int i = 0; i < hrList.size(); i++) {
-            HarvestResult hr = hrList.get(i);
-            if (hr != null && hr.getHarvestNumber() == harvestResultNumber) {
-                indexToBeDeleted = i;
-                break;
-            }
-        }
-        if (indexToBeDeleted < 0) {
-            log.warn("The HarvestResult does not exist: {} {}", targetInstanceId, harvestResultNumber);
-            return;
-        }
-        HarvestResult hrToBeDeleted = hrList.get(indexToBeDeleted);
-        if (hrToBeDeleted != null) {
-            targetInstanceDAO.delete(hrToBeDeleted);
-        }
-
-        hrList.remove(indexToBeDeleted);
-        ti.setHarvestResults(hrList);
-
-        //Change the state of Target Instance to 'Harvested'
-        if (ti.getPatchingHarvestResults().size() == 0) {
-            ti.setState(TargetInstance.STATE_HARVESTED);
-        }
-        targetInstanceDAO.save(ti);
-
-        harvestResultManager.removeHarvestResult(targetInstanceId, harvestResultNumber);
     }
 
     public Map<String, Object> getHarvestResultViewData(long targetInstanceId, long harvestResultId, int harvestResultNumber) throws IOException, NoSuchAlgorithmException {
@@ -501,6 +370,12 @@ public class HarvestModificationHandler {
             return;
         }
 
+        if (headers == null) {
+            log.warn("The headers is null for ti " + ti.getOid());
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         // Get the content type.
         String realContentType = getHeaderValue(headers, "Content-Type");
         String simpleContentType = this.getSimpleContentType(realContentType);
@@ -602,9 +477,9 @@ public class HarvestModificationHandler {
         map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
         map.put("globalVersion", versionDTO.getGlobalVersion());
         map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("archiveUrl", archiveUrl);
         HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
-        map.put("accessToolUrl", harvestResourceUrlMapper.generateUrl(harvestResult));
+        map.put("archiveUrl", PlaceholderProcessor.generateUrl(archiveUrl, harvestResult));
+        map.put("accessToolUrl", PlaceholderProcessor.generateUrl(accessToolUrlWithPlaceholders, harvestResult));
         return map;
     }
 
@@ -643,11 +518,8 @@ public class HarvestModificationHandler {
                     col++;
                 }
                 if (Utils.isEmpty(bulkImportFileRowObject.getOption()) || Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
-                    log.warn("Invalid row: " + i);
-                    continue;
-                }
-
-                if (!Utils.isEmpty(bulkImportFileRowObject.getOption()) && !Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
+                    log.error("TI: {}, invalid row: {}, option={}, url={}", targetInstanceId, i, bulkImportFileRowObject.getOption(), bulkImportFileRowObject.getUrl());
+                } else {
                     importFileRows.add(bulkImportFileRowObject);
                 }
             }

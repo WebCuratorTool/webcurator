@@ -82,7 +82,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         NetworkMapClient networkMapClient = new NetworkMapClientLocal(dbPool, null);
 
         IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
-        indexProcessor.init(processorManager, directoryManager, wctClient, networkMapClient);
+        indexProcessor.init(directoryManager, wctClient, networkMapClient);
         indexProcessor.processInternal();
     }
 

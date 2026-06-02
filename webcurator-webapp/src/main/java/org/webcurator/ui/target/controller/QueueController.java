@@ -49,7 +49,6 @@ import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.core.screenshot.ScreenshotPaths;
 import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
@@ -101,8 +100,6 @@ public class QueueController {
     private AgencyUserManager agencyUserManager;
     @Value("${queueController.thumbnailRenderer}")
     private String thumbnailRenderer = "browseTool";
-    @Autowired
-    private HarvestResourceUrlMapper harvestResourceUrlMapper;
     @Autowired
     private MessageSource messageSource;
 
@@ -983,10 +980,5 @@ public class QueueController {
     public void setWebappBaseUrl(String webappBaseUrl) {
         this.webappBaseUrl = webappBaseUrl;
     }
-
-    public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
-        this.harvestResourceUrlMapper = harvestResourceUrlMapper;
-    }
-
 
 }

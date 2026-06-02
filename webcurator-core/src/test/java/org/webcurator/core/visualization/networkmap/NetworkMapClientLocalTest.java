@@ -1,12 +1,10 @@
 package org.webcurator.core.visualization.networkmap;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapSimpleNodeCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +22,7 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         assert db != null;
 
         List<Long> allIDs = db.tblUrl.getAllEntities();
-        if (allIDs.size() == 0) {
+        if (allIDs.isEmpty()) {
             return;
         }
         int randomIndex = this.random(allIDs.size());
@@ -46,7 +44,7 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         assert db != null;
 
         List<Long> allIDs = db.tblFolder.getAllEntities();
-        if (allIDs.size() == 0) {
+        if (allIDs.isEmpty()) {
             return;
         }
         int randomIndex = this.random(allIDs.size());
@@ -55,13 +53,14 @@ public class NetworkMapClientLocalTest extends IndexProcessorTest {
         List<ModifyRowFullData> nodes = new ArrayList<>();
         ModifyRowFullData cmd = new ModifyRowFullData();
 
-        cmd.setId(allIDs.get(randomIndex));
-        cmd.setFolder(true);
-        nodes.add(cmd);
+        if (randomIndex >= 0 && randomIndex < allIDs.size()) {
+            cmd.setId(allIDs.get(randomIndex));
+            cmd.setFolder(true);
+            nodes.add(cmd);
 
-        NetworkMapResult rst = this.networkMapClient.queryChildrenRecursivelyFolder(this.targetInstanceId, this.harvestResultNumber, nodes);
-        assert !StringUtils.isEmpty(rst.getPayload());
-
+            NetworkMapResult rst = this.networkMapClient.queryChildrenRecursivelyFolder(this.targetInstanceId, this.harvestResultNumber, nodes);
+            assert !StringUtils.isEmpty(rst.getPayload());
+        }
 //        this.pool.close(this.targetInstanceId, this.harvestResultNumber);
     }
 }

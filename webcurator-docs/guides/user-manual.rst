@@ -1927,10 +1927,9 @@ listed at left, with three possible actions on the right:
 
 -  **Live Site** - Open the original web page in a new window
 
--  **Archives Harvested** - Open any known archived versions of the site in a new window.
-
--  **Web Archive** - Open the site entry page in the public archive (eg:
-   http://www.webarchive.org.uk or http://archive.org/web/web.php).
+-  Up to three optional links to other replay tools or archives, depending on the configuration. 
+   See the :doc:`System Administrator Guide <system-administrator-guide>` on how to configure 
+   these additional links.
 
 The **Review this harvest (WCT browse tool)** is no longer being
 updated, which means some pages may not render properly. It is useful as
@@ -1944,13 +1943,6 @@ is being maintained.
 The **Live Site** link is provided so you can quickly open the original
 site for a side-by-side comparison with the harvested version.
 
-The **Archived Harvests** link lets you compare your harvest with
-previous harvests of the website.
-
-**Web Archive** By default, the Web Curator Tool will open a list pages
-stored in the digital archive maintained by the Internet Archive, but
-your administrator can configure the tool to use your local archive
-instead.
 
 Quality review with the harvest history tool
 --------------------------------------------

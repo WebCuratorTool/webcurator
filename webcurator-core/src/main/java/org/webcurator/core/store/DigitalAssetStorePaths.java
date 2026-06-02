@@ -16,6 +16,9 @@ public class DigitalAssetStorePaths {
     public static final String CUSTOM_DEPOSIT_FORM_DETAILS = ROOT_PATH + "/custom-deposit-form-details";
     public static final String OPERATE_HARVEST_RESULT_MODIFICATION = ROOT_PATH + "/harvest-result-modification-action";
     public static final String PROGRESS_QUERY = ROOT_PATH + "/query/progress";
+    public static final String ABORT_INDEXING = ROOT_PATH + "/abort-index";
+    public static final String ABORT_PRUNE_IMPORT = ROOT_PATH + "/abort-prune-import";
+
 
     private DigitalAssetStorePaths() {
     }

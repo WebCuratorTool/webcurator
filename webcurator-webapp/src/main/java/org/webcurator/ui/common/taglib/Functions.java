@@ -15,6 +15,9 @@
  */
 package org.webcurator.ui.common.taglib;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -26,47 +29,62 @@ import java.util.Date;
  * @author bbeaumont
  */
 public class Functions {
+    private static final Logger log = LoggerFactory.getLogger(Functions.class);
 
-	/**
-	 * Test whether an int value is contained within a collection.
-	 *
-	 * @param coll  The collection to test membership of.
-	 * @param val   The int value to find.
-	 * @return      true if the value is in the collection; otherwise false.
-	 */
-	public static boolean contains(Collection coll, int val) {
-		return coll != null && coll.contains(new Integer(val));
-	}
 
-	/**
-	 * Tests whether the object is within the specified collection.
-	 *
-	 * @param coll  The collection to test membership of.
-	 * @param val   The value to find.
-	 * @return      true if the object is in the collection; otherwise false.
-	 */
-	public static boolean containsObj(Collection coll, Object val) {
-		return coll != null && coll.contains(val);
-	}
+    /**
+     * Test whether an int value is contained within a collection.
+     *
+     * @param coll The collection to test membership of.
+     * @param val  The int value to find.
+     * @return true if the value is in the collection; otherwise false.
+     */
+    public static boolean contains(Collection coll, int val) {
+        return coll != null && coll.contains(new Integer(val));
+    }
 
-	/**
-	 * Tests whether the specified number of hours have elapsed since the specified date.
-	 *
-	 * @param xHours  The specified number of hours.
-	 * @param theDate The date to check.
-	 * @return        true if the current time (now) is more than xHours after the input date; otherwise false.
-	 */
-	public static boolean xHoursElapsed(int xHours, Date theDate) {
+    /**
+     * Tests whether the object is within the specified collection.
+     *
+     * @param coll The collection to test membership of.
+     * @param val  The value to find.
+     * @return true if the object is in the collection; otherwise false.
+     */
+    public static boolean containsObj(Collection coll, Object val) {
+        return coll != null && coll.contains(val);
+    }
 
-		Calendar dateToTest = Calendar.getInstance();
-		dateToTest.setTime(theDate);
-		dateToTest.add(Calendar.HOUR, xHours);
+    /**
+     * Tests whether the specified number of hours have elapsed since the specified date.
+     *
+     * @param xHours  The specified number of hours.
+     * @param theDate The date to check.
+     * @return true if the current time (now) is more than xHours after the input date; otherwise false.
+     */
+    public static boolean xHoursElapsed(int xHours, Date theDate) {
+        log.debug("xHours={}, theDate={}", xHours, theDate);
+        Calendar dateToTest = Calendar.getInstance();
+        dateToTest.setTime(theDate);
+        dateToTest.add(Calendar.HOUR, xHours);
 
-		Calendar dateNow = Calendar.getInstance();
-		if (dateNow.after(dateToTest)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+        Calendar dateNow = Calendar.getInstance();
+        return dateNow.after(dateToTest);
+    }
+
+    /**
+     * Tests whether the specified number of seconds have elapsed since the specified date.
+     *
+     * @param xSeconds The specified number of seconds.
+     * @param theDate  The date to check.
+     * @return true if the current time (now) is more than xSeconds after the input date; otherwise false.
+     */
+    public static boolean xSecondsElapsed(int xSeconds, Date theDate) {
+        log.debug("xSeconds={}, theDate={}", xSeconds, theDate);
+        Calendar dateToTest = Calendar.getInstance();
+        dateToTest.setTime(theDate);
+        dateToTest.add(Calendar.SECOND, xSeconds);
+
+        Calendar dateNow = Calendar.getInstance();
+        return dateNow.after(dateToTest);
+    }
 }

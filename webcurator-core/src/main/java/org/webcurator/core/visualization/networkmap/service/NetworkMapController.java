@@ -17,6 +17,7 @@ public class NetworkMapController implements NetworkMapService {
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_INITIAL_INDEX, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult initialIndex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+        log.info("Received initial visualization index for: {} {}", job, harvestResultNumber);
         NetworkMapResult result = null;
         try {
             result = client.initialIndex(job, harvestResultNumber);

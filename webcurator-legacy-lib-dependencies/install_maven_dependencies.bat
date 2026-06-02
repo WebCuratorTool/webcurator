@@ -59,3 +59,7 @@ call call mvn install:install-file -DgroupId=policy -DartifactId=policy -Dversio
 
 call call mvn install:install-file -DgroupId=com.exlibris -DartifactId=dps-sdk -Dversion=7.1.0 -Dpackaging=jar -Dfile=wct-submit-to-rosetta/lib/dps-sdk-7.1.0.jar
 call call mvn install:install-file -DgroupId=com.exlibris -DartifactId=dps-sdk-deposit-api -Dversion=7.1.0 -Dpackaging=jar -Dfile=wct-submit-to-rosetta/lib/dps-sdk-deposit-api-7.1.0.jar
+
+# Install the retired libs
+call call mvn install:install-file -DgroupId=org.apache.hadoop -DartifactId=hadoop-core -Dversion=0.20.2-cdh3u4 -Dpackaging=jar -Dfile=libs/hadoop-core-0.20.2-cdh3u4.jar
+call call mvn install:install-file -DgroupId=oracle -DartifactId=ojdbc6 -Dversion=11.2.0.3 -Dpackaging=jar -Dfile=libs/ojdbc6-11.2.0.3.jar

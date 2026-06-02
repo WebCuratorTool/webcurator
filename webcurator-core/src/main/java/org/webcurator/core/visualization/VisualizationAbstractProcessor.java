@@ -3,6 +3,7 @@ package org.webcurator.core.visualization;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.client.ResourceAccessException;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
@@ -12,14 +13,14 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
-public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
+public abstract class VisualizationAbstractProcessor {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
     protected WctCoordinatorClient wctClient;
     protected NetworkMapService networkMapClient;
@@ -32,7 +33,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
     protected VisualizationProgressBar progressBar;
-    protected VisualizationProcessorManager processorManager;
     protected String flag; //MOD or IDX
     protected String reportTitle;
     protected FileWriter logWriter;
@@ -49,9 +49,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init(VisualizationProcessorManager processorManager, VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
+    public void init(VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
         this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.processorManager = processorManager;
         this.baseDir = directoryManager.getBaseDir();
         this.fileDir = directoryManager.getUploadDir(targetInstanceId);
         this.logsDir = directoryManager.getBaseLogDir(targetInstanceId);
@@ -77,7 +76,11 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
         this.statisticItems.clear();
 
-        this.initInternal();
+        try {
+            this.initInternal();
+        } catch (ConnectException | ResourceAccessException ex) {
+            log.error("Failed to init the task: {}", ex.getMessage());
+        }
     }
 
     abstract protected void initInternal() throws IOException;
@@ -91,20 +94,23 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     public boolean process() {
         try {
             this.status = HarvestResult.STATUS_RUNNING;
-            updateHarvestResultStatus();
+//            updateHarvestResultStatus();
             processInternal();
             this.close();
             return true;
+        } catch (ConnectException | ResourceAccessException e) {
+            log.error("Failed to process: {}", e.getMessage());
+            return false;
         } catch (Exception e) {
             log.error("Failed to process", e);
             return false;
         } finally {
-            this.progressBar.clear();
+            if (this.progressBar != null) {
+                this.progressBar.clear();
+            }
             if (this.status == HarvestResult.STATUS_RUNNING) {
                 this.status = HarvestResult.STATUS_FINISHED;
             }
-            processorManager.finalise(this);
-
             this.finished = true;
         }
     }
@@ -136,6 +142,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     protected void tryBlock() {
+        //Do nothing
+        /*
         if (!running) {
             try {
                 log.info("Going to wait");
@@ -145,9 +153,12 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
                 log.info("Failed to block", e);
             }
         }
+         */
     }
 
     public void writeLog(String content) {
+        log.debug(content);
+
         if (logWriter == null) {
             return;
         }
@@ -181,7 +192,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.state = HarvestResult.STATE_ABORTED;
         this.status = HarvestResult.STATUS_TERMINATED;
         terminateInternal();
-        updateHarvestResultStatus();
+//        updateHarvestResultStatus();
     }
 
     abstract protected void terminateInternal();
@@ -243,9 +254,11 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.status = status;
     }
 
-    public void updateHarvestResultStatus() {
-        wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
-    }
+//    public void updateHarvestResultStatus() {
+//        if (wctClient != null) {
+//            wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+//        }
+//    }
 
     public HarvestResultDTO getHarvestResultDTO() {
         HarvestResultDTO hrDTO = new HarvestResultDTO();
@@ -254,11 +267,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         hrDTO.setState(this.state);
         hrDTO.setStatus(this.status);
         return hrDTO;
-    }
-
-    @Override
-    public Boolean call() {
-        return process();
     }
 
     public void close() {

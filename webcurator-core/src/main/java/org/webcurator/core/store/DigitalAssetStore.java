@@ -30,7 +30,6 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 /**
  * The <code>DigitalAssetStore</code> interface is used by the WCT Core and
  * WCT Harvest Agent to interact with the digital asset store component.
- *
  */
 public interface DigitalAssetStore {
 
@@ -89,7 +88,7 @@ public interface DigitalAssetStore {
      * @param targetInstanceName The OID of the target instance to save the files to.
      * @param directory          The subdirectory under the target instance
      *                           directory to which to save the files.
-     * @param path              The files to send to the asset store.
+     * @param path               The files to send to the asset store.
      * @throws DigitalAssetStoreException if there are any errors.
      */
     void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException;
@@ -170,14 +169,7 @@ public interface DigitalAssetStore {
      */
     ModifyResult initialPruneAndImport(ModifyApplyCommand cmd);
 
-    /**
-     * To clear the patching Harvest Result, Index, and the Mod Harvest Files
-     *
-     * @param stage:            the stage of the request: crawling, modifying or indexing
-     * @param command:          the action of the command
-     * @param targetInstanceId: the ID of target instance
-     * @param harvestNumber:    the number of harvest result
-     * @throws DigitalAssetStoreException thrown if there is an error
-     */
-    void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
+    void abortIndexing(HarvestResultDTO dto);
+
+    void abortPruneAndImport(HarvestResultDTO dto);
 }

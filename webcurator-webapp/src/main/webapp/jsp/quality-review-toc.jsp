@@ -1,13 +1,41 @@
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
-
+<script language="javascript" src="scripts/jquery-3.4.1.min.js"></script>
 <script>
 	document.addEventListener('mouseup', function(e) {
-    var container = document.getElementById('thumbnailModal');
-    if (!container.contains(e.target)) {
-        container.style.display = 'none';
+        var container = document.getElementById('thumbnailModal');
+        if (!container.contains(e.target)) {
+            container.style.display = 'none';
+        }
+    });
+
+    function recreate(hrOid){
+        var recreateLive=$('#is-recreate-live').is(':checked');
+        var recreateIndex=$('#is-recreate-index').is(':checked');
+        var recreateHarvested=$('#is-recreate-harvested').is(':checked');
+        if(!recreateLive && !recreateIndex && !recreateHarvested){
+            alert("No operation is checked, the request will be ignored.");
+            return;
+        }
+
+        if(confirm('Reloading will abort the current result and create a new one. The Harvest Result will be reloaded and any changes since the last save will be lost. The harvested screenshot will be forced to regenerated if reindexing is applied. - continue?')) {
+            var reqUrl='curator/index/recreate?hrOid='+hrOid+'&recreateLive='+recreateLive+'&recreateIndex='+recreateIndex+'&recreateHarvested='+recreateHarvested;
+
+            fetch(reqUrl, {
+                method: 'GET',
+                redirect: 'follow',
+                headers: {'Content-Type': 'application/json'}
+            }).then((response) => {
+                return response.json();
+            }).then((response) => {
+                console.log(response);
+                alert(response["msg"]);
+            }).catch((error) => {
+              console.log(error);
+              alert(error);
+            });
+        }
     }
-});
 </script>
 
 <div id="resultsTable">
@@ -36,40 +64,42 @@
                 </td>
                 <td width="50%">
                   <c:if test="${seed.browseUrl != ''}">
-                  <a href="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/<c:out value="${seed.browseUrl}"/>" target="_blank">Review this Harvest</a>
+                  <a href="<c:out value="${seed.browseUrl}"/>" target="_blank">Review this Harvest</a>
                   |
                   </c:if>
                   <c:if test="${seed.accessUrl != ''}">
-                  <a href="<c:out value="${seed.accessUrl}"/>" target="_blank">Review in Access Tool</a>
+                    <a href="<c:out value="${seed.accessUrl}"/>" target="_blank">
+                    <c:choose>
+                        <c:when test="${seed.accessName != ''}"><c:out value="${seed.accessName}"/></c:when>
+                        <c:otherwise>Review in Access Tool</c:otherwise>
+                    </c:choose>
+                    </a>
                   |
                   </c:if>
-                  <a href="<c:out value="${seed.seed}"/>" target="_blank">Live Site</a>
+                  <a href="<c:out value="${seed.seedUrl}"/>" target="_blank">Live Site</a>
                   <c:choose>
-                    <c:when test="${archiveUrl == ''}"></c:when>
+                    <c:when test="${seed.archive1Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${archiveUrl}" escapeXml="false"/><c:out value="${seed.seed}"/>" target="_blank">
+                    | <a href="<c:out value="${seed.archive1Url}" escapeXml="false"/>" target="_blank">
                           <c:choose>
-                            <c:when test="${archiveName == ''}">Archives Harvested</c:when>
-                            <c:otherwise><c:out value="${archiveName}"/></c:otherwise>
+                            <c:when test="${archive1Name == ''}">Archives Harvested</c:when>
+                            <c:otherwise><c:out value="${archive1Name}"/></c:otherwise>
                           </c:choose>
                       </a>
                     </c:otherwise>
                   </c:choose>
                   <c:choose>
-                    <c:when test="${archiveAlternative == ''}"></c:when>
+                    <c:when test="${seed.archive2Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${archiveAlternative}" escapeXml="false"/><c:out value="${seed.seed}"/>" target="_blank"><c:out value="${archiveAlternativeName}"/></a>
+                    | <a href="<c:out value="${seed.archive2Url}" escapeXml="false"/>" target="_blank"><c:out value="${archive2Name}"/></a>
                     </c:otherwise>
                   </c:choose>
                   <c:choose>
-                    <c:when test="${webArchiveTarget == ''}">
-                    | Web Archive not configured
-                    </c:when>
+                    <c:when test="${seed.archive3Url == ''}"></c:when>
                     <c:otherwise>
-                    | <a href="<c:out value="${webArchiveTarget}" escapeXml="false"/><c:out value="${targetOid}"/>" target="_blank">Web Archive</a></td>
+                    | <a href="<c:out value="${seed.archive3Url}" escapeXml="false"/>" target="_blank"><c:out value="${archive3Name}"/></a>
                     </c:otherwise>
                   </c:choose>
-
                 </td>
 
                 <c:if test="${enableScreenshots && thumbnailRenderer eq 'screenshotTool'}">
@@ -95,32 +125,98 @@
 		</tr>
 		<tr>
 			<td width="30%" class="tableHead">Tool</td>
-			<td width="70%" class="tableHead">Description</td>			
+			<td width="70%" colspan="3" class="tableHead">Description</td>
 		</tr>
-		
+
+<%--		<tr>--%>
+<%--            <td width="30%">--%>
+<%--                <a href="javascript: recreate(${command.harvestResultId});">Recreate screenshot or reindex</a>--%>
+<%--                <!--input type="submit" value="Recreate screenshot or reindex"-->--%>
+<%--            </td>--%>
+<%--            <td width="70%" colspan="3">--%>
+<%--                <ul class="reindexOptions">--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${enableScreenshots}">--%>
+<%--                                <c:choose>--%>
+<%--                                    <c:when test="${screenshotState.liveScreenshot}">--%>
+<%--                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live">--%>
+<%--                                        <label for="is-recreate-live">Live screenshot (&radic;)</label>--%>
+<%--                                    </c:when>--%>
+<%--                                    <c:otherwise>--%>
+<%--                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live" checked>--%>
+<%--                                        <label for="is-recreate-live">Live screenshot(&empty;)</label>--%>
+<%--                                    </c:otherwise>--%>
+<%--                                </c:choose>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-live" name="is-recreate-live" disabled>--%>
+<%--                                <label for="is-recreate-live">Live screenshot</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${screenshotState.indexAvailable}">--%>
+<%--                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index">--%>
+<%--                                <label for="is-recreate-index">Playback indexes (&radic;)</label>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index" checked>--%>
+<%--                                <label for="is-recreate-index">Playback indexes(&empty;)</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${enableScreenshots}">--%>
+<%--                                <c:choose>--%>
+<%--                                    <c:when test="${screenshotState.harvestedScreenshot}">--%>
+<%--                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested">--%>
+<%--                                        <label for="is-recreate-harvested">Harvested screenshot (&radic;)</label>--%>
+<%--                                    </c:when>--%>
+<%--                                    <c:otherwise>--%>
+<%--                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" checked>--%>
+<%--                                        <label for="is-recreate-harvested">Harvested screenshot(&empty;)</label>--%>
+<%--                                    </c:otherwise>--%>
+<%--                                </c:choose>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" disabled>--%>
+<%--                                <label for="is-recreate-harvested">Harvested screenshot</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                </ul>--%>
+<%--            </td>--%>
+<%--        </tr>--%>
+<%--        <tr>--%>
+<%--            <td colspan="4" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>--%>
+<%--        </tr>--%>
+
 		<tr>
 			<td width="30%"><a href="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/tools/harvest-history.html?targetInstanceOid=<c:out value="${command.targetInstanceOid}"/>&harvestResultId=<c:out value="${command.harvestResultId}"/>">Harvest History</a></td>
-			<td width="70%">Compare current harvest result with previous harvests.</td>			
+			<td width="70%" colspan="3">Compare current harvest result with previous harvests.</td>
 		</tr>
 		<tr>
-			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
+			<td colspan="4" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 		</tr>	
 		<!--tr>
 			<td width="30%"><a href="curator/tools/treetool.html?loadTree=<c:out value="${command.harvestResultId}"/>&targetInstanceOid=<c:out value="${targetInstanceOid}"/>&logFileName=aqa-report(<c:out value="${command.harvestNumber}"/>).xml">Tree View</a></td>			
-			<td width="70%">Graphical view of harvested data.</td>			
+			<td width="70%" colspan="3">Graphical view of harvested data.</td>
 		</tr-->
 		<tr>
             <td width="30%"><a href="curator/target/harvest-result-networkmap.html?targetInstanceOid=${targetInstanceOid}&harvestResultId=${command.harvestResultId}&harvestNumber=${command.harvestNumber}">Harvest Analysis and Patching</a></td>
-            <td width="70%">Analyse harvested data through visualization and tree views, while importing and pruning missing or unwanted content.</td>
+            <td width="70%" colspan="3">Analyse harvested data through visualization and tree views, while importing and pruning missing or unwanted content.</td>
         </tr>
 		<tr>
-			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
+			<td colspan="4" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 		</tr>
 		<tr>
-			<td colsapan="2">&nbsp;</td>
+			<td colsapan="4">&nbsp;</td>
 		</tr>	
 		<tr class="   ">
-			<td width="30%"><a href="curator/target/target-instance.html?targetInstanceId=<c:out value="${targetInstanceOid}&cmd=edit&init_tab=RESULTS"/>"><img src="images/generic-btn-done.gif" border="0"></a></td>			
+			<td width="30%"><a id="quality-review-toc-done" href="curator/target/target-instance.html?targetInstanceId=<c:out value="${targetInstanceOid}&cmd=edit&init_tab=RESULTS"/>"><img src="images/generic-btn-done.gif" border="0"></a></td>
 		    <td width="70%">&nbsp;</td>
 		</tr>
 	</table>

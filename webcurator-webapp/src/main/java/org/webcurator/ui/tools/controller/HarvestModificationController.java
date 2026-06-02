@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
@@ -45,29 +44,6 @@ public class HarvestModificationController implements ModifyService {
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST, produces = "application/json")
     public ModifyResult applyPruneAndImport(@RequestBody ModifyApplyCommand cmd) {
         return wctCoordinator.applyPruneAndImport(cmd);
-    }
-
-    @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
-    public ModifyResult operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) {
-        ModifyResult result = new ModifyResult();
-        try {
-            if (command.equalsIgnoreCase("start")) {
-                harvestModificationHandler.clickStart(targetInstanceId, harvestNumber);
-            } else if (command.equalsIgnoreCase("pause")) {
-                harvestModificationHandler.clickPause(targetInstanceId, harvestNumber);
-            } else if (command.equalsIgnoreCase("resume")) {
-                harvestModificationHandler.clickResume(targetInstanceId, harvestNumber);
-            } else if (command.equalsIgnoreCase("terminate")) {
-                harvestModificationHandler.clickTerminate(targetInstanceId, harvestNumber);
-            } else if (command.equalsIgnoreCase("delete")) {
-                harvestModificationHandler.clickDelete(targetInstanceId, harvestNumber);
-            }
-        } catch (DigitalAssetStoreException | WCTRuntimeException e) {
-            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
-            result.setRespMsg(e.getMessage());
-        }
-
-        return result;
     }
 
     @RequestMapping(path = "/curator/target/patching-hr-view-data", method = {RequestMethod.POST, RequestMethod.GET})

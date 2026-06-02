@@ -46,7 +46,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         f.deleteOnExit(); //Clear the existing db
 
         indexer = new IndexProcessorWarc(pool, targetInstanceId, harvestResultNumber);
-        indexer.init(processorManager, directoryManager, wctClient, networkMapClient);
+        indexer.init(directoryManager, wctClient, networkMapClient);
     }
 
     @Test

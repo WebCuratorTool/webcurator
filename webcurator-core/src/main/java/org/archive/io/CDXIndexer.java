@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.netpreserve.jwarc.*;
 import org.netpreserve.jwarc.cdx.CdxFormat;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.IndexerBase;
 import org.webcurator.core.store.RunnableIndex;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -20,18 +19,12 @@ import java.util.regex.Pattern;
 public class CDXIndexer extends IndexerBase {
     private static Log log = LogFactory.getLog(CDXIndexer.class);
 
-    private HarvestResultDTO result;
-    private File directory;
     private boolean enabled = false;
     private String format = CdxFormat.CDX11.legend();
     private boolean useSurt = false;
 
     public CDXIndexer() {
         super();
-    }
-
-    public CDXIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
     }
 
     protected CDXIndexer(CDXIndexer original) {
@@ -60,6 +53,10 @@ public class CDXIndexer extends IndexerBase {
             cdxWriter.write(" CDX " + format);
             cdxWriter.newLine();
             while (record != null) {
+                if (!this.isRunning) {
+                    break;
+                }
+                
                 try {
                     if ((record instanceof WarcResponse || record instanceof WarcResource) &&
                             ((WarcCaptureRecord) record).payload().isPresent()) {
@@ -112,6 +109,10 @@ public class CDXIndexer extends IndexerBase {
             log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
         } else {
             for (File f : fileList) {
+                if (!this.isRunning) {
+                    break;
+                }
+
                 try {
                     log.info("Indexing " + f.getName());
                     writeCDXIndex(f);
@@ -135,16 +136,6 @@ public class CDXIndexer extends IndexerBase {
         return getClass().getCanonicalName();
     }
 
-    @Override
-    public void initialise(HarvestResultDTO result, File directory) {
-        this.result = result;
-        this.directory = directory;
-    }
-
-    @Override
-    protected HarvestResultDTO getResult() {
-        return result;
-    }
 
     @Override
     public RunnableIndex getCopy() {
@@ -158,6 +149,11 @@ public class CDXIndexer extends IndexerBase {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void close() {
+        this.isRunning = false;
     }
 
     public String getFormat() {

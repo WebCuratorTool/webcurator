@@ -42,7 +42,7 @@ public class HarvestResultManager {
         }
 
         //Refresh state, status and progress
-        if (hrDTO.getState() == HarvestResult.STATE_MODIFYING || hrDTO.getState() == HarvestResult.STATE_INDEXING) {
+        if (hrDTO.getState() == HarvestResult.STATE_MODIFYING || hrDTO.getState() == HarvestResult.STATE_INDEXING ) {
             NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceId, harvestResultNumber);
             if (progressBar.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
                 VisualizationProgressView progressView = VisualizationProgressView.getInstance(progressBar.getPayload());
@@ -54,6 +54,16 @@ public class HarvestResultManager {
             }
         }
 
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
+        if (ti == null || ti.getHarvestResult(harvestResultNumber) == null) {
+            log.info("Harvest Result does not exist, {}-{}", targetInstanceId, harvestResultNumber);
+            return null;
+        }
+
+        if(ti.getState().equalsIgnoreCase(TargetInstance.STATE_HARVESTED)){
+            hrDTO.setState(HarvestResult.STATE_UNASSESSED);
+            hrDTO.setStatus(HarvestResult.STATUS_FINISHED);
+        }
         return hrDTO;
     }
 
@@ -87,7 +97,7 @@ public class HarvestResultManager {
     }
 
     private HarvestResultDTO initHarvestResultDTO(long targetInstanceId, int harvestResultNumber) {
-        HarvestResultDTO hrDTO = null;
+        HarvestResultDTO hrDTO ;
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
         if (ti == null || ti.getHarvestResult(harvestResultNumber) == null) {
