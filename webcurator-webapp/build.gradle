@@ -1,7 +1,7 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
-    id 'org.springframework.boot' version '2.5.12'
+    id 'org.springframework.boot' version '4.1.0'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
     id 'maven-publish'
@@ -22,7 +22,7 @@ repositories {
     }
 
     maven {
-        url = 'http://www.datanucleus.org/downloads/maven2/'
+        url = 'https://www.datanucleus.org/downloads/maven2/'
     }
 }
 
@@ -37,8 +37,10 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 
 // this needs to be set after the 'java' plugin has been applied
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.25
+}
 
 configurations {
     publishableArtifacts

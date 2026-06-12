@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '2.5.12'
+    id 'org.springframework.boot' version '4.1.0'
     id 'war'
 }
 
@@ -58,7 +58,11 @@ dependencies {
 group = 'org.webcurator'
 version = '3.2.5-SNAPSHOT'
 description = 'Web Curator Tool Digital Asset Store'
-sourceCompatibility = '1.8'
+
+java {
+	sourceCompatibility = '1.8'
+	targetCompatibility = '1.25'
+}
 
 task sourcesJar(type: Jar) {
     archiveClassifier.set('sources')
