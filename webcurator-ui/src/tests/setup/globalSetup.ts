@@ -8,7 +8,9 @@ export default async function globalSetup() {
   const apiRootPath = env.VITE_API_ROOT_PATH || process.env.VITE_API_ROOT_PATH;
 
   if (!username || !password || !apiRootPath) {
-    throw new Error("Missing test auth env vars. Set VITE_TEST_USERNAME, VITE_TEST_PASSWORD, and VITE_API_ROOT_PATH.");
+    throw new Error(
+      "Missing test auth env vars. Set VITE_TEST_USERNAME, VITE_TEST_PASSWORD, and VITE_API_ROOT_PATH.",
+    );
   }
 
   const credentials = new URLSearchParams({ username, password });
@@ -23,7 +25,9 @@ export default async function globalSetup() {
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`Test login failed (${response.status} ${response.statusText}): ${errorBody}`);
+    throw new Error(
+      `Test login failed (${response.status} ${response.statusText}): ${errorBody}`,
+    );
   }
 
   const token = (await response.text()).trim();
