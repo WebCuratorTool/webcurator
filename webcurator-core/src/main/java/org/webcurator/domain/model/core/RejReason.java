@@ -20,9 +20,9 @@ import java.io.Serializable;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * A Rejection Reason represents the justification a user specified when setting a Target's 

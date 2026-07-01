@@ -20,7 +20,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringBufferInputStream;
 
-import javax.activation.DataSource;
+import jakarta.activation.DataSource;
 
 /**
  * Allows a String's contents to be passed around as an InputStream

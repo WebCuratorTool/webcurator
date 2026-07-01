@@ -19,9 +19,9 @@ import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrate
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.UrlPattern;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 
 /**

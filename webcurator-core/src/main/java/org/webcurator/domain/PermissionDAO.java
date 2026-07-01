@@ -20,7 +20,7 @@ import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.core.Permission;
 
-import javax.persistence.Query;
+import jakarta.persistence.Query;
 import java.util.List;
 
 /**

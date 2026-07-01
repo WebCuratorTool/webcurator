@@ -34,9 +34,9 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * A TargetInstance represents a particular harvest at a given date and

@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;

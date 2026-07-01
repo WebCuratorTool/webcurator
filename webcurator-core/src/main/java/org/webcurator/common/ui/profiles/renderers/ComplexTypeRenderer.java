@@ -18,8 +18,8 @@ package org.webcurator.common.ui.profiles.renderers;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.PageContext;
 
 import org.webcurator.core.profiles.ComplexProfileElement;
 import org.webcurator.core.profiles.ProfileElement;

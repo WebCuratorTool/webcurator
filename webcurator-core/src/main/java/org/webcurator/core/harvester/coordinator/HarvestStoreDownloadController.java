@@ -7,8 +7,8 @@ import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.WctUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

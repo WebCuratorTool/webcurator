@@ -16,8 +16,8 @@
 
 package org.webcurator.domain.model.core;
 
-import javax.validation.constraints.Size;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;

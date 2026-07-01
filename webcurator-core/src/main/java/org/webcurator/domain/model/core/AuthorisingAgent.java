@@ -15,9 +15,9 @@
  */
 package org.webcurator.domain.model.core;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;

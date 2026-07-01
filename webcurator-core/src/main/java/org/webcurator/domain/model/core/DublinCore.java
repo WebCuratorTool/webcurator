@@ -15,9 +15,9 @@
  */
 package org.webcurator.domain.model.core;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * The DublinCore class contains the basic meta data description fields to be associated with an

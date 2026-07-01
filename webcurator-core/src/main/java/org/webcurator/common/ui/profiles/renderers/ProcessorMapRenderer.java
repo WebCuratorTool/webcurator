@@ -21,8 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.management.MBeanAttributeInfo;
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.PageContext;
 
 import org.archive.crawler.settings.MapType;
 import org.archive.crawler.settings.ModuleAttributeInfo;

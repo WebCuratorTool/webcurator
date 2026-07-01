@@ -21,9 +21,9 @@ import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import java.util.*;
 
 /**

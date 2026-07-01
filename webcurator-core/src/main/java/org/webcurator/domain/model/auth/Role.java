@@ -21,9 +21,9 @@ import java.util.Set;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.AgencyOwnable;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * The Role class defines the relationship between users and privilege

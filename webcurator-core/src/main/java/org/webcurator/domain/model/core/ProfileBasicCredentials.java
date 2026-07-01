@@ -17,8 +17,8 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.validation.constraints.Size;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
 
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;

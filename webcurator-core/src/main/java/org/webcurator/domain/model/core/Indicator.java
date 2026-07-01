@@ -10,8 +10,8 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.util.ConverterUtil;
 import org.webcurator.domain.model.auth.Agency;
 
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * An <code>Indicator</code> represents a metric used to measure the

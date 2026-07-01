@@ -17,9 +17,9 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;

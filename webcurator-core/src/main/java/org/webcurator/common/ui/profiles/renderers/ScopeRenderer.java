@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.PageContext;
 
 import org.archive.crawler.framework.CrawlScope;
 import org.webcurator.core.profiles.ComplexProfileElement;

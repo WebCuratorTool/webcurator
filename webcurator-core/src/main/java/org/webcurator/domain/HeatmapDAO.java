@@ -15,7 +15,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.HeatmapConfig;
 
-import javax.transaction.Transactional;
+import jakarta.transaction.Transactional;
 
 @Transactional
 public class HeatmapDAO extends HibernateDaoSupport {

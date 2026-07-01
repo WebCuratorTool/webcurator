@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.activation.FileDataSource;
+import jakarta.activation.FileDataSource;
 
 public class TempFileDataSource extends FileDataSource {
 	public TempFileDataSource(File file) {

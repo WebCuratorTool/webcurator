@@ -9,9 +9,9 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 
-import javax.lang.model.type.NullType;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.lang.model.type.NullType;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;

@@ -6,8 +6,8 @@ import java.util.Set;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * An <code>IndicatorCriteria</code> defines the tolerance and limit values

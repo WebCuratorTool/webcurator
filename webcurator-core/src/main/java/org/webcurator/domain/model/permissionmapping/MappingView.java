@@ -19,9 +19,9 @@ import java.util.Date;
 
 import org.webcurator.core.util.WctUtils;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 
 /**

@@ -5,7 +5,7 @@ import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
-import javax.activation.DataHandler;
+import jakarta.activation.DataHandler;
 import java.util.Map;
 
 public interface DigitalAssetStoreService {

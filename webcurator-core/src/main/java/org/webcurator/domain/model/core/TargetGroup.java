@@ -24,8 +24,8 @@ import java.util.Set;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
-import javax.validation.constraints.Size;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
 
 /**
  * A TargetGroup contains a number of child targets or target groups.

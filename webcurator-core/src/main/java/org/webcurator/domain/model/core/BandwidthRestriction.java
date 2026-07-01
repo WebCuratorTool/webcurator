@@ -24,9 +24,9 @@ import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * The hibernate object for persisting bandwidth restrictions for the WCT.

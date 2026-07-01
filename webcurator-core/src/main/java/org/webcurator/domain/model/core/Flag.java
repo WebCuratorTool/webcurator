@@ -3,8 +3,8 @@ package org.webcurator.domain.model.core;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 /**
  * An <code>Flag</code> represents an arbitrary grouping of <code>TargetInstance</code>s

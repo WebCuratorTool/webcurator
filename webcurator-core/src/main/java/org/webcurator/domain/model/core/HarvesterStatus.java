@@ -19,8 +19,8 @@ import org.hibernate.annotations.Formula;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
-import javax.validation.constraints.Size;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
 
 /**
  * The status of a harvest.

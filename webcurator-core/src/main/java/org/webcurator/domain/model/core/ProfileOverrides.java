@@ -21,9 +21,9 @@ import java.util.List;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.validation.constraints.Size;
-import javax.validation.constraints.NotNull;
-import javax.persistence.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
