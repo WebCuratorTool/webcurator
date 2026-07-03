@@ -8,6 +8,7 @@ import {
   HomePagePath,
   LoginPagePath,
   sleep,
+  useAuthStore,
   useFetch,
 } from "@/utils/rest.api";
 
@@ -49,6 +50,11 @@ describe("rest.api", () => {
     beforeEach(() => {
       setActivePinia(createPinia());
       vi.clearAllMocks();
+      confirmRequireMock.mockImplementation(
+        (options: { accept?: () => void }) => {
+          options.accept?.();
+        },
+      );
       const userProfile = useUserProfileStore();
       userProfile.setToken("testuser", "test-token-123");
     });
@@ -209,6 +215,202 @@ describe("rest.api", () => {
       const result = await api.delete("/items/1");
 
       expect(result).toBe(204);
+    });
+  });
+
+  describe("useFetch - exceptional cases", () => {
+    beforeEach(() => {
+      setActivePinia(createPinia());
+      vi.clearAllMocks();
+      confirmRequireMock.mockImplementation(
+        (options: { accept?: () => void }) => {
+          options.accept?.();
+        },
+      );
+      const userProfile = useUserProfileStore();
+      userProfile.setToken("testuser", "test-token-123");
+    });
+
+    it("retries and fails for reverse proxy 502", async () => {
+      vi.useFakeTimers();
+      global.fetch = vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: "Bad Gateway" }), {
+            status: 502,
+            headers: { "content-type": "application/json" },
+          }),
+        ),
+      );
+
+      const api = useFetch();
+      const promise = api.get("/items");
+
+      await vi.advanceTimersByTimeAsync(40000);
+      const result = await promise;
+
+      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      expect(toastAddMock).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
+    });
+
+    it("retries and fails for reverse proxy 504", async () => {
+      vi.useFakeTimers();
+      global.fetch = vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ error: "Gateway Timeout" }), {
+            status: 504,
+            headers: { "content-type": "application/json" },
+          }),
+        ),
+      );
+
+      const api = useFetch();
+      const promise = api.get("/items");
+
+      await vi.advanceTimersByTimeAsync(40000);
+      const result = await promise;
+
+      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      expect(toastAddMock).toHaveBeenCalledTimes(2);
+
+      vi.useRealTimers();
+    });
+
+    it("handles non-2xx error when response content is not empty", async () => {
+      const mockResponse = new Response("Validation failed", {
+        status: 400,
+        statusText: "Bad Request",
+        headers: { "content-type": "text/plain" },
+      });
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      const confirmOptions = confirmRequireMock.mock.calls[0][0] as {
+        message: string;
+      };
+      expect(confirmOptions.message).toBe("Validation failed");
+    });
+
+    it("handles non-2xx error when response content is empty", async () => {
+      const mockResponse = new Response("", {
+        status: 400,
+        statusText: "",
+        headers: { "content-type": "text/plain" },
+      });
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      const confirmOptions = confirmRequireMock.mock.calls[0][0] as {
+        message: string;
+      };
+      expect(confirmOptions.message).toBe("Bad Request");
+    });
+
+    it("handles non-2xx error when statusText is not empty", async () => {
+      const mockResponse = new Response(null, {
+        status: 400,
+        statusText: "Request failed by app server",
+      });
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      const confirmOptions = confirmRequireMock.mock.calls[0][0] as {
+        message: string;
+      };
+      expect(confirmOptions.message).toBe("Request failed by app server");
+    });
+
+    it("handles non-2xx error when statusText is empty", async () => {
+      const mockResponse = new Response(null, {
+        status: 499,
+        statusText: "",
+      });
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(result).toBeNull();
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      const confirmOptions = confirmRequireMock.mock.calls[0][0] as {
+        message: string;
+      };
+      expect(confirmOptions.message).toBe("User request error");
+    });
+
+    it("re-authenticates when response status is 401", async () => {
+      const authStore = useAuthStore();
+      const startLoginSpy = vi
+        .spyOn(authStore, "startLogin")
+        .mockImplementation(() => {});
+
+      global.fetch = vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(null, {
+            status: 401,
+            statusText: "Unauthorized",
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ id: 101, name: "Recovered" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+        );
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(startLoginSpy).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 101, name: "Recovered" });
+      expect(confirmRequireMock).not.toHaveBeenCalled();
+    });
+
+    it("handles forbidden response status 403 then succeeds", async () => {
+      global.fetch = vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ error: "Forbidden action" }), {
+            status: 403,
+            headers: { "content-type": "application/json" },
+          }),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify({ id: 102, name: "Allowed" }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          }),
+        );
+
+      const api = useFetch();
+      const result = await api.get("/items");
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({ id: 102, name: "Allowed" });
+      expect(confirmRequireMock).toHaveBeenCalledTimes(1);
+      const confirmOptions = confirmRequireMock.mock.calls[0][0] as {
+        message: string;
+      };
+      expect(confirmOptions.message).toBe("Forbidden action");
     });
   });
 });
