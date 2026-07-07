@@ -1,0 +1,17 @@
+{
+    "dashboard": {
+        "dashboard": "Dashboard"
+    },
+    "target": {
+        "target": "Target",
+        "targets": "Targets",
+        "tabs": {
+            "general": "General",
+            "description": "Description",
+            "profile": "Profile",
+            "harvests": "Harvests",
+            "annotations": "Annotations",
+            "access": "Access"
+        }
+    }
+}

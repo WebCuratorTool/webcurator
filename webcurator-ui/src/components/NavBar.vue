@@ -4,13 +4,23 @@
       <img class="logo" src="@/assets/wct_logo.png" />
       <div class="flex w-full justify-between">
         <div class="nav-bar-links">
-          <router-link class="nav-bar-link" to="/dashboard"
-            >Dashboard</router-link
-          >
-          <router-link class="nav-bar-link" to="/targets">Targets</router-link>
+          <router-link class="nav-bar-link" to="/dashboard">{{
+            t("dashboard.dashboard")
+          }}</router-link>
+          <router-link class="nav-bar-link" to="/targets">{{
+            t("target.targets")
+          }}</router-link>
         </div>
         <div class="nav-bar-links pr-4">
           <Button label="Logout" @click="logout" />
+          <Select
+            v-model="locale"
+            class="locale-select my-auto ml-4"
+            :options="localeOptions"
+            optionLabel="label"
+            optionValue="value"
+            aria-label="Select locale"
+          />
           <ToggleSwitch
             class="my-auto ml-4"
             :modelValue="layoutConfig.darkTheme.value"
@@ -23,11 +33,18 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 import { useLayout } from "@/layout/composables/layout";
 import { useAuthStore } from "@/utils/rest.api";
 import { toggleThemeMode } from "@/utils/themes";
 
 const authStore = useAuthStore();
+const { locale, t } = useI18n();
+const localeOptions = [
+  { label: "EN", value: "en" },
+  { label: "MI", value: "mi" },
+];
 
 const { layoutConfig } = useLayout();
 

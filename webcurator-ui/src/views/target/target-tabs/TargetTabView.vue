@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 import { formatTargetState, useTargetGeneralDTO } from "@/stores/target";
 import { formatDate } from "@/utils/helper";
 
@@ -22,6 +24,7 @@ defineEmits<{
 }>();
 
 const targetGeneral = useTargetGeneralDTO();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -71,22 +74,12 @@ const targetGeneral = useTargetGeneralDTO();
   <div class="2xl:w-5/6">
     <Tabs value="0" class="tabview-custom w-full">
       <TabList>
-        <Tab value="0">General</Tab>
-        <Tab value="1" :disabled="editing && targetGeneral.name === ''"
-          >Description</Tab
-        >
-        <Tab value="2" :disabled="editing && targetGeneral.name === ''"
-          >Profile</Tab
-        >
-        <Tab value="3" :disabled="editing && targetGeneral.name === ''"
-          >Harvests</Tab
-        >
-        <Tab value="4" :disabled="editing && targetGeneral.name === ''"
-          >Annotations</Tab
-        >
-        <Tab value="5" :disabled="editing && targetGeneral.name === ''"
-          >Access</Tab
-        >
+        <Tab value="0">{{ t("target.tabs.general") }}</Tab>
+        <Tab value="1">{{ t("target.tabs.description") }}</Tab>
+        <Tab value="2">{{ t("target.tabs.profile") }}</Tab>
+        <Tab value="3">{{ t("target.tabs.harvests") }}</Tab>
+        <Tab value="4">{{ t("target.tabs.annotations") }}</Tab>
+        <Tab value="5">{{ t("target.tabs.access") }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="0">

@@ -1,0 +1,17 @@
+{
+    "dashboard": {
+        "dashboard": "Papatohu"
+    },
+    "target": {
+        "target": "Whāinga",
+        "targets": "Ngā Whāinga",
+        "tabs": {
+            "general": "Whānui",
+            "description": "Whakaaturanga",
+            "profile": "Kōtaha",
+            "harvests": "Hauhaketanga",
+            "annotations": "Tuhipoka",
+            "access": "Uru"
+        }
+    }
+}
