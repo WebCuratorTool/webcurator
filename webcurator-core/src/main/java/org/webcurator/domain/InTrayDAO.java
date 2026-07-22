@@ -15,22 +15,17 @@
  */
 package org.webcurator.domain;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
@@ -47,6 +42,11 @@ import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Notification;
 import org.webcurator.domain.model.core.Task;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Persistence methods commonly used by the In-tray
@@ -99,7 +99,7 @@ public class InTrayDAO extends HibernateDaoSupport {
 			public Object doInHibernate(Session session) throws HibernateException {
 				
 				Query query = session.createQuery("select count(*) from Notification n where n.recipientOid = :userOid ");
-				query.setLong("userOid", userOid);
+				query.setParameter("userOid", userOid, Long.class);
 				
 				return ((Number) query.uniqueResult()).longValue();
 			}
@@ -156,25 +156,38 @@ public class InTrayDAO extends HibernateDaoSupport {
         return (Pagination) getHibernateTemplate().execute(new HibernateCallback() {
   
             public Object doInHibernate(Session aSession) throws HibernateException {
-                Criteria query = aSession.createCriteria(Task.class);
-                
-                Disjunction dis = Restrictions.disjunction();
-                
-                for(RolePrivilege userPriv: privs) {
-                  dis.add(Restrictions.eq("privilege", userPriv.getPrivilege()));
-                }
-                dis.add(Restrictions.eq("assigneeOid",user.getOid()));
 
-                query.add(dis);
-                query.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
-                query.addOrder(Order.desc("sentDate"));
-                
-                Criteria cntQuery = aSession.createCriteria(Task.class);
-                cntQuery.add(dis);
-                cntQuery.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
-                cntQuery.setProjection(Projections.rowCount());
-                
-                return new Pagination(cntQuery, query, pageNum, pageSize);
+                CriteriaBuilder cb = aSession.getCriteriaBuilder();
+                CriteriaQuery<Task> query = cb.createQuery(Task.class);
+                CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+                Root<Task> root = query.from(Task.class);
+                Root<Task> cntRoot = cntQuery.from(Task.class);
+                query.select(root);
+                cntQuery.select(cb.count(cntRoot));
+
+
+                List<Predicate> disjunction = new ArrayList<>();
+                List<Predicate> cntDisjunction = new ArrayList<>();
+                for(RolePrivilege userPriv: privs) {
+                    disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
+                    cntDisjunction.add(cb.equal(cntRoot.get("privilege"), userPriv.getPrivilege()));
+                }
+                disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
+                cntDisjunction.add(cb.equal(cntRoot.get("assigneeOid"), user.getOid()));
+                Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+                Predicate cntPrivsPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
+
+                Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
+                Predicate cntAgencyPredicate = cb.equal(cntRoot.get("agency").get("oid"), user.getAgency().getOid());
+
+                Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
+                Predicate cntWhereClause = cb.and(cntPrivsPredicate, cntAgencyPredicate);
+                query.where(whereClause);
+                cntQuery.where(cntWhereClause);
+
+                query.orderBy(cb.desc(root.get("sentDate")));
+
+                return new Pagination(aSession.createQuery(cntQuery), aSession.createQuery(query), pageNum, pageSize);
             }
         });
     }
@@ -182,20 +195,25 @@ public class InTrayDAO extends HibernateDaoSupport {
     public long countTasks(final User user, final List<RolePrivilege> privs) {
     	return (Long) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException {
-				
-				Criteria query = session.createCriteria(Task.class);
-				query.setProjection(Projections.rowCount());
-                Disjunction dis = Restrictions.disjunction();
-                
-                for(RolePrivilege userPriv: privs) {
-                  dis.add(Restrictions.eq("privilege", userPriv.getPrivilege()));
-                }
-                dis.add(Restrictions.eq("assigneeOid",user.getOid()));
 
-                query.add(dis);
-                query.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
-                                
-                Long count = (Long) query.uniqueResult();
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                Root<Task> root = query.from(Task.class);
+                query.select(cb.count(root));
+
+                List<Predicate> disjunction = new ArrayList<>();
+                for(RolePrivilege userPriv: privs) {
+                    disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
+                }
+                disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
+                Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+
+                Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
+
+                Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
+                query.where(whereClause);
+
+                Long count = (Long) session.createQuery(query).uniqueResult();
                 
                 return count;
 			}
@@ -206,13 +224,20 @@ public class InTrayDAO extends HibernateDaoSupport {
         return (Task) getHibernateTemplate().execute(new HibernateCallback() {
   
             public Object doInHibernate(Session aSession) throws HibernateException {
-                Criteria query = aSession.createCriteria(Task.class);
 
-                query.add(Restrictions.eq("resourceOid", aResourceOid));                
-                query.add(Restrictions.eq("resourceType", aResourceType));
-                query.add(Restrictions.eq("messageType", aTaskType));
-                                
-                return query.uniqueResult();
+                CriteriaBuilder cb = aSession.getCriteriaBuilder();
+                CriteriaQuery<Task> query = cb.createQuery(Task.class);
+                Root<Task> root = query.from(Task.class);
+                query.select(root);
+
+                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
+                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
+                Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
+
+                Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
+                query.where(whereClause);
+
+                return aSession.createQuery(query).uniqueResult();
             }            
         });
     }    
@@ -220,16 +245,23 @@ public class InTrayDAO extends HibernateDaoSupport {
     @SuppressWarnings("unchecked")
     public List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType) {
         return (List<Task>) getHibernateTemplate().execute(new HibernateCallback() {
-  
-            public Object doInHibernate(Session aSession) throws HibernateException {
-                Criteria query = aSession.createCriteria(Task.class);
 
-                query.add(Restrictions.eq("resourceOid", aResourceOid));                
-                query.add(Restrictions.eq("resourceType", aResourceType));
-                query.add(Restrictions.eq("messageType", aTaskType));
-                                
-                return query.list();
-            }            
+            public Object doInHibernate(Session aSession) throws HibernateException {
+
+                CriteriaBuilder cb = aSession.getCriteriaBuilder();
+                CriteriaQuery<Task> query = cb.createQuery(Task.class);
+                Root<Task> root = query.from(Task.class);
+                query.select(root);
+
+                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
+                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
+                Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
+
+                Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
+                query.where(whereClause);
+
+                return aSession.createQuery(query).list();
+            }
         });
     }    
 
@@ -296,12 +328,19 @@ public class InTrayDAO extends HibernateDaoSupport {
     public long countTasks(final String messageType, final InTrayResource wctResource) {
         return (Long) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException {
-				return (Long) session.createCriteria(Task.class)
-					.setProjection(Projections.rowCount())
-					.add(Restrictions.eq("messageType", messageType))
-					.add(Restrictions.eq("resourceOid", wctResource.getOid()))
-				    .add(Restrictions.eq("resourceType", wctResource.getResourceType()))
-				    .uniqueResult();
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                Root<Task> root = query.from(Task.class);
+                query.select(cb.count(root));
+
+                Predicate messageTypePredicate = cb.equal(root.get("messageType"), messageType);
+                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), wctResource.getOid());
+                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), wctResource.getResourceType());
+
+                Predicate whereClause = cb.and(messageTypePredicate, resourceOidPredicate, resourceTypePredicate);
+                query.where(whereClause);
+
+                return session.createQuery(query).uniqueResult();
 			}
     	});    	
     }
@@ -315,7 +354,7 @@ public class InTrayDAO extends HibernateDaoSupport {
                             
                             String hqlDelete = "delete Notification n where n.recipientOid = :recipientOid";
                             int deletedEntities = currentSession().createQuery( hqlDelete )
-                                    .setLong( "recipientOid", userOid )
+                                    .setParameter( "recipientOid", userOid , Long.class)
                                     .executeUpdate();
                             
                             //getHibernateTemplate().delete(obj);

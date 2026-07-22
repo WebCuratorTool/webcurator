@@ -65,7 +65,7 @@ public class HeatmapDAO extends HibernateDaoSupport {
 					public Object doInHibernate(Session session) {
 						Query query = session
 								.getNamedQuery(HeatmapConfig.QRY_GET_CONFIG_BY_OID);
-						query.setLong(1, oid);
+						query.setParameter(1, oid, Long.class);
 						return query.uniqueResult();
 					}
 				});

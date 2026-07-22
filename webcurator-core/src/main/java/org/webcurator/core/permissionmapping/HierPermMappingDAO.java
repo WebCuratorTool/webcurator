@@ -15,14 +15,13 @@
  */
 package org.webcurator.core.permissionmapping;
 
-import java.util.List;
-import java.util.Set;
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.query.Query;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +31,9 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.permissionmapping.Mapping;
 import org.webcurator.domain.model.permissionmapping.MappingView;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * DAO for the Hierarchical Permission Mapping Strategy.
@@ -186,12 +188,15 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
 
-                            Criteria query = currentSession().createCriteria(Mapping.class);
-                            query.createCriteria("permission")
-                                    .createCriteria("site")
-                                    .add(Restrictions.eq("oid", aSite.getOid()));
+                            CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+                            CriteriaQuery<Mapping> query = cb.createQuery(Mapping.class);
+                            Root<Mapping> root = query.from(Mapping.class);
+                            query.select(root);
 
-                            List<Mapping> mappings = query.list();
+                            Predicate whereClause = cb.equal(root.get("permission").get("site").get("oid"), aSite.getOid());
+                            query.where(whereClause);
+
+                            List<Mapping> mappings = currentSession().createQuery(query).list();
 
                             for (Mapping m : mappings) {
                                 if (!newMappings.contains(m)) {

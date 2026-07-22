@@ -15,18 +15,11 @@
  */
 package org.webcurator.core.report.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import jakarta.persistence.criteria.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.webcurator.core.report.OperationalReport;
@@ -35,7 +28,13 @@ import org.webcurator.core.report.ResultSet;
 import org.webcurator.core.report.parameter.DateParameter;
 import org.webcurator.core.report.parameter.Parameter;
 import org.webcurator.core.report.parameter.StringParameter;
+import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.TargetInstance;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Report for Crawler Activity.
@@ -84,28 +83,35 @@ public class CrawlerActivityReport extends HibernateDaoSupport implements Report
 
 			@SuppressWarnings("unchecked")
 			public Object doInHibernate(Session session) throws HibernateException {
-				Criteria query = session.createCriteria(TargetInstance.class);
-				Criteria owner = null;
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
+                Root<TargetInstance> root = query.from(TargetInstance.class);
+                query.select(root);
+
+                Join<TargetInstance, User> userJoin = null;
+                Predicate usernamePredicate = cb.and();
 				if (userName != null && !userName.equals("All users")) {
-					owner = query.createCriteria("owner").add(Restrictions.eq("username", userName));
+                    userJoin = root.join("owner");
+                    usernamePredicate = cb.equal(userJoin.get("username"), userName);
 				}
-				if (owner == null) {
-					if (agencyName != null && !agencyName.equals("All agencies")) {
-						query.createCriteria("owner").createCriteria("agency").add(Restrictions.eq("name", agencyName));
-					}
-				}
-				else {
-					if (agencyName != null && !agencyName.equals("All agencies")) {
-						owner.createCriteria("agency").add(Restrictions.eq("name", agencyName));
-					}
-				}						
+                Predicate agencyNamePredicate = cb.and();
+                if (agencyName != null && !agencyName.equals("All agencies")) {
+                    if (userJoin == null) {
+                        userJoin = root.join("owner");
+                    }
+                    agencyNamePredicate = cb.equal(userJoin.get("agency").get("name"), agencyName);
+                }
 
-				query.add(Restrictions.ge("actualStartTime", startDate));
-				query.add(Restrictions.lt("actualStartTime", endDate));
-				query.add(Restrictions.not(Restrictions.in("state", new Object[] {TargetInstance.STATE_QUEUED, TargetInstance.STATE_SCHEDULED } )));
-				query.addOrder(Order.asc("actualStartTime"));
+                Predicate startDatePredicate = cb.greaterThanOrEqualTo(root.get("actualStartTime"), startDate);
+                Predicate endDatePredicate = cb.lessThan(root.get("actualStartTime"), endDate);
+                Predicate statePredicate = cb.not(root.get("state").in(TargetInstance.STATE_QUEUED, TargetInstance.STATE_SCHEDULED));
 
-				List<TargetInstance> results = query.list();
+                Predicate whereClause = cb.and(usernamePredicate, agencyNamePredicate, startDatePredicate,
+                        endDatePredicate, statePredicate);
+                query.where(whereClause);
+                query.orderBy(cb.asc(root.get("actualStartTime")));
+
+				List<TargetInstance> results = session.createQuery(query).list();
 				
 				List realResults = new ArrayList<CrawlerActivityReportResultSet>(results.size());
 				

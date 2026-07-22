@@ -84,7 +84,7 @@ public class IndicatorCriteriaDAO extends HibernateDaoSupport {
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIA_BY_OID);
-                        query.setLong(1,indicatorCriteriaOid);
+                        query.setParameter(1,indicatorCriteriaOid, Long.class);
                         return query.uniqueResult();
                     }
                 }

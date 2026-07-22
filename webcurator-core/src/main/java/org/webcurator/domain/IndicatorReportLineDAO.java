@@ -82,7 +82,7 @@ public class IndicatorReportLineDAO extends HibernateDaoSupport {
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINE_BY_OID);
-                        query.setLong(0,indicatorReportLineOid);
+                        query.setParameter(0,indicatorReportLineOid, Long.class);
                         return query.uniqueResult();
                     }
                 }

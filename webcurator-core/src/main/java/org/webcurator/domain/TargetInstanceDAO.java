@@ -15,18 +15,13 @@
  */
 package org.webcurator.domain;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
+import jakarta.persistence.criteria.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
-import org.hibernate.criterion.*;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
@@ -37,10 +32,16 @@ import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
+import org.webcurator.domain.model.auth.Agency;
+import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * The implementation of the TargetInstanceDAO interface.
@@ -185,8 +186,8 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before deleting harvest result files");
-                            currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
-                                    .executeUpdate();
+                            currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid").
+                                    setParameter("hrOid", harvestResultId, Long.class).executeUpdate();
                             log.debug("After deleting harvest result files");
                         } catch (Exception ex) {
                             log.warn("Problem occured deleting ArcHarvestFile records", ex);
@@ -256,12 +257,18 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (Pagination) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
-                        Criteria query = session.createCriteria(TargetInstance.class);
-                        Criteria cntQuery = session.createCriteria(TargetInstance.class);
+
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
+                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+                        Root<TargetInstance> root = query.from(TargetInstance.class);
+                        Root<TargetInstance> cntRoot = query.from(TargetInstance.class);
+                        query.select(root);
+                        cntQuery.select(cb.count(cntRoot));
 
                         //To ignore duplicated data
-                        query.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
-                        cntQuery.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+                        query.distinct(true);
+                        cntQuery.distinct(true);
 
                         Date from = aCriteria.getFrom();
                         if (null == from) {
@@ -285,140 +292,189 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
                             }
                         }
 
-                        query.add(Expression.between("scheduledTime", from, to));
-                        cntQuery.add(Expression.between("scheduledTime", from, to));
+                        Predicate scheduledTimePredicate = cb.between(root.get("scheduledTime"), from, to);
+                        Predicate cntScheduledTimePredicate = cb.between(cntRoot.get("scheduledTime"), from, to);
 
+                        Predicate statePredicate = cb.and(); // Set this to true by default
+                        Predicate cntStatePredicate = cb.and();
                         if (aCriteria.getStates() != null && !aCriteria.getStates().isEmpty()) {
-                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            List<Predicate> disjunction = new ArrayList<Predicate>();
+                            List<Predicate> cntDisjunction = new ArrayList<Predicate>();
+
                             for (String s : aCriteria.getStates()) {
-                                stateDisjunction.add(Restrictions.eq("state", s));
+                                disjunction.add(cb.equal(root.get("state"), s));
+                                cntDisjunction.add(cb.equal(cntRoot.get("state"), s));
                             }
-                            query.add(stateDisjunction);
-                            cntQuery.add(stateDisjunction);
+                            statePredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+                            cntStatePredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
                         }
 
+                        Predicate recommendationPredicate = cb.and();
+                        Predicate cntRecommendationPredicate = cb.and();
                         if (aCriteria.getRecommendationFilter() != null && !aCriteria.getRecommendationFilter().isEmpty()) {
-                            Disjunction recommendationDisjunction = Restrictions.disjunction();
+                            List<Predicate> disjunction = new ArrayList<>();
+                            List<Predicate> cntDisjunction = new ArrayList<>();
                             for (String s : aCriteria.getRecommendationFilter()) {
-                                recommendationDisjunction.add(Restrictions.eq("recommendation", s));
+                                disjunction.add(cb.equal(root.get("recommendation"), s));
+                                cntDisjunction.add(cb.equal(cntRoot.get("recommendation"), s));
                             }
-                            query.add(recommendationDisjunction);
-                            cntQuery.add(recommendationDisjunction);
+                            recommendationPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+                            cntRecommendationPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
                         }
 
-                        Criteria owner = null;
-                        Criteria cntOwner = null;
+                        Predicate ownerPredicate = cb.and();
+                        Predicate cntOwnerPredicate = cb.and();
+                        Join<TargetInstance, User> userJoin = null;
+                        Join<TargetInstance, User> cntUserJoin = null;
                         if (aCriteria.getOwner() != null && !aCriteria.getOwner().trim().equals("")) {
-                            owner = query.createCriteria("owner").add(Restrictions.eq("username", aCriteria.getOwner()));
-                            cntOwner = cntQuery.createCriteria("owner").add(Restrictions.eq("username", aCriteria.getOwner()));
+                            userJoin = root.join("owner");
+                            cntUserJoin = cntRoot.join("owner");
+                            ownerPredicate = cb.equal(userJoin.get("username"), aCriteria.getOwner());
+                            cntOwnerPredicate = cb.equal(cntUserJoin.get("username"), aCriteria.getOwner());
                         }
 
+                        Predicate agencyPredicate = cb.and();
+                        Predicate cntAgencyPredicate = cb.and();
                         if (aCriteria.getAgency() != null && !aCriteria.getAgency().trim().equals("")) {
-                            if (null == owner) {
-                                query.createCriteria("owner").createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
-                                cntQuery.createCriteria("owner").createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                            Join<User, Agency> agencyJoin;
+                            Join<User, Agency> cntAgencyJoin;
+                            if (userJoin == null) {
+                                agencyJoin = root.join("owner").join("agency");
+                                cntAgencyJoin = cntRoot.join("owner").join("agency");
                             } else {
-                                owner.createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
-                                cntOwner.createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                                agencyJoin = userJoin.join("agency");
+                                cntAgencyJoin = cntUserJoin.join("agency");
                             }
+                            agencyPredicate = cb.equal(agencyJoin.get("name"), aCriteria.getAgency());
+                            cntAgencyPredicate = cb.equal(cntAgencyJoin.get("name"), aCriteria.getAgency());
                         }
 
+                        Predicate namePredicate = cb.and();
+                        Predicate cntNamePredicate = cb.and();
+                        Join<TargetInstance, Target> targetJoin = null;
+                        Join<TargetInstance, Target> cntTargetJoin = null;
                         if (aCriteria.getName() != null && !aCriteria.getName().trim().equals("")) {
-                            query.createCriteria("target").add(Restrictions.ilike("name", aCriteria.getName(), MatchMode.START));
-                            cntQuery.createCriteria("target").add(Restrictions.ilike("name", aCriteria.getName(), MatchMode.START));
+                            targetJoin = root.join("target");
+                            cntTargetJoin = cntRoot.join("target");
+                            namePredicate = cb.like(targetJoin.get("name"), aCriteria.getName().trim() + "%");
+                            cntNamePredicate = cb.like(cntTargetJoin.get("name"), aCriteria.getName().trim() + "%");
                         }
 
+                        Predicate seachOidPredicate = cb.and();
+                        Predicate cntSeachOidPredicate = cb.and();
                         if (aCriteria.getSearchOid() != null && aCriteria.getTargetSearchOid() == null) {
-                            query.add(Restrictions.eq("oid", aCriteria.getSearchOid()));
-                            cntQuery.add(Restrictions.eq("oid", aCriteria.getSearchOid()));
+                            seachOidPredicate = cb.equal(root.get("oid"), aCriteria.getSearchOid());
+                            cntSeachOidPredicate = cb.equal(cntRoot.get("oid"), aCriteria.getSearchOid());
                         }
 
+                        Predicate targetSearchOidPredicate = cb.and();
+                        Predicate cntTargetSearchOidPredicate = cb.and();
                         if (aCriteria.getTargetSearchOid() != null) {
-                            query.createAlias("target", "t");
-                            cntQuery.createAlias("target", "t");
-                            query.add(Restrictions.eq("t.oid", aCriteria.getTargetSearchOid()));
-                            cntQuery.add(Restrictions.eq("t.oid", aCriteria.getTargetSearchOid()));
-                            // if the search oid is supplied, then we start the search at this oid
-                            if (aCriteria.getSearchOid() != null) {
-                                query.add(Restrictions.le("oid", aCriteria.getSearchOid()));
-                                cntQuery.add(Restrictions.le("oid", aCriteria.getSearchOid()));
+                            if (targetJoin == null) {
+                                targetJoin = root.join("target");
+                                cntTargetJoin = root.join("target");
                             }
+                            targetSearchOidPredicate = cb.equal(targetJoin.get("oid"), aCriteria.getTargetSearchOid());
+                            cntTargetSearchOidPredicate = cb.equal(cntTargetJoin.get("oid"), aCriteria.getTargetSearchOid());
                         }
 
+                        Predicate flaggedPredicate = cb.and();
+                        Predicate cntFlaggedPredicate = cb.and();
                         if (aCriteria.getFlagged()) {
-                            query.add(Restrictions.eq("flagged", aCriteria.getFlagged()));
-                            cntQuery.add(Restrictions.eq("flagged", aCriteria.getFlagged()));
+                            flaggedPredicate = cb.equal(root.get("flagged"), aCriteria.getFlagged());
+                            cntFlaggedPredicate = cb.equal(cntRoot.get("flagged"), aCriteria.getFlagged());
                         }
 
+                        Predicate flagPredicate = cb.and();
+                        Predicate cntFlagPredicate = cb.and();
                         if (aCriteria.getFlag() != null) {
-                            query.add(Restrictions.eq("flag", aCriteria.getFlag()));
-                            cntQuery.add(Restrictions.eq("flag", aCriteria.getFlag()));
+                            flagPredicate = cb.equal(root.get("flag"), aCriteria.getFlag());
+                            cntFlagPredicate = cb.equal(cntRoot.get("flag"), aCriteria.getFlag());
                         }
 
+                        Predicate nondisplayonlyPredicate = cb.and();
+                        Predicate cntNondisplayonlyPredicate = cb.and();
                         if (aCriteria.getNondisplayonly()) {
-                            query.add(Restrictions.eq("display", false));
-                            cntQuery.add(Restrictions.eq("display", false));
+                            nondisplayonlyPredicate = cb.equal(root.get("display"), false);
+                            cntNondisplayonlyPredicate = cb.equal(cntRoot.get("display"), false);
                         }
 
+                        Predicate whereClause = cb.and(scheduledTimePredicate, statePredicate, recommendationPredicate,
+                                ownerPredicate, agencyPredicate, namePredicate, seachOidPredicate, targetSearchOidPredicate,
+                                flaggedPredicate, flagPredicate, nondisplayonlyPredicate);
+                        Predicate cntWhereClause = cb.and(cntScheduledTimePredicate, cntStatePredicate, cntRecommendationPredicate,
+                                cntOwnerPredicate, cntAgencyPredicate, cntNamePredicate, cntSeachOidPredicate, cntTargetSearchOidPredicate,
+                                cntFlaggedPredicate, cntFlagPredicate, cntNondisplayonlyPredicate);
+                        query.where(whereClause);
+                        cntQuery.where((cntWhereClause));
+
+                        List<Order> orderBy = new ArrayList<>();
                         if (aCriteria.getSortorder() == null ||
                                 aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT)) {
                             // use defaults
-                            query.addOrder(Order.asc("displayOrder"));
-                            query.addOrder(Order.asc("sortOrderDate"));
-                            query.addOrder(Order.asc("priority"));
-                            query.addOrder(Order.asc("oid"));
+                            orderBy.add(cb.asc(root.get("displayOrder")));
+                            orderBy.add(cb.asc(root.get("sortOrderDate")));
+                            orderBy.add(cb.asc(root.get("priority")));
+                            orderBy.add(cb.asc(root.get("oid")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_ASC)) {
-                            query.createAlias("target", "t");
-                            query.addOrder(Order.asc("t.name"));
+                            if (targetJoin == null) {
+                                targetJoin = root.join("target");
+                            }
+                            orderBy.add(cb.asc(targetJoin.get("name")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_DESC)) {
-                            query.createAlias("target", "t");
-                            query.addOrder(Order.desc("t.name"));
+                            if (targetJoin == null) {
+                                targetJoin = root.join("target");
+                            }
+                            orderBy.add(cb.desc(targetJoin.get("name")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_ASC)) {
-                            query.addOrder(Order.asc("sortOrderDate"));
+                            orderBy.add(cb.asc(root.get("sortOrderDate")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC)) {
-                            query.addOrder(Order.desc("sortOrderDate"));
+                            orderBy.add(cb.desc(root.get("sortOrderDate")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_ASC)) {
-                            query.addOrder(Order.asc("state"));
+                            orderBy.add(cb.asc(root.get("state")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_DESC)) {
-                            query.addOrder(Order.desc("state"));
+                            orderBy.add(cb.desc(root.get("state")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_ASC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.asc("hs.elapsedTime"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.asc(harvesterStatusJoin.get("elapsedTime")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_DESC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.desc("hs.elapsedTime"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.desc(harvesterStatusJoin.get("elapsedTime")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_ASC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.asc("hs.dataDownloaded"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.asc(harvesterStatusJoin.get("dataDownloaded")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_DESC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.desc("hs.dataDownloaded"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.desc(harvesterStatusJoin.get("dataDownloaded")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_ASC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.asc("hs.urlsSucceeded"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.asc(harvesterStatusJoin.get("urlsSucceeded")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_DESC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.desc("hs.urlsSucceeded"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.desc(harvesterStatusJoin.get("urlsSucceeded")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_ASC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.asc("hs.percentageUrlsFailed"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.asc(harvesterStatusJoin.get("percentageUrlsFailed")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_DESC)) {
-                            query.createAlias("status", "hs");
-                            query.addOrder(Order.desc("hs.percentageUrlsFailed"));
+                            Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
+                            orderBy.add(cb.desc(harvesterStatusJoin.get("percentageUrlsFailed")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_ASC)) {
-                            query.createAlias("target", "t");
-                            query.addOrder(Order.asc("t.crawls"));
+                            if (targetJoin == null) {
+                                targetJoin = root.join("target");
+                            }
+                            orderBy.add(cb.asc(targetJoin.get("crawls")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_DESC)) {
-                            query.createAlias("target", "t");
-                            query.addOrder(Order.desc("t.crawls"));
+                            if (targetJoin == null) {
+                                targetJoin = root.join("target");
+                            }
+                            orderBy.add(cb.desc(targetJoin.get("crawls")));
                         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID)) {
-                            query.addOrder(Order.desc("sortOrderDate"));
+                            orderBy.add(cb.desc(root.get("sortOrderDate")));
                         }
 
+                        query.orderBy(orderBy);
 
-                        cntQuery.setProjection(Projections.rowCount());
-
-                        return new Pagination(cntQuery, query, aPage, aPageSize);
+                        return new Pagination(session.createQuery(cntQuery), session.createQuery(query), aPage, aPageSize);
                     }
                 }
         );
@@ -429,7 +485,11 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (List) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
-                        Criteria query = session.createCriteria(TargetInstance.class);
+
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
+                        Root<TargetInstance> root = query.from(TargetInstance.class);
+                        query.select(root);
 
                         Date from = aCriteria.getFrom();
                         if (null == from) {
@@ -453,34 +513,42 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
                             }
                         }
 
-                        query.add(Expression.between("scheduledTime", from, to));
+                        Predicate scheduledTimePredicate = cb.between(root.get("scheduledTime"), from, to);
 
+                        Predicate statePredicate = cb.and(); // Set this to true by default
                         if (aCriteria.getStates() != null && !aCriteria.getStates().isEmpty()) {
-                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            List<Predicate> disjunction = new ArrayList<Predicate>();
                             for (String s : aCriteria.getStates()) {
-                                stateDisjunction.add(Restrictions.eq("state", s));
+                                disjunction.add(cb.equal(root.get("state"), s));
                             }
-                            query.add(stateDisjunction);
+                            statePredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
                         }
-
-                        Criteria owner = null;
+                        Predicate ownerPredicate = cb.and();
+                        Join<TargetInstance, User> userJoin = null;
                         if (aCriteria.getOwner() != null && !aCriteria.getOwner().trim().equals("")) {
-                            owner = query.createCriteria("owner").add(Restrictions.eq("username", aCriteria.getOwner()));
+                            userJoin = root.join("owner");
+                            ownerPredicate = cb.equal(userJoin.get("username"), aCriteria.getOwner());
                         }
 
+                        Predicate agencyPredicate = cb.and();
                         if (aCriteria.getAgency() != null && !aCriteria.getAgency().trim().equals("")) {
-                            if (null == owner) {
-                                query.createCriteria("owner").createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                            Join<User, Agency> agencyJoin;
+                            if (userJoin == null) {
+                                agencyJoin = root.join("owner").join("agency");
                             } else {
-                                owner.createCriteria("agency").add(Restrictions.eq("name", aCriteria.getAgency()));
+                                agencyJoin = userJoin.join("agency");
                             }
+                            agencyPredicate = cb.equal(agencyJoin.get("name"), aCriteria.getAgency());
                         }
 
-                        query.addOrder(Order.asc("displayOrder"));
-                        query.addOrder(Order.asc("scheduledTime"));
-                        query.addOrder(Order.asc("oid"));
+                        Predicate whereClause = cb.and(scheduledTimePredicate, statePredicate, ownerPredicate,
+                                agencyPredicate);
+                        query.where(whereClause);
 
-                        return query.list();
+                        query.orderBy(cb.asc(root.get("displayOrder")), cb.asc(root.get("scheduledTime")),
+                                cb.asc(root.get("oid")));
+
+                        return session.createQuery(query).list();
                     }
                 }
         );
@@ -492,10 +560,9 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(TargetInstance.QRY_GET_PURGEABLE_TIS);
-                        query.setTimestamp(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate);
-                        query.setString(TargetInstance.QRY_PARAM_ARCHIVED_STATE, TargetInstance.STATE_ARCHIVED);
-                        query.setString(TargetInstance.QRY_PARAM_REJECTED_STATE, TargetInstance.STATE_REJECTED);
-
+                        query.setParameter(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate, Date.class);
+                        query.setParameter(TargetInstance.QRY_PARAM_ARCHIVED_STATE, TargetInstance.STATE_ARCHIVED, String.class);
+                        query.setParameter(TargetInstance.QRY_PARAM_REJECTED_STATE, TargetInstance.STATE_REJECTED, String.class);
                         return query.list();
                     }
                 }
@@ -508,8 +575,8 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(TargetInstance.QRY_GET_PURGEABLE_ABORTED_TIS);
-                        query.setTimestamp(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate);
-                        query.setString(TargetInstance.QRY_PARAM_ABORTED_STATE, TargetInstance.STATE_ABORTED);
+                        query.setParameter(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate, Date.class);
+                        query.setParameter(TargetInstance.QRY_PARAM_ABORTED_STATE, TargetInstance.STATE_ABORTED, String.class);
 
                         return query.list();
                     }
@@ -539,7 +606,7 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
 
                         Query query = session.createQuery(q.toString());
 
-                        query.setTimestamp("ed", new Date());
+                        query.setParameter("ed", new Date(), Date.class);
 
                         return query.list();
                     }
@@ -561,7 +628,7 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
 
                         Query query = session.createQuery(q.toString());
 
-                        query.setTimestamp("ed", new Date(System.currentTimeMillis() + futureMs));
+                        query.setParameter("ed", new Date(System.currentTimeMillis() + futureMs), Date.class);
 
                         return query.list();
                     }
@@ -590,8 +657,8 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
 
                         Query query = session.createQuery(q.toString());
 
-                        query.setDate("ed", new Date());
-                        query.setLong("toid", targetOid);
+                        query.setParameter("ed", new Date(), Date.class);
+                        query.setParameter("toid", targetOid, Long.class);
 
                         return query.list();
                     }
@@ -618,8 +685,8 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
 
                         Query query = session.createQuery(q.toString());
 
-                        query.setDate("ed", new Date());
-                        query.setLong("toid", targetOid);
+                        query.setParameter("ed", new Date(), Date.class);
+                        query.setParameter("toid", targetOid, Long.class);
 
                         return query.list().get(0);
                     }
@@ -735,10 +802,15 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         getHibernateTemplate().execute(new HibernateCallback() {
             @SuppressWarnings("unchecked")
             public Object doInHibernate(Session aSession) throws HibernateException {
-                List<TargetGroup> groupsToEnd = aSession.createCriteria(TargetGroup.class)
-                        .add(Restrictions.ne("state", TargetGroup.STATE_INACTIVE))
-                        .add(Restrictions.lt("toDate", new Date()))
-                        .list();
+
+                CriteriaBuilder cb = aSession.getCriteriaBuilder();
+                CriteriaQuery<TargetGroup> query = cb.createQuery(TargetGroup.class);
+                Root<TargetGroup> root = query.from(TargetGroup.class);
+                Predicate whereClause = cb.and(cb.notEqual(root.get("state"), TargetGroup.STATE_INACTIVE),
+                        cb.lessThan(root.get("toDate"), new Date()));
+                query.where(whereClause);
+
+                List<TargetGroup> groupsToEnd = aSession.createQuery(query).list();
 
                 for (TargetGroup group : groupsToEnd) {
                     deleteScheduledInstances(group);
@@ -879,22 +951,26 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (Long) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
-                        Criteria query = session.createCriteria(TargetInstance.class);
-                        query.setProjection(Projections.rowCount());
 
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                        Root<TargetInstance> root = query.from(TargetInstance.class);
+                        query.select(cb.count(root));
+
+                        Predicate statePredicate = cb.and();
                         if (aStates != null && !aStates.isEmpty()) {
-                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            List<Predicate> disjunction = new ArrayList<>();
                             for (String s : aStates) {
-                                stateDisjunction.add(Restrictions.eq("state", s));
+                                disjunction.add(cb.equal(root.get("state"), s));
                             }
-                            query.add(stateDisjunction);
+                            statePredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
                         }
 
-                        query.createCriteria("owner").add(Restrictions.eq("username", aUsername));
+                        Join<TargetInstance, User> userJoin = root.join("owner");
+                        Predicate usernamePredicate = cb.equal(userJoin.get("username"), aUsername);
+                        query.where(cb.and(statePredicate, usernamePredicate));
 
-
-                        Long count = (Long) query.uniqueResult();
-
+                        Long count = session.createQuery(query).uniqueResult();
                         return count;
                     }
                 }
@@ -905,23 +981,26 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (Long) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
-                        Criteria query = session.createCriteria(TargetInstance.class);
-                        query.setProjection(Projections.rowCount());
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                        Root<TargetInstance> root = query.from(TargetInstance.class);
+                        query.select(cb.count(root));
 
-                        Disjunction stateDisjunction = Restrictions.disjunction();
+                        List<Predicate> stateDisjunction = new ArrayList<>();
+                        stateDisjunction.add(cb.equal(root.get("state"), TargetInstance.STATE_SCHEDULED));
+                        stateDisjunction.add(cb.equal(root.get("state"), TargetInstance.STATE_QUEUED));
+                        stateDisjunction.add(cb.equal(root.get("state"), TargetInstance.STATE_RUNNING));
+                        stateDisjunction.add(cb.equal(root.get("state"), TargetInstance.STATE_PAUSED));
+                        stateDisjunction.add(cb.equal(root.get("state"), TargetInstance.STATE_STOPPING));
 
-                        stateDisjunction.add(Restrictions.eq("state", TargetInstance.STATE_SCHEDULED));
-                        stateDisjunction.add(Restrictions.eq("state", TargetInstance.STATE_QUEUED));
-                        stateDisjunction.add(Restrictions.eq("state", TargetInstance.STATE_RUNNING));
-                        stateDisjunction.add(Restrictions.eq("state", TargetInstance.STATE_PAUSED));
-                        stateDisjunction.add(Restrictions.eq("state", TargetInstance.STATE_STOPPING));
+                        Predicate statePredicate = cb.or(stateDisjunction.toArray(new Predicate[stateDisjunction.size()]));
 
-                        query.add(stateDisjunction);
+                        Join<TargetInstance, Target> targetJoin = root.join("target");
+                        Predicate targetOidPredicate = cb.equal(targetJoin.get("oid"), targetOid);
 
-                        //query.createAlias("target", "t");
-                        query.createCriteria("target").add(Restrictions.eq("oid", targetOid));
+                        query.where(cb.and(statePredicate, targetOidPredicate));
 
-                        Long count = (Long) query.uniqueResult();
+                        Long count = session.createQuery(query).uniqueResult();
 
                         return count;
                     }
@@ -933,12 +1012,17 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         return (Long) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
-                        Criteria query = session.createCriteria(TargetInstance.class);
-                        query.setProjection(Projections.rowCount());
 
-                        query.createCriteria("target").add(Restrictions.eq("oid", targetOid));
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                        Root<TargetInstance> root = query.from(TargetInstance.class);
+                        query.select(cb.count(root));
 
-                        Long count = (Long) query.uniqueResult();
+                        Join<TargetInstance, Target> targetJoin = root.join("target");
+                        Predicate whereClause = cb.equal(targetJoin.get("oid"), targetOid);
+                        query.where(whereClause);
+
+                        Long count = session.createQuery(query).uniqueResult();
 
                         return count;
                     }

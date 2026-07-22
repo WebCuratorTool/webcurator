@@ -15,20 +15,14 @@
  */
 package org.webcurator.core.report.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.text.DecimalFormat;
-
-
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.webcurator.core.report.OperationalReport;
@@ -40,6 +34,11 @@ import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.report.AbstractTargetScheduleView;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Report of Target/Groups Schedules
@@ -86,31 +85,40 @@ public class TargetGroupSchedulesReport extends HibernateDaoSupport implements R
 
 			@SuppressWarnings("unchecked")
 			public Object doInHibernate(Session session) throws HibernateException {
-				
-				Criteria query = session.createCriteria(AbstractTargetScheduleView.class);
 
-				query.add(Restrictions.in("state", new Object[] {Target.STATE_APPROVED, TargetGroup.STATE_ACTIVE } ));
+                CriteriaBuilder cb = session.getCriteriaBuilder();
+                CriteriaQuery<AbstractTargetScheduleView> query = cb.createQuery(AbstractTargetScheduleView.class);
+                Root<AbstractTargetScheduleView> root = query.from(AbstractTargetScheduleView.class);
+                query.select(root);
+
+                Predicate statePredicate = root.get("state").in(Target.STATE_APPROVED, TargetGroup.STATE_ACTIVE);
 				
+                Predicate objectTypeDescPredicate = cb.and();
 				if(!targetType.equals("All target types")) {
 					if (targetType.equals("Target")) {
-						query.add(Restrictions.eq("objectTypeDesc", "Target"));
+                        objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Target");
 					}
 					else {
-						query.add(Restrictions.eq("objectTypeDesc", "Group"));
+                        objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Group");
 					}
 				}
 
+                Predicate userNamePredicate = cb.and();
 				if(!userName.equals("All users")) {
-					query.add(Restrictions.eq("ownerName", userName));
+                    userNamePredicate = cb.equal(root.get("ownerName"), userName);
 				}
 
+                Predicate agencyNamePredicate = cb.and();
 				if(!agencyName.equals("All agencies")) {
-					query.add(Restrictions.eq("agencyName", agencyName));
+                    agencyNamePredicate = cb.equal(root.get("agencyName"), agencyName);
 				}
+
+                Predicate whereClause = cb.and(statePredicate, objectTypeDescPredicate, userNamePredicate, agencyNamePredicate);
+                query.where(whereClause);
+
+                query.orderBy(cb.asc(root.get("name")));
 				
-				query.addOrder(Order.asc("name"));
-				
-				List results = query.list();
+				List results = session.createQuery(query).list();
 				
 				List realResults = new ArrayList<TargetGroupSchedulesReportResultSet>(results.size());
 				

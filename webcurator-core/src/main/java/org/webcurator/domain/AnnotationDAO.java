@@ -50,8 +50,8 @@ public class AnnotationDAO extends HibernateDaoSupport {
 		Object obj = getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) throws HibernateException {
 				Query q = aSession.getNamedQuery(Annotation.QRY_GET_NOTES);
-				q.setString(Annotation.PARAM_TYPE, aType);
-				q.setLong(Annotation.PARAM_OID, aOid);
+				q.setParameter(Annotation.PARAM_TYPE, aType, String.class);
+				q.setParameter(Annotation.PARAM_OID, aOid, Long.class);
 				
 				return q.list();
 			}

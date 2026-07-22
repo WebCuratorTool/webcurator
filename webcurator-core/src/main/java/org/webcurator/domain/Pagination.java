@@ -15,22 +15,17 @@
  */
 package org.webcurator.domain;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import jakarta.persistence.Parameter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+
+import java.util.*;
 
 /**
  * Pagination object makes all the decisions about the pagination of result sets, 
@@ -113,32 +108,14 @@ public class Pagination extends HibernateDaoSupport {
 		
 	}
 	
-	
-	/** 
-	 * Constructor that accepts the query params and page number to display.
-	 * @param query The query to run.
-	 * @param aPage the page number to return.
-	 * @param aPageSize the size of the page to return
-	 */
-	public Pagination(final Criteria cntQuery, final Criteria query, final int aPage, final int aPageSize) {
-		this.pageSize = aPageSize;
-		this.page = aPage;
-		init(cntQuery, query);
-	}	
-	
+
 	public Pagination(final Query cntQuery, final Query query, final int aPage, final int aPageSize) {
 		this.pageSize = aPageSize;
 		this.page = aPage;
 		init(cntQuery, query);
 	}
 	
-	private void init(Criteria cntQuery, Criteria query) {
-		query.setFirstResult(page * pageSize).setMaxResults(pageSize + 1);		
-		results = query.list();
-		
-		total = ((Number)cntQuery.uniqueResult()).intValue();
-	}
-	
+
 	private void init(Query cntQuery, Query query) {
 		query.setFirstResult(page * pageSize).setMaxResults(pageSize + 1);
 		results = query.list();		
@@ -213,25 +190,24 @@ public class Pagination extends HibernateDaoSupport {
 		}
 	}
 
-	/**
-	 * Bind the parameters passed in to the query.
-	 * @param q the query to bind to
-	 * @param map the query parameters
-	 */
-	private void bindQueryParams(Query q, Map map) {
-		String[] allParams = q.getNamedParameters();
-		log.debug("Binding parameters in Pagination");
-		for (int i = 0; i < allParams.length; i++) {
-			// for each named parameter, bind it to the query
-			if (map.containsKey(allParams[i])) {
-				log.debug("Found a parameter in Map to bind to query called " + allParams[i] + " value = " + map.get(allParams[i]));
-				q.setParameter(allParams[i], map.get(allParams[i]));
-			}
-			else {
-				throw new HibernateException("Map doesn't contain the correct parameters to bind to query");
-			}
-		}
-	}
+    /**
+     * Bind the parameters passed in to the query.
+     * @param q the query to bind to
+     * @param map the query parameters
+     */
+    private void bindQueryParams(Query q, Map map) {
+        log.debug("Binding parameters in Pagination");
+        for (Parameter param : q.getParameters()) {
+           String paramName = param.getName();
+           if (map.containsKey(paramName)) {
+               log.debug("Found a parameter in Map to bind to query called " + paramName + " value = " + map.get(paramName));
+               q.setParameter(paramName, map.get(paramName));
+           } else {
+               throw new HibernateException("Map doesn't contain the correct parameters to bind to query");
+           }
+        }
+    }
+
 
 	/** 
 	 * Return the size of the page.

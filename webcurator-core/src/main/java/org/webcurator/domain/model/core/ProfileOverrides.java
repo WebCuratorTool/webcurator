@@ -15,24 +15,20 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.math.BigDecimal;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.management.AttributeNotFoundException;
-import javax.management.InvalidAttributeValueException;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.MaterializedClobType;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.*;
 
+import javax.management.AttributeNotFoundException;
+import javax.management.InvalidAttributeValueException;
+import java.math.BigDecimal;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a set of overrides that can be applied to a Heritrix profile.

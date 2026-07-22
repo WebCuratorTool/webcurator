@@ -15,17 +15,13 @@
  */
 package org.webcurator.domain;
 
-import java.util.List;
-
+import jakarta.persistence.criteria.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
@@ -35,10 +31,12 @@ import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.AbstractTarget;
+import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
+
+import java.util.List;
 
 /**
  * DAO for loading/saving Profiles to the database.
@@ -166,12 +164,19 @@ public class ProfileDAO extends BaseDAO {
 	}	
 
 	public Profile getDefaultProfile(Agency anAgency) {
-		Criteria query = currentSession().createCriteria(Profile.class);
-		query.createCriteria("owningAgency").add(Restrictions.eq("oid", anAgency.getOid()));
-		query.add(Restrictions.eq("defaultProfile", true));
-		query.add(Restrictions.eq("status", Profile.STATUS_ACTIVE));
-		
-		return (Profile) query.uniqueResult();
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Profile> query = cb.createQuery(Profile.class);
+        Root<Profile> root = query.from(Profile.class);
+        query.select(root);
+
+        Predicate owningAgencyOidPredicate = cb.equal(root.get("owningAgency").get("oid"), anAgency.getOid());
+        Predicate defaultProfilePredicate = cb.equal(root.get("defaultProfile"), true);
+        Predicate statusPredicate = cb.equal(root.get("status"), Profile.STATUS_ACTIVE);
+
+        Predicate whereClause = cb.and(owningAgencyOidPredicate, defaultProfilePredicate, statusPredicate);
+        query.where(whereClause);
+
+        return currentSession().createQuery(query).uniqueResult();
 	}
 
 	/**
@@ -200,20 +205,29 @@ public class ProfileDAO extends BaseDAO {
 	public long countProfileUsage(final Profile aProfile) {
 		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
-					public Object doInHibernate(Session session) {						
-						long targetCount = (Long) session.createCriteria(AbstractTarget.class)
-										.setProjection(Projections.rowCount())
-										.createCriteria("profile")
-										.add(Restrictions.eq("oid", aProfile.getOid()))
-										.uniqueResult();
-						
-						targetCount += (Long) session.createCriteria(TargetInstance.class)
-						.setProjection(Projections.rowCount())
-						.createCriteria("lockedProfile")
-						.add(Restrictions.eq("origOid", aProfile.getOrigOid()))
-						.add(Restrictions.eq("version", aProfile.getVersion()))
-						.uniqueResult();
-		
+					public Object doInHibernate(Session session) {
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<Long> targetQuery = cb.createQuery(Long.class);
+                        Root<AbstractTarget> targetRoot = targetQuery.from(AbstractTarget.class);
+                        targetQuery.select(cb.count(targetRoot));
+
+                        Predicate targetWhereClause = cb.equal(targetRoot.get("profile").get("oid"), aProfile.getOid());
+                        targetQuery.where(targetWhereClause);
+                        long targetCount = session.createQuery(targetQuery).uniqueResult();
+
+                        CriteriaQuery<Long> targetInstanceQuery = cb.createQuery(Long.class);
+                        Root<TargetInstance> targetInstanceRoot = targetInstanceQuery.from(TargetInstance.class);
+                        targetInstanceQuery.select(cb.count(targetInstanceRoot));
+
+                        Join<TargetInstance, Profile> profileJoin = targetInstanceRoot.join("lockedProfile");
+                        Predicate origOidPredicate = cb.equal(profileJoin.get("origOid"), aProfile.getOrigOid());
+                        Predicate versionPredicate = cb.equal(profileJoin.get("version"), aProfile.getVersion());
+
+                        Predicate targetInstanceWhereClause = cb.and(origOidPredicate, versionPredicate);
+                        targetInstanceQuery.where(targetInstanceWhereClause);
+
+                        targetCount += session.createQuery(targetInstanceQuery).uniqueResult();
+
 						return targetCount;
 					}
 				}
@@ -230,14 +244,21 @@ public class ProfileDAO extends BaseDAO {
 	public long countProfileActiveTargets(final Profile aProfile) {
 		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
-					public Object doInHibernate(Session session) {						
-						long targetCount = (Long) session.createCriteria(AbstractTarget.class)
-										.setProjection(Projections.rowCount())
-										.add(Restrictions.eq("objectType", AbstractTarget.TYPE_TARGET))
-										.add(Restrictions.eq("state", Target.STATE_APPROVED))
-										.createCriteria("profile").add(Restrictions.eq("oid", aProfile.getOid()))
-										.uniqueResult();
-						
+					public Object doInHibernate(Session session) {
+                        CriteriaBuilder cb = session.getCriteriaBuilder();
+                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+                        Root<AbstractTarget> root = query.from(AbstractTarget.class);
+                        query.select(cb.count(root));
+
+                        Predicate objectTypePredicate = cb.equal(root.get("objectType"), AbstractTarget.TYPE_TARGET);
+                        Predicate statePredicate = cb.equal(root.get("state"), Target.STATE_APPROVED);
+                        Predicate profilePredicate = cb.equal(root.get("profile").get("oid"), aProfile.getOid());
+
+                        Predicate whereClause = cb.and(objectTypePredicate, statePredicate, profilePredicate);
+                        query.where(whereClause);
+
+                        long targetCount = session.createQuery(query).uniqueResult();
+
 						return targetCount;
 					}
 				}
