@@ -17,22 +17,12 @@ import java.net.URI;
 public class RestClientResponseHandler implements ResponseErrorHandler {
     @Override
     public boolean hasError(ClientHttpResponse response) throws IOException {
-        return response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR ||
-                response.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR;
-    }
-
-    @Override
-    public void handleError(ClientHttpResponse response) throws IOException {
-        if (response.getStatusCode().series() == HttpStatus.Series.SERVER_ERROR) {
-            throwException(response.getStatusCode(), null, null);
-        } else if (response.getStatusCode().series() == HttpStatus.Series.CLIENT_ERROR) {
-            throwException(response.getStatusCode(), null, null);
-        }
+        return response.getStatusCode().is4xxClientError() || response.getStatusCode().is5xxServerError();
     }
 
     @Override
     public void handleError(URI url, HttpMethod method, ClientHttpResponse response) throws IOException {
-        throwException(response.getStatusCode(), url, method);
+        throwException(HttpStatus.valueOf(response.getStatusCode().value()), url, method);
     }
 
     public void throwException(HttpStatus status, URI url, HttpMethod httpMethod) {

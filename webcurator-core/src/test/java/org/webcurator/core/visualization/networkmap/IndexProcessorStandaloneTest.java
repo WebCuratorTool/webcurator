@@ -130,7 +130,7 @@ public class IndexProcessorStandaloneTest {
         File jsonFile = new File(directory, "all_urls.json");
         List<NetworkMapNodeUrlEntity> urlEntityList = loadAllUrlFromJson();
         String urlJsonString = indexer.getJson(urlEntityList);
-        FileUtils.write(jsonFile, urlJsonString);
+        FileUtils.writeStringToFile(jsonFile, urlJsonString);
     }
 
     @Ignore

@@ -100,7 +100,7 @@ public class ScreenshotGenerator {
                     return false;
                 }
 
-                List<String> lines = IOUtils.readLines(conn.getInputStream(), Charset.defaultCharset());
+                List<String> lines = IOUtils.readLines(conn.getInputStream(), Charset.defaultCharset().toString());
                 if (this.isIndividualCollectionMode) {
                     if (lines.isEmpty()) {
                         return false;

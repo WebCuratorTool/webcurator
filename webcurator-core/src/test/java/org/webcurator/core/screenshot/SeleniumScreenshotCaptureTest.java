@@ -18,6 +18,7 @@ import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 import static org.junit.Assert.assertTrue;
 
@@ -124,7 +125,7 @@ public class SeleniumScreenshotCaptureTest {
                 "</html>";
         driver.get("data:text/html;charset=utf-8," + html);
 
-        WebDriverWait wait = new WebDriverWait(driver, 4000);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(4000));
         wait.until(ExpectedConditions.visibilityOfElementLocated((By.id("wrapped_replay_iframe"))));
 //        driver.switchTo().frame("wrapped_replay_iframe");
 

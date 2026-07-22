@@ -252,7 +252,7 @@ public class WctUtils {
             if (processStatus != 0) {
                 log.error("Unable to process the command in a new thread, processStatus={}.", processStatus);
             }
-            List<String> results = IOUtils.readLines(process.getInputStream(), Charset.defaultCharset());
+            List<String> results = IOUtils.readLines(process.getInputStream(), Charset.defaultCharset().toString());
             ret.addAll(results);
         } catch (Exception e) {
             log.error("Unable to process the command in a new thread.", e);

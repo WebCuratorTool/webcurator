@@ -1,5 +1,7 @@
 package org.webcurator.core.screenshot;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -7,15 +9,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.store.DigitalAssetStorePaths;
 
-import jakarta.lang.model.type.NullType;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 public class ScreenshotClientRemote extends AbstractRestClient implements ScreenshotClient {
     public ScreenshotClientRemote(String baseUrl, RestTemplateBuilder restTemplateBuilder) {

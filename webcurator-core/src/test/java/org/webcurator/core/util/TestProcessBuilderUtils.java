@@ -36,7 +36,7 @@ public class TestProcessBuilderUtils {
 
         File tmpFile = new File(tmpDir, "x.warc");
         try {
-            FileUtils.writeByteArrayToFile(tmpFile, "this is a test case".getBytes(), false);
+            FileUtils.writeByteArrayToFile(tmpFile, "this is a test case".getBytes());
         } catch (IOException e) {
             e.printStackTrace();
             assert false;

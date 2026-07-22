@@ -37,6 +37,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 
 
 public class SeleniumScreenshotCapture {
@@ -164,7 +165,7 @@ public class SeleniumScreenshotCapture {
                             "</body>\n" +
                             "</html>";
                     driver.get("data:text/html;charset=utf-8," + html);
-                    WebDriverWait wait = new WebDriverWait(driver, 3600);
+                    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3600));
                     wait.until(ExpectedConditions.visibilityOfElementLocated((By.id("replay_iframe"))));
                     driver.switchTo().frame("replay_iframe");
                 } else {
