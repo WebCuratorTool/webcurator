@@ -75,11 +75,21 @@ const { t } = useI18n();
     <Tabs value="0" class="tabview-custom w-full">
       <TabList>
         <Tab value="0">{{ t("target.general.general") }}</Tab>
-        <Tab value="1">{{ t("target.description.description") }}</Tab>
-        <Tab value="2">{{ t("target.profile") }}</Tab>
-        <Tab value="3">{{ t("target.harvests") }}</Tab>
-        <Tab value="4">{{ t("target.annotations") }}</Tab>
-        <Tab value="5">{{ t("target.access") }}</Tab>
+        <Tab value="1" :disabled="editing && targetGeneral.name === ''">{{
+          t("target.description.description")
+        }}</Tab>
+        <Tab value="2" :disabled="editing && targetGeneral.name === ''">{{
+          t("target.profile")
+        }}</Tab>
+        <Tab value="3" :disabled="editing && targetGeneral.name === ''">{{
+          t("target.harvests")
+        }}</Tab>
+        <Tab value="4" :disabled="editing && targetGeneral.name === ''">{{
+          t("target.annotations")
+        }}</Tab>
+        <Tab value="5" :disabled="editing && targetGeneral.name === ''">{{
+          t("target.access")
+        }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="0">
