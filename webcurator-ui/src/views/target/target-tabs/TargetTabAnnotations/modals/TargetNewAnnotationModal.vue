@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, type Ref, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
+const { t } = useI18n();
 
 const payload = dialogRef?.value?.data;
 if (!payload) {
@@ -25,9 +27,13 @@ const onSave = () => {
     <div class="flex items-center gap-2">
       <label>
         <Checkbox v-model="newAnnotation.alert" binary />
-        Generate alert
+        {{ t("target.annotationsPanel.generateAlert") }}
       </label>
     </div>
-    <Button class="wct-primary-button" label="Add" @click="onSave" />
+    <Button
+      class="wct-primary-button"
+      :label="t('common.add')"
+      @click="onSave"
+    />
   </div>
 </template>

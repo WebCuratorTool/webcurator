@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetGropusDTO } from "@/stores/target";
+const { t } = useI18n();
 
 const targetGroups = useTargetGropusDTO();
 
@@ -20,7 +22,7 @@ const addGroupsModal = useDialog();
 const showAddGroups = () => {
   addGroupsModal.open(AddGroupsModal, {
     props: {
-      header: "Add Groups",
+      header: t("target.general.groups.addGroups"),
       modal: true,
       dismissableMask: true,
       style: { width: "50vw" },
@@ -31,11 +33,11 @@ const showAddGroups = () => {
 
 <template>
   <div class="flex justify-between">
-    <h4>Groups</h4>
+    <h4>{{ t("target.general.groups.groups") }}</h4>
     <Button
       v-if="editing"
       icon="pi pi-plus"
-      label="Add"
+      :label="t('common.add')"
       text
       @click="showAddGroups"
     />
@@ -62,7 +64,7 @@ const showAddGroups = () => {
       </Chip>
     </div>
     <div v-else class="text-center">
-      <p class="text-500">This target does not belong to any groups</p>
+      <p class="text-500">{{ t("target.general.groups.emptyMessage") }}</p>
     </div>
   </WctTabViewPanel>
 </template>

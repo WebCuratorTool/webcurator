@@ -1,17 +1,237 @@
 {
+    "common": {
+        "add": "Tāpiri",
+        "agency": "Pokapū",
+        "cancel": "Whakakore",
+        "clear": "Ūkui",
+        "confirmDelete": "E hiahia ana koe ki te muku i tēnei tūemi?",
+        "date": "Rā",
+        "delete": "Muku",
+        "description": "Whakaahuatanga",
+        "edit": "Whakatika",
+        "id": "Tautuhi",
+        "keyword": "Kupumatua",
+        "name": "Ingoa",
+        "no": "Kāo",
+        "notes": "Tuhipoka",
+        "owner": "Rangatira",
+        "reason": "Take",
+        "save": "Tiaki",
+        "search": "Rapua",
+        "action": "Mahi",
+        "state": "Tūnga",
+        "status": "Tūnga",
+        "url": "URL",
+        "user": "Kaiwhakamahi",
+        "yes": "Āe"
+    },
     "dashboard": {
         "dashboard": "Papatohu"
     },
     "target": {
         "target": "Whāinga",
         "targets": "Ngā Whāinga",
-        "tabs": {
+        "general": {
             "general": "Whānui",
-            "description": "Whakaaturanga",
-            "profile": "Kōtaha",
-            "harvests": "Hauhaketanga",
-            "annotations": "Tuhipoka",
-            "access": "Uru"
-        }
+            "references": {
+                "references": "Tohutoro",
+                "owner": "Rangatira",
+                "referenceNumber": "Tau Tohutoro",
+                "runOnApproval": "Whakahaere i te Whakaaetanga",
+                "selectUser": "Tīpakohia he Kaiwhakamahi"
+            },
+            "groups": {
+                "groups": "Rōpū",
+                "addGroups": "Tāpiri Rōpū",
+                "emptyMessage": "Kāore tēnei whāinga e whai wāhi ana ki ngā rōpū",
+                "states": {
+                    "pending": "Tārewa",
+                    "active": "Hohe",
+                    "inactive": "Kāore i te hohe"
+                }
+            },
+            "seeds": {
+                "seeds": "Kākano",
+                "seeds:": "Kākano",
+                "seed": "Kākano",
+                "seedUrl": "URL Kākano",
+                "primary": "Matua",
+                "harvestAuth": "Whakaaetanga Kohinga",
+                "authAgent": "Māngai Whakamana",
+                "authorisation": "Whakaaetanga",
+                "auto": "Aunoa",
+                "addLater": "Tāpiri Ā Muri Ake",
+                "addSeed": "Tāpiri Kākano",
+                "startDate": "Rā Tīmata",
+                "endDate": "Rā Whakamutunga",
+                "actions": "Ngā Mahi",
+                "removeSeed": "Tangohia te Kākano",
+                "editSeed": "Whakatika te Kākano",
+                "viewPermission": "Tirohia te Whakaaetanga",
+                "unlinkPermission": "Wetewetea te Whakaaetanga",
+                "addPermission": "Tāpiri Whakaaetanga",
+                "seedExists": "Kua noho kē tēnei kākano ki te whāinga",
+                "seedNotAdded": "Kāore i tāpirihia te kākano",
+                "emptyMessage": "Kāore he kākano i tāpirihia ki tēnei whāinga ināianei"
+            },
+            "permission": {
+                "addPermissionToSeed": "Tāpiri Whakaaetanga ki {seed}",
+                "harvestAuthorisation": "Whakaaetanga Kohinga",
+                "authorisingAgent": "Māngai Whakamana",
+                "url": "URL",
+                "urls": "Ngā URL",
+                "urlPatterns": "Ngā Tauira URL",
+                "startDate": "Rā Tīmata",
+                "endDate": "Rā Whakamutunga",
+                "dates": "Ngā Rā",
+                "status": "Tūnga",
+                "authAgencyResponse": "Urupare Pokapū Whakaaetanga",
+                "quickPick": "Kōwhiri Tere",
+                "displayName": "Ingoa Whakaatu",
+                "exclusions": "Ngā Whakawātea",
+                "searchForHarvestOrUrl": "Rapua mō te Whakaaetanga Kohinga, mō te tauira URL rānei",
+                "searchForSeed": "Rapua mō {seed}",
+                "removeFromSeed": "Tangohia i te Kākano",
+                "addToSeed": "Tāpiri ki te Kākano",
+                "noExclusions": "Kāore anō kia tautuhia he whakawātea",
+                "noAnnotations": "Kāore he tuhinga tāpiri"
+            },
+            "archiveOptions": {
+                "archiveOptions": "Kōwhiringa Pūranga",
+                "useAutomatedQA": "Whakamahia te QA Aunoa",
+                "autoPrune": "Tārai Aunoa",
+                "referenceCrawl": "Ngokingoki Tohutoro",
+                "requestToArchivists": "Tono ki ngā Kaitiaki Pūranga"
+            }
+        },
+        "description": {
+            "description": "Whakaahuatanga",
+            "identifier": "Tautuhi",
+            "subject": "Kaupapa",
+            "creator": "Kaihanga",
+            "contributor": "Kaituku",
+            "type": "Momo",
+            "format": "Hōputu",
+            "source": "Puna",
+            "language": "Reo",
+            "relation": "Hononga",
+            "coverage": "Uepū",
+            "issn": "ISSN",
+            "isbn": "ISBN"
+        },
+        "profile": "Kōtaha",
+        "profilePanel": {
+            "baseProfile": "Kōtaha Taketake",
+            "harvesterType": "Momo Kohikohi",
+            "profileOverrides": "Ngā Takahuringa Kōtaha",
+            "profileElement": "Huānga Kōtaha",
+            "overrideValue": "Uara Takahuri",
+            "enableOverride": "Whakahohe Takahuri"
+        },
+        "harvests": "Ngā Kohinga",
+        "harvestsPanel": {
+            "harvestNow": "Kohi ināianei",
+            "schedule": "Hōtaka",
+            "allowHarvestOptimization": "Tukua te Whakapai Kohinga",
+            "nextScheduledTime": "Wā Hōtaka Panuku",
+            "action": "Mahi",
+            "viewSchedule": "Tirohia te Hōtaka",
+            "editSchedule": "Whakatika Hōtaka",
+            "removeSchedule": "Tangohia te Hōtaka",
+            "noSchedules": "Kāore anō kia waihangatia he hōtaka mō tēnei whāinga",
+            "upcomingTargetInstances": "Ngā Tauira Whāinga e Tū Mai Nei",
+            "lastFiveTargetInstances": "Ngā Tauira Whāinga 5 whakamutunga",
+            "noRecentTargetInstances": "Kāore he tauira whāinga tata nei",
+            "noUpcomingTargetInstances": "Kāore he tauira whāinga e tū mai nei",
+            "harvestDate": "Rā Kohinga",
+            "scheduleModal": {
+                "fromDate": "Mai i te Rā",
+                "toDate": "Ki te Rā",
+                "type": "Momo",
+                "day": "Rā",
+                "time": "Wā",
+                "dayOfMonth": "Rā o te Marama",
+                "month": "Marama",
+                "minutes": "Meneti",
+                "hours": "Hāora",
+                "daysOfWeek": "Ngā Rā o te Wiki",
+                "daysOfMonth": "Ngā Rā o te Marama",
+                "months": "Ngā Marama",
+                "years": "Ngā Tau",
+                "nextTenScheduledTimes": "Ngā wā hōtaka 10 e whai ake nei",
+                "test": "Whakamātautau"
+            }
+        },
+        "annotations": "Ngā Tuhinga Tāpiri",
+        "annotationsPanel": {
+            "newAnnotation": "Tuhinga Tāpiri Hōu",
+            "selection": "Kōwhiringa",
+            "selectionDate": "Rā kōwhiringa",
+            "selectionType": "Momo kōwhiringa",
+            "selectionNote": "Tuhipoka kōwhiringa",
+            "evaluationNote": "Tuhipoka aromatawai",
+            "harvestType": "Momo kohinga",
+            "targetInstances": "Ngā Tauira Whāinga",
+            "changeSortDirection": "Huri ahunga raupapa",
+            "noAnnotations": "Kāore he tuhinga tāpiri hei whakaatu",
+            "generateAlert": "Hanga whakatūpato",
+            "targetInstance": "Tauira Whāinga",
+            "deleteAnnotation": "Muku Tuhinga Tāpiri",
+            "editAnnotation": "Whakatika Tuhinga Tāpiri",
+            "selectionTypeOptions": {
+                "area": "Rohe",
+                "collection": "Kohinga",
+                "otherCollections": "Ētahi atu kohinga",
+                "producerType": "Momo kaihanga",
+                "publicationType": "Momo whakaputanga"
+            },
+            "harvestTypeOptions": {
+                "event": "Takunetanga",
+                "subject": "Kaupapa",
+                "theme": "Kaupapa matua"
+            }
+        },
+        "accessPanel": {
+            "displayTarget": "Whakaatu Whāinga",
+            "accessZone": "Rohe Uru",
+            "displayNote": "Tuhipoka Whakaatu Whakataki Whāinga",
+            "displayChangeReason": "Take mō te Panoni Whakaatu",
+            "public": "Tūmatanui",
+            "onsite": "I te Wāhi",
+            "restricted": "Herea"
+        },
+        "validation": {
+            "nameRequired": "Me whai ingoa"
+        },
+        "notifications": {
+            "notSaved": "Kāore i tiakina te whāinga",
+            "saved": "Kua tiakina pai te whāinga"
+        },
+        "list": {
+            "results": "Ngā Hua",
+            "createNew": "Waihanga Hōu",
+            "noTargetsFound": "Kāore i kitea he whāinga",
+            "query": {
+                "query": "Uiui",
+                "targetId": "ID Whāinga",
+                "targetName": "Ingoa Whāinga",
+                "seed": "Kākano",
+                "memberOf": "Mema o",
+                "nonDisplayOnly": "Whakaatu-kore Anake",
+                "selectAgency": "Tīpakohia he Pokapū",
+                "selectUser": "Tīpakohia he Kaiwhakamahi",
+                "selectStates": "Tīpakohia ngā Tūnga"
+            },
+            "delete": {
+                "confirmHeader": "Whakau Muku",
+                "confirmMessage": "E tino hiahia ana koe ki te muku i te whāinga {id}?",
+                "confirmed": "Kua whakau",
+                "deleted": "Kua mukua te whāinga {id}"
+            },
+            "pagination": {
+                "currentPageReportTemplate": "Ngā hua {first} ki {last} o {totalRecords}"
+            }
+        },
+        "access": "Uru"
     }
 }

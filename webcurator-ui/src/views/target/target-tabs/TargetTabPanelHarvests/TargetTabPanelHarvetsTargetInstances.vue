@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetInstanceListStore } from "@/stores/targetInstanceList";
@@ -8,6 +9,7 @@ import { formatDatetime } from "@/utils/helper";
 import { useProgressStore } from "@/utils/progress";
 
 const progress = useProgressStore();
+const { t } = useI18n();
 
 const targetInstances = ref(<Array<TargetInstance>>[]);
 const emptyMessage = ref("");
@@ -41,9 +43,11 @@ const fetchTargetInstances = async () => {
     progress.end();
     if (targetInstances.value && targetInstances.value.length == 0) {
       if (props.type == "latest") {
-        emptyMessage.value = "No recent target instances";
+        emptyMessage.value = t("target.harvestsPanel.noRecentTargetInstances");
       } else {
-        emptyMessage.value = "No upcoming target instances";
+        emptyMessage.value = t(
+          "target.harvestsPanel.noUpcomingTargetInstances",
+        );
       }
     }
   }
@@ -66,22 +70,25 @@ onMounted(() => {
       >
         <Column
           field="id"
-          header="Id"
+          :header="t('common.id')"
           dataType="numeric"
           style="min-width: 2rem"
         />
-        <Column field="name" header="Name" />
-        <Column field="state" header="State">
+        <Column field="name" :header="t('common.name')" />
+        <Column field="state" :header="t('common.state')">
           <template #body="{ data }">
             {{ targetInstanceStates[data.state] }}
           </template>
         </Column>
-        <Column field="harvestDate" header="Harvest Date">
+        <Column
+          field="harvestDate"
+          :header="t('target.harvestsPanel.harvestDate')"
+        >
           <template #body="{ data }">
             {{ data.harvestDate ? formatDatetime(data.harvestDate) : "" }}
           </template>
         </Column>
-        <Column field="owner" header="Owner" />
+        <Column field="owner" :header="t('common.owner')" />
       </DataTable>
       <div v-else class="text-center">
         <p class="text-500">{{ emptyMessage }}</p>

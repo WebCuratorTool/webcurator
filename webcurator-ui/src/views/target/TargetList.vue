@@ -2,6 +2,7 @@
 import { useConfirm } from "primevue/useconfirm";
 import { onMounted } from "vue";
 import { watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import Loading from "@/components/Loading.vue";
@@ -22,12 +23,37 @@ import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 const router = useRouter();
 const confirm = useConfirm();
 const alertStore = useAlertStore();
+const { t } = useI18n();
 
 const rest: UseFetchApis = useFetch();
 const userProfile = useUserProfileStore();
 const users = useUsersStore();
 const agencies = useAgenciesStore();
 const targetListData = useTargetListDataStore();
+
+type TargetTextQueryField = {
+  key: "targetName" | "targetSeed" | "targetDescription" | "targetMemberOf";
+  labelKey: string;
+};
+
+const textQueryFields: TargetTextQueryField[] = [
+  {
+    key: "targetName",
+    labelKey: "target.list.query.targetName",
+  },
+  {
+    key: "targetSeed",
+    labelKey: "target.list.query.seed",
+  },
+  {
+    key: "targetDescription",
+    labelKey: "common.description",
+  },
+  {
+    key: "targetMemberOf",
+    labelKey: "target.list.query.memberOf",
+  },
+];
 
 const createNew = () => {
   if (router) {
@@ -37,19 +63,19 @@ const createNew = () => {
 
 const deleteTarget = (id: number) => {
   confirm.require({
-    message: `Are you sure you want to delete target ${id}?`,
-    header: "Confirm Delete",
+    message: t("target.list.delete.confirmMessage", { id }),
+    header: t("target.list.delete.confirmHeader"),
     icon: "pi pi-info-circle",
-    rejectLabel: "Cancel",
-    acceptLabel: "Delete",
+    rejectLabel: t("common.cancel"),
+    acceptLabel: t("common.delete"),
     rejectClass: "p-button-secondary p-button-outlined",
     acceptClass: "p-button-danger",
     accept: () => {
       rest
         .delete("targets/" + id, {})
         .then(() => {
-          const message = `Target ${id} deleted`;
-          alertStore.info(message, message, "Confirmed");
+          const message = t("target.list.delete.deleted", { id });
+          alertStore.info(message, message, t("target.list.delete.confirmed"));
           targetListData.search();
         })
         .catch((err: unknown) => {
@@ -78,50 +104,37 @@ onMounted(() => {
   <Toast />
   <ConfirmDialog></ConfirmDialog>
 
-  <p class="title pt-8">Targets</p>
+  <p class="title pt-8">{{ t("target.targets") }}</p>
 
   <div class="flex flex-col justify-start w-full">
-    <h5>Query</h5>
+    <h5>{{ t("target.list.query.query") }}</h5>
     <div class="flex items-end justify-between w-full mb-4">
       <div
         class="flex items-center justify-start sm:w-5/6 gap-4"
         id="grid-search"
       >
-        <WctTopLabel label="Target ID" class="w-26">
+        <WctTopLabel :label="t('target.list.query.targetId')" class="w-26">
           <InputNumber
             v-model="targetListData.searchTerms.targetId"
             :useGrouping="false"
             pt:pcInputText:root:class="max-w-full"
           />
         </WctTopLabel>
-        <WctTopLabel label="Target Name" class="flex-grow">
+        <WctTopLabel
+          v-for="field in textQueryFields"
+          :key="field.key"
+          :label="t(field.labelKey)"
+          class="flex-grow"
+        >
           <InputText
-            v-model="targetListData.searchTerms.targetName"
-            type="text"
-          />
-        </WctTopLabel>
-        <WctTopLabel label="Seed" class="flex-grow">
-          <InputText
-            v-model="targetListData.searchTerms.targetSeed"
-            type="text"
-          />
-        </WctTopLabel>
-        <WctTopLabel label="Description" class="flex-grow">
-          <InputText
-            v-model="targetListData.searchTerms.targetDescription"
-            type="text"
-          />
-        </WctTopLabel>
-        <WctTopLabel label="Member of" class="flex-grow">
-          <InputText
-            v-model="targetListData.searchTerms.targetMemberOf"
+            v-model="targetListData.searchTerms[field.key]"
             type="text"
           />
         </WctTopLabel>
       </div>
       <Button
         class="wct-primary-button max-w-25"
-        label="Search"
+        :label="t('common.search')"
         icon="pi pi-search"
         id="search-button"
         @click="targetListData.search()"
@@ -134,40 +147,42 @@ onMounted(() => {
         id="grid-search"
       >
         <InputGroup>
-          <InputGroupAddon pt:root:class="!text-gray-700"
-            >Agency</InputGroupAddon
-          >
+          <InputGroupAddon pt:root:class="!text-gray-700">{{
+            t("common.agency")
+          }}</InputGroupAddon>
           <Select
             id="agency"
             v-model="targetListData.searchTerms.targetAgency"
             :options="agencies.agencyListWithEmptyItem"
             optionLabel="name"
-            placeholder="Select an Agency"
+            :placeholder="t('target.list.query.selectAgency')"
             showClear
           />
         </InputGroup>
 
         <InputGroup>
-          <InputGroupAddon pt:root:class="!text-gray-700">User</InputGroupAddon>
+          <InputGroupAddon pt:root:class="!text-gray-700">{{
+            t("common.user")
+          }}</InputGroupAddon>
           <Select
             id="user"
             v-model="targetListData.searchTerms.targetUser"
             :options="users.userListWithEmptyItem"
             optionLabel="name"
-            placeholder="Select a User"
+            :placeholder="t('target.list.query.selectUser')"
             showClear
           />
         </InputGroup>
 
         <InputGroup>
-          <InputGroupAddon pt:root:class="!text-gray-700"
-            >State</InputGroupAddon
-          >
+          <InputGroupAddon pt:root:class="!text-gray-700">{{
+            t("common.state")
+          }}</InputGroupAddon>
           <MultiSelect
             v-model="targetListData.searchTerms.targetState"
             :options="stateList"
             optionLabel="name"
-            placeholder="Select States"
+            :placeholder="t('target.list.query.selectStates')"
             :maxSelectedLabels="3"
             showClear
           />
@@ -177,7 +192,9 @@ onMounted(() => {
           class="flex items-center justify-between flex-grow border rounded-md w-2/3"
           style="padding: 0.5rem; border-color: var(--p-inputtext-border-color)"
         >
-          <label for="non-display-only">Non-Display Only</label>
+          <label for="non-display-only">{{
+            t("target.list.query.nonDisplayOnly")
+          }}</label>
           <Checkbox
             v-model="targetListData.searchTerms.nonDisplayOnly"
             :binary="true"
@@ -188,7 +205,7 @@ onMounted(() => {
       <Button
         @click="targetListData.resetFilter()"
         class="max-w-25"
-        label="Clear"
+        :label="t('common.clear')"
         icon="pi pi-times"
         outlined
         fluid
@@ -199,8 +216,13 @@ onMounted(() => {
 
     <div class="mb-8">
       <div class="flex justify-between">
-        <h4>Results</h4>
-        <Button icon="pi pi-plus" label="Create New" text @click="createNew" />
+        <h4>{{ t("target.list.results") }}</h4>
+        <Button
+          icon="pi pi-plus"
+          :label="t('target.list.createNew')"
+          text
+          @click="createNew"
+        />
       </div>
       <WctTabViewPanel>
         <Loading v-if="targetListData.loadingTargetList" />
@@ -219,13 +241,13 @@ onMounted(() => {
             <Column
               field="id"
               sortable
-              header="Id"
+              :header="t('common.id')"
               dataType="numeric"
               class="w-26"
             />
             <Column
               field="creationDate"
-              header="Date"
+              :header="t('common.date')"
               sortable
               dataType="date"
               class="w-30"
@@ -234,27 +256,37 @@ onMounted(() => {
                 {{ formatDate(data.creationDate) }}
               </template>
             </Column>
-            <Column field="name" header="Name" sortable>
+            <Column field="name" :header="t('common.name')" sortable>
               <template #body="{ data }">
                 <router-link :to="`/targets/${data.id}`">{{
                   data.name
                 }}</router-link>
               </template>
             </Column>
-            <Column field="agency" header="Agency" sortable class="w-30" />
+            <Column
+              field="agency"
+              :header="t('common.agency')"
+              sortable
+              class="w-30"
+            />
             <Column
               field="owner"
-              header="Owner"
+              :header="t('common.owner')"
               sortable
               filterField="owner"
               class="w-30"
             />
-            <Column field="state" header="State" sortable class="w-30">
+            <Column
+              field="state"
+              :header="t('common.state')"
+              sortable
+              class="w-30"
+            >
               <template #body="{ data }">
                 {{ formatTargetState(data.state) }}
               </template>
             </Column>
-            <Column header="Seed" field="seed">
+            <Column :header="t('target.general.seeds.seed')" field="seed">
               <template #body="{ data }">
                 <div v-for="seed in data.seeds" :key="seed">
                   <span v-if="seed.primary" style="font-weight: bold">{{
@@ -264,7 +296,7 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-            <Column header="Action" field="id">
+            <Column :header="t('common.action')" field="id">
               <template #body="{ data }">
                 <Button
                   v-if="showTargetAction(data.state, 'copy')"
@@ -289,14 +321,16 @@ onMounted(() => {
                   :rowsPerPageOptions="[10, 20, 50, 100]"
                   @page="targetListData.updatePage($event.first, $event.rows)"
                   template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
-                  currentPageReportTemplate="Results {first} to {last} of {totalRecords}"
+                  :currentPageReportTemplate="
+                    t('target.list.pagination.currentPageReportTemplate')
+                  "
                 >
                 </Paginator>
               </div>
             </template>
           </DataTable>
           <div v-else class="text-center">
-            <p class="text-500">No targets found</p>
+            <p class="text-500">{{ t("target.list.noTargetsFound") }}</p>
           </div>
         </div>
       </WctTabViewPanel>

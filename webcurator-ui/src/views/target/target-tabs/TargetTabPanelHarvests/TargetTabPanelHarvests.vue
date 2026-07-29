@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
@@ -18,6 +19,7 @@ const scheduleModal = useDialog();
 
 const route = useRoute();
 const targetId = route.params.id as string;
+const { t } = useI18n();
 
 const targetHarvests = useTargetHarvestsDTO();
 const targetSchedule = useTargetHarvestsDTO().targetSchedule;
@@ -46,7 +48,7 @@ const showScheduleModal = (
 ) => {
   scheduleModal.open(ScheduleModal, {
     props: {
-      header: "Schedule",
+      header: t("target.harvestsPanel.schedule"),
       modal: true,
       dismissableMask: true,
     },
@@ -68,7 +70,10 @@ onMounted(async () => {
 <template>
   <div>
     <div v-if="editing" class="flex justify-end">
-      <Button class="wct-primary-button" label="Harvest now" />
+      <Button
+        class="wct-primary-button"
+        :label="t('target.harvestsPanel.harvestNow')"
+      />
     </div>
 
     <div class="flex items-center justify-between mt-6">
@@ -81,12 +86,12 @@ onMounted(async () => {
             padding: 0 0 4px 0;
           "
         >
-          Schedule
+          {{ t("target.harvestsPanel.schedule") }}
         </h4>
         <div v-if="editing" class="flex items-center">
-          <label for="allow-harvest-optimization" class="mr-2"
-            >Allow Harvest Optimization</label
-          >
+          <label for="allow-harvest-optimization" class="mr-2">{{
+            t("target.harvestsPanel.allowHarvestOptimization")
+          }}</label>
           <Checkbox
             v-model="targetSchedule.harvsestOptimization"
             :binary="true"
@@ -97,7 +102,7 @@ onMounted(async () => {
       <Button
         v-if="editing"
         icon="pi pi-plus"
-        label="Add"
+        :label="t('common.add')"
         text
         @click="showScheduleModal(newSchedule, true, true)"
       />
@@ -109,11 +114,11 @@ onMounted(async () => {
         :rowHover="true"
         :value="targetSchedule.schedules"
       >
-        <Column field="cron" header="Schedule" />
-        <Column field="owner" header="Owner" />
+        <Column field="cron" :header="t('target.harvestsPanel.schedule')" />
+        <Column field="owner" :header="t('common.owner')" />
         <Column
           field="nextExecutionDate"
-          header="Next Scheduled Time"
+          :header="t('target.harvestsPanel.nextScheduledTime')"
           dataType="date"
         >
           <template #body="{ data }">
@@ -124,13 +129,13 @@ onMounted(async () => {
             }}
           </template>
         </Column>
-        <Column header="Action">
+        <Column :header="t('target.harvestsPanel.action')">
           <template #body="{ data }">
             <Button
               class="p-button-text"
               style="width: 2rem"
               icon="pi pi-eye"
-              v-tooltip.bottom="'View Schedule'"
+              v-tooltip.bottom="t('target.harvestsPanel.viewSchedule')"
               text
               @click="showScheduleModal(data, false, false)"
             />
@@ -139,7 +144,7 @@ onMounted(async () => {
               class="p-button-text"
               style="width: 2rem"
               icon="pi pi-pencil"
-              v-tooltip.bottom="'Edit Schedule'"
+              v-tooltip.bottom="t('target.harvestsPanel.editSchedule')"
               text
               @click="showScheduleModal(data, true, false)"
             />
@@ -148,7 +153,7 @@ onMounted(async () => {
               class="p-button-text"
               style="width: 2rem"
               icon="pi pi-trash"
-              v-tooltip.bottom="'Remove Schedule'"
+              v-tooltip.bottom="t('target.harvestsPanel.removeSchedule')"
               text
               @click="targetHarvests.removeSchedule(data.id)"
             />
@@ -156,14 +161,14 @@ onMounted(async () => {
         </Column>
       </DataTable>
       <div v-else class="text-center">
-        <p class="text-500">No schedules have been created for this target</p>
+        <p class="text-500">{{ t("target.harvestsPanel.noSchedules") }}</p>
       </div>
     </WctTabViewPanel>
 
     <TargetTabPanelHarvetsTargetInstances
       v-if="targetId"
       type="upcoming"
-      header="Upcoming Target Instances"
+      :header="t('target.harvestsPanel.upcomingTargetInstances')"
       :targetInstanceStates="targetInstanceStates"
       :targetId="targetId"
     />
@@ -171,7 +176,7 @@ onMounted(async () => {
     <TargetTabPanelHarvetsTargetInstances
       v-if="targetId"
       type="latest"
-      header="Last 5 Target Instances"
+      :header="t('target.harvestsPanel.lastFiveTargetInstances')"
       :targetInstanceStates="targetInstanceStates"
       :targetId="targetId"
     />

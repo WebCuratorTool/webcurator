@@ -1,17 +1,237 @@
 {
+    "common": {
+        "add": "Add",
+        "agency": "Agency",
+        "cancel": "Cancel",
+        "clear": "Clear",
+        "confirmDelete": "Are you sure you want to delete this item?",
+        "date": "Date",
+        "delete": "Delete",
+        "description": "Description",
+        "edit": "Edit",
+        "id": "Id",
+        "keyword": "Keyword",
+        "name": "Name",
+        "no": "No",
+        "notes": "Notes",
+        "owner": "Owner",
+        "reason": "Reason",
+        "save": "Save",
+        "search": "Search",
+        "action": "Action",
+        "state": "State",
+        "status": "Status",
+        "url": "URL",
+        "user": "User",
+        "yes": "Yes"
+    },
     "dashboard": {
         "dashboard": "Dashboard"
     },
     "target": {
         "target": "Target",
         "targets": "Targets",
-        "tabs": {
+        "general": {
             "general": "General",
+            "references": {
+                "references": "References",
+                "owner": "Owner",
+                "referenceNumber": "Reference Number",
+                "runOnApproval": "Run on Approval",
+                "selectUser": "Select a User"
+            },
+            "groups": {
+                "groups": "Groups",
+                "addGroups": "Add Groups",
+                "emptyMessage": "This target does not belong to any groups",
+                "states": {
+                    "pending": "Pending",
+                    "active": "Active",
+                    "inactive": "Inactive"
+                }
+            },
+            "seeds": {
+                "seeds": "Seeds",
+                "seeds:": "Seeds",
+                "seed": "Seed",
+                "seedUrl": "Seed URL",
+                "primary": "Primary",
+                "harvestAuth": "Harvest Auth",
+                "authAgent": "Auth Agent",
+                "authorisation": "Authorisation",
+                "auto": "Auto",
+                "addLater": "Add Later",
+                "addSeed": "Add Seed",
+                "startDate": "Start Date",
+                "endDate": "End Date",
+                "actions": "Actions",
+                "removeSeed": "Remove Seed",
+                "editSeed": "Edit Seed",
+                "viewPermission": "View Permission",
+                "unlinkPermission": "Unlink Permission",
+                "addPermission": "Add Permission",
+                "seedExists": "The seed already exists on the target",
+                "seedNotAdded": "Seed not added",
+                "emptyMessage": "No seeds have been added to this target yet"
+            },
+            "permission": {
+                "addPermissionToSeed": "Add Permission to {seed}",
+                "harvestAuthorisation": "Harvest Authorisation",
+                "authorisingAgent": "Authorising Agent",
+                "url": "URL",
+                "urls": "Urls",
+                "urlPatterns": "URL Patterns",
+                "startDate": "Start Date",
+                "endDate": "End Date",
+                "dates": "Dates",
+                "status": "Status",
+                "authAgencyResponse": "Auth Agency Response",
+                "quickPick": "Quick Pick",
+                "displayName": "Display Name",
+                "exclusions": "Exclusions",
+                "searchForHarvestOrUrl": "Search for Harvest Authorisation or URL pattern",
+                "searchForSeed": "Search for {seed}",
+                "removeFromSeed": "Remove from Seed",
+                "addToSeed": "Add to Seed",
+                "noExclusions": "No exclusions have been defined",
+                "noAnnotations": "No annotations available"
+            },
+            "archiveOptions": {
+                "archiveOptions": "Archive Options",
+                "useAutomatedQA": "Use Automated QA",
+                "autoPrune": "Auto-prune",
+                "referenceCrawl": "Reference Crawl",
+                "requestToArchivists": "Request to Archivists"
+            }
+        },
+        "description": {
             "description": "Description",
-            "profile": "Profile",
-            "harvests": "Harvests",
-            "annotations": "Annotations",
-            "access": "Access"
-        }
+            "identifier": "Identifier",
+            "subject": "Subject",
+            "creator": "Creator",
+            "contributor": "Contributor",
+            "type": "Type",
+            "format": "Format",
+            "source": "Source",
+            "language": "Language",
+            "relation": "Relation",
+            "coverage": "Coverage",
+            "issn": "ISSN",
+            "isbn": "ISBN"
+        },
+        "profile": "Profile",
+        "profilePanel": {
+            "baseProfile": "Base Profile",
+            "harvesterType": "Harvester Type",
+            "profileOverrides": "Profile Overrides",
+            "profileElement": "Profile Element",
+            "overrideValue": "Override Value",
+            "enableOverride": "Enable Override"
+        },
+        "harvests": "Harvests",
+        "harvestsPanel": {
+            "harvestNow": "Harvest now",
+            "schedule": "Schedule",
+            "allowHarvestOptimization": "Allow Harvest Optimization",
+            "nextScheduledTime": "Next Scheduled Time",
+            "action": "Action",
+            "viewSchedule": "View Schedule",
+            "editSchedule": "Edit Schedule",
+            "removeSchedule": "Remove Schedule",
+            "noSchedules": "No schedules have been created for this target",
+            "upcomingTargetInstances": "Upcoming Target Instances",
+            "lastFiveTargetInstances": "Last 5 Target Instances",
+            "noRecentTargetInstances": "No recent target instances",
+            "noUpcomingTargetInstances": "No upcoming target instances",
+            "harvestDate": "Harvest Date",
+            "scheduleModal": {
+                "fromDate": "From Date",
+                "toDate": "To Date",
+                "type": "Type",
+                "day": "Day",
+                "time": "Time",
+                "dayOfMonth": "Day of Month",
+                "month": "Month",
+                "minutes": "Minutes",
+                "hours": "Hours",
+                "daysOfWeek": "Days of Week",
+                "daysOfMonth": "Days of Month",
+                "months": "Months",
+                "years": "Years",
+                "nextTenScheduledTimes": "Next 10 scheduled times",
+                "test": "Test"
+            }
+        },
+        "annotations": "Annotations",
+        "annotationsPanel": {
+            "newAnnotation": "New Annotation",
+            "selection": "Selection",
+            "selectionDate": "Selection date",
+            "selectionType": "Selection type",
+            "selectionNote": "Selection note",
+            "evaluationNote": "Evaluation note",
+            "harvestType": "Harvest type",
+            "targetInstances": "Target Instances",
+            "changeSortDirection": "Change sort direction",
+            "noAnnotations": "No annotations to display",
+            "generateAlert": "Generate alert",
+            "targetInstance": "Target Instance",
+            "deleteAnnotation": "Delete Annotation",
+            "editAnnotation": "Edit Annotation",
+            "selectionTypeOptions": {
+                "area": "Area",
+                "collection": "Collection",
+                "otherCollections": "Other collections",
+                "producerType": "Producer type",
+                "publicationType": "Publication type"
+            },
+            "harvestTypeOptions": {
+                "event": "Event",
+                "subject": "Subject",
+                "theme": "Theme"
+            }
+        },
+        "accessPanel": {
+            "displayTarget": "Display Target",
+            "accessZone": "Access Zone",
+            "displayNote": "Target Introductory Display Note",
+            "displayChangeReason": "Reason for Display Change",
+            "public": "Public",
+            "onsite": "Onsite",
+            "restricted": "Restricted"
+        },
+        "validation": {
+            "nameRequired": "Name is required"
+        },
+        "notifications": {
+            "notSaved": "Target not saved",
+            "saved": "Target successfully saved"
+        },
+        "list": {
+            "results": "Results",
+            "createNew": "Create New",
+            "noTargetsFound": "No targets found",
+            "query": {
+                "query": "Query",
+                "targetId": "Target ID",
+                "targetName": "Target Name",
+                "seed": "Seed",
+                "memberOf": "Member of",
+                "nonDisplayOnly": "Non-Display Only",
+                "selectAgency": "Select an Agency",
+                "selectUser": "Select a User",
+                "selectStates": "Select States"
+            },
+            "delete": {
+                "confirmHeader": "Confirm Delete",
+                "confirmMessage": "Are you sure you want to delete target {id}?",
+                "confirmed": "Confirmed",
+                "deleted": "Target {id} deleted"
+            },
+            "pagination": {
+                "currentPageReportTemplate": "Results {first} to {last} of {totalRecords}"
+            }
+        },
+        "access": "Access"
     }
 }

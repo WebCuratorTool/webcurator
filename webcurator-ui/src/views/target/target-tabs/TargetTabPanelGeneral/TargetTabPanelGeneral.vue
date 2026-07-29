@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import {
@@ -19,15 +21,16 @@ defineProps<{
 const targetGeneral = useTargetGeneralDTO();
 const users = useUsersStore();
 const nextStates = useNextStateStore();
+const { t } = useI18n();
 </script>
 
 <template>
   <!-- References -->
-  <h4 class="mt-4">References</h4>
+  <h4 class="mt-4">{{ t("target.general.references.references") }}</h4>
   <WctTabViewPanel columns>
     <div class="flex items-start justify-between gap-8 w-full">
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField label="Id">
+        <WctFormField :label="t('common.id')">
           <InputText
             v-if="editing"
             v-model="targetGeneral.id"
@@ -36,7 +39,7 @@ const nextStates = useNextStateStore();
           <p v-else class="font-semibold">{{ targetGeneral.id }}</p>
         </WctFormField>
 
-        <WctFormField label="Name *">
+        <WctFormField :label="t('common.name')">
           <InputText
             v-if="editing"
             v-model="targetGeneral.name"
@@ -55,7 +58,7 @@ const nextStates = useNextStateStore();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Description">
+        <WctFormField :label="t('common.description')">
           <Textarea
             v-if="editing"
             v-model="targetGeneral.description"
@@ -67,7 +70,7 @@ const nextStates = useNextStateStore();
         </WctFormField>
       </div>
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField label="Owner">
+        <WctFormField :label="t('target.general.references.owner')">
           <Select
             v-if="editing"
             id="user"
@@ -75,7 +78,7 @@ const nextStates = useNextStateStore();
             :options="users.userListWithEmptyItem"
             optionLabel="name"
             optionValue="code"
-            placeholder="Select a User"
+            :placeholder="t('target.general.references.selectUser')"
             class="w-full md:w-18rem"
             :disabled="!editing"
           />
@@ -84,7 +87,7 @@ const nextStates = useNextStateStore();
           </p>
         </WctFormField>
 
-        <WctFormField label="Reference Number">
+        <WctFormField :label="t('target.general.references.referenceNumber')">
           <InputText
             v-if="editing"
             v-model="targetGeneral.referenceNumber"
@@ -95,7 +98,10 @@ const nextStates = useNextStateStore();
           </p>
         </WctFormField>
 
-        <WctFormField label="Run on Approval" inputId="run-on-approval">
+        <WctFormField
+          :label="t('target.general.references.runOnApproval')"
+          inputId="run-on-approval"
+        >
           <Checkbox
             v-if="editing"
             id="checkOption1"
@@ -107,11 +113,11 @@ const nextStates = useNextStateStore();
             inputId="run-on-approval"
           />
           <p v-else class="font-semibold">
-            {{ targetGeneral.runOnApproval ? "Yes" : "No" }}
+            {{ targetGeneral.runOnApproval ? t("common.yes") : t("common.no") }}
           </p>
         </WctFormField>
 
-        <WctFormField label="State">
+        <WctFormField :label="t('common.state')">
           <Select
             v-if="editing"
             id="state"
@@ -138,11 +144,15 @@ const nextStates = useNextStateStore();
   <TargetTabPanelGeneralSeeds :editing="editing" />
 
   <!-- Archive options -->
-  <h4>Archive options</h4>
+  <h4>{{ t("target.general.archiveOptions.archiveOptions") }}</h4>
   <WctTabViewPanel columns>
     <div class="flex items-start justify-between gap-8 w-full">
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField checkbox label="Use Automated QA" inputId="automated-qa">
+        <WctFormField
+          checkbox
+          :label="t('target.general.archiveOptions.useAutomatedQA')"
+          inputId="automated-qa"
+        >
           <Checkbox
             v-if="editing"
             v-model="targetGeneral.automatedQA"
@@ -151,10 +161,14 @@ const nextStates = useNextStateStore();
             inputId="automated-qa"
           />
           <p v-else class="font-semibold">
-            {{ targetGeneral.automatedQA ? "Yes" : "No" }}
+            {{ targetGeneral.automatedQA ? t("common.yes") : t("common.no") }}
           </p>
         </WctFormField>
-        <WctFormField checkbox label="Auto-prune" inputId="auto-prune">
+        <WctFormField
+          checkbox
+          :label="t('target.general.archiveOptions.autoPrune')"
+          inputId="auto-prune"
+        >
           <Checkbox
             v-if="editing"
             v-model="targetGeneral.autoPrune"
@@ -163,12 +177,12 @@ const nextStates = useNextStateStore();
             inputId="auto-prune"
           />
           <p v-else class="font-semibold">
-            {{ targetGeneral.autoPrune ? "Yes" : "No" }}
+            {{ targetGeneral.autoPrune ? t("common.yes") : t("common.no") }}
           </p>
         </WctFormField>
         <WctFormField
           checkbox
-          label="Reference Crawl"
+          :label="t('target.general.archiveOptions.referenceCrawl')"
           inputId="reference-crawl"
         >
           <Checkbox
@@ -179,13 +193,17 @@ const nextStates = useNextStateStore();
             inputId="reference-crawl"
           />
           <p v-else class="font-semibold">
-            {{ targetGeneral.referenceCrawl ? "Yes" : "No" }}
+            {{
+              targetGeneral.referenceCrawl ? t("common.yes") : t("common.no")
+            }}
           </p>
         </WctFormField>
       </div>
 
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField label="Request to Archivists">
+        <WctFormField
+          :label="t('target.general.archiveOptions.requestToArchivists')"
+        >
           <Textarea
             v-if="editing"
             v-model="targetGeneral.requestToArchivists"

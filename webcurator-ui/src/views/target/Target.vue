@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, toRaw } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 
 import {
@@ -27,6 +28,7 @@ const rest: UseFetchApis = useFetch();
 const alertStore = useAlertStore();
 const progress = useProgressStore();
 const targetId = route.params.id as string;
+const { t } = useI18n();
 
 const targetAccess = useTargetAccessDTO();
 const targetAnnotations = useTargetAnnotationsDTO();
@@ -133,11 +135,11 @@ const setEditing = (isEditing: boolean) => {
 };
 
 const showErrorMessage = (message: string) => {
-  alertStore.error(message, message, "Target not saved");
+  alertStore.error(message, message, t("target.notifications.notSaved"));
 };
 
 const showSuccessMessage = () => {
-  alertStore.info("Target succesfully saved");
+  alertStore.info(t("target.notifications.saved"));
 };
 
 await fetchTargetDetails();

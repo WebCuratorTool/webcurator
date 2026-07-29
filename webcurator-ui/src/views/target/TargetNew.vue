@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import z from "zod";
 
@@ -23,6 +24,7 @@ import TargetTabView from "./target-tabs/TargetTabView.vue";
 const router = useRouter();
 const progress = useProgressStore();
 const alertStore = useAlertStore();
+const { t } = useI18n();
 
 const editing = ref(true);
 const loading = ref(false);
@@ -37,7 +39,7 @@ const targetGroups = useTargetGropusDTO();
 const targetProfile = useTargetProfileDTO();
 const targetSchedule = useTargetHarvestsDTO();
 
-const targetName = z.string().min(1, "Name is required");
+const targetName = z.string().min(1, t("target.validation.nameRequired"));
 
 const save = async () => {
   const validationResult = targetName.safeParse(targetGeneral.name);
@@ -82,11 +84,11 @@ const setEditing = (isEditing: boolean) => {
 };
 
 const showErrorMessage = (message: string) => {
-  alertStore.error(message, message, "Target not saved");
+  alertStore.error(message, message, t("target.notifications.notSaved"));
 };
 
 const showSuccessMessage = () => {
-  alertStore.info("Target succesfully saved");
+  alertStore.info(t("target.notifications.saved"));
 };
 
 useProfiles().fetchProfiles();

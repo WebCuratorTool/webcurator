@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent, ref, toRaw, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
@@ -8,6 +9,8 @@ import { useTargetSeedsDTO } from "@/stores/target";
 import type { HarvestAuthDisplay } from "@/types/harvestAuth";
 import type { TargetSeed } from "@/types/target";
 import { formatDate } from "@/utils/helper";
+
+const { t } = useI18n();
 
 const AddPermissionModal = defineAsyncComponent(
   () => import("./modals/TargetAddPermissionModal.vue"),
@@ -58,7 +61,9 @@ const removePermission = (seed: TargetSeed, auth: HarvestAuthDisplay) => {
 const showAddPermission = (seed: TargetSeed) => {
   addPermissionsModal.open(AddPermissionModal, {
     props: {
-      header: `Add Permission to ${seed.seed}`,
+      header: t("target.general.permission.addPermissionToSeed", {
+        seed: seed.seed,
+      }),
       modal: true,
       dismissableMask: true,
       style: { width: "50vw" },
@@ -70,7 +75,7 @@ const showAddPermission = (seed: TargetSeed) => {
 const showAddSeed = () => {
   addSeedModal.open(AddSeedModal, {
     props: {
-      header: "Add Seed",
+      header: t("target.general.seeds.addSeed"),
       modal: true,
       dismissableMask: true,
       style: { width: "30vw" },
@@ -109,11 +114,11 @@ watch(
 
 <template>
   <div class="flex justify-between">
-    <h4>Seeds</h4>
+    <h4>{{ t("target.general.seeds.seeds") }}</h4>
     <Button
       v-if="editing"
       icon="pi pi-plus"
-      label="Add"
+      :label="t('common.add')"
       text
       @click="showAddSeed()"
     />
@@ -125,21 +130,27 @@ watch(
     >
       <thead>
         <tr style="border-bottom: 1px solid #e4e4e4">
-          <th style="width: 33%; text-align: left; padding: 0.5rem">Seed</th>
-          <th style="width: 7%; text-align: left; padding: 0.5rem">Primary</th>
-          <th style="width: 15%; text-align: left; padding: 0.5rem">
-            Harvest Auth
+          <th style="width: 33%; text-align: left; padding: 0.5rem">
+            {{ t("target.general.seeds.seed") }}
+          </th>
+          <th style="width: 7%; text-align: left; padding: 0.5rem">
+            {{ t("target.general.seeds.primary") }}
           </th>
           <th style="width: 15%; text-align: left; padding: 0.5rem">
-            Auth Agent
+            {{ t("target.general.seeds.harvestAuth") }}
+          </th>
+          <th style="width: 15%; text-align: left; padding: 0.5rem">
+            {{ t("target.general.seeds.authAgent") }}
           </th>
           <th style="width: 10%; text-align: left; padding: 0.5rem">
-            Start Date
+            {{ t("target.general.seeds.startDate") }}
           </th>
           <th style="width: 10%; text-align: left; padding: 0.5rem">
-            End Date
+            {{ t("target.general.seeds.endDate") }}
           </th>
-          <th style="width: 10%; text-align: left; padding: 0.5rem">Actions</th>
+          <th style="width: 10%; text-align: left; padding: 0.5rem">
+            {{ t("target.general.seeds.actions") }}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -150,7 +161,7 @@ watch(
           </td>
           <td style="width: 7%; padding: 0.5rem">
             <span v-if="editingSeed != data.id">{{
-              data.primary ? "Yes" : "No"
+              data.primary ? t("common.yes") : t("common.no")
             }}</span>
             <Checkbox v-else v-model="data.primary" :binary="true" />
           </td>
@@ -184,7 +195,9 @@ watch(
                         class="p-button-text"
                         style="width: 2rem"
                         icon="pi pi-eye"
-                        v-tooltip.bottom="'View Permission'"
+                        v-tooltip.bottom="
+                          t('target.general.seeds.viewPermission')
+                        "
                         text
                         @click="showViewPermission(authorisation.permissionId)"
                       />
@@ -193,7 +206,9 @@ watch(
                         class="p-button-text"
                         style="width: 2rem"
                         icon="pi pi-link"
-                        v-tooltip.bottom="'Unlink Permission'"
+                        v-tooltip.bottom="
+                          t('target.general.seeds.unlinkPermission')
+                        "
                         text
                         @click="removePermission(data, authorisation)"
                       />
@@ -209,7 +224,7 @@ watch(
                 class="p-button-text"
                 style="width: 2rem"
                 icon="pi pi-plus-circle"
-                v-tooltip.bottom="'Add Permission'"
+                v-tooltip.bottom="t('target.general.seeds.addPermission')"
                 text
                 @click="showAddPermission(data)"
               />
@@ -217,7 +232,7 @@ watch(
                 class="p-button-text"
                 style="width: 2rem"
                 icon="pi pi-trash"
-                v-tooltip.bottom="'Remove Seed'"
+                v-tooltip.bottom="t('target.general.seeds.removeSeed')"
                 text
                 @click="removeSeedById(data.id)"
               />
@@ -225,7 +240,7 @@ watch(
                 class="p-button-text"
                 style="width: 2rem"
                 icon="pi pi-pencil"
-                v-tooltip.bottom="'Edit Seed'"
+                v-tooltip.bottom="t('target.general.seeds.editSeed')"
                 text
                 @click="editSeed(data)"
               />
@@ -235,7 +250,7 @@ watch(
                 class="p-button-text"
                 style="width: 2rem"
                 icon="pi pi-save"
-                v-tooltip.bottom="'Save'"
+                v-tooltip.bottom="t('common.save')"
                 text
                 @click="editingSeed = 0"
               />
@@ -243,7 +258,7 @@ watch(
                 class="p-button-text"
                 style="width: 2rem"
                 icon="pi pi-times"
-                v-tooltip.bottom="'Cancel'"
+                v-tooltip.bottom="t('common.cancel')"
                 text
                 @click="cancelEditSeed()"
               />
@@ -253,7 +268,7 @@ watch(
       </tbody>
     </table>
     <div v-else class="text-center">
-      <p class="text-500">No seeds have been added to this target yet</p>
+      <p class="text-500">{{ t("target.general.seeds.emptyMessage") }}</p>
     </div>
   </WctTabViewPanel>
 </template>

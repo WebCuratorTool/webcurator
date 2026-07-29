@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import type { Annotation } from "@/types/annotation";
 import { formatDate } from "@/utils/helper";
@@ -8,6 +9,7 @@ const props = defineProps<{
   annotation: Annotation;
   editing?: boolean;
 }>();
+const { t } = useI18n();
 
 const editingAnnotation = ref(false);
 
@@ -37,12 +39,13 @@ const cancelEditAnnotation = () => {
             <div v-if="editingAnnotation" class="flex items-center gap-2">
               <label>
                 <Checkbox v-model="localAnnotation.alert" binary />
-                Generate alert
+                {{ t("target.annotationsPanel.generateAlert") }}
               </label>
             </div>
           </div>
           <div v-if="annotation.targetInstanceId">
-            Target Instance {{ annotation.targetInstanceId }}
+            {{ t("target.annotationsPanel.targetInstance") }}
+            {{ annotation.targetInstanceId }}
           </div>
         </div>
         <div
@@ -52,14 +55,14 @@ const cancelEditAnnotation = () => {
           <Button
             style="width: 2rem"
             icon="pi pi-trash"
-            v-tooltip.bottom="'Delete Annotation'"
+            v-tooltip.bottom="t('target.annotationsPanel.deleteAnnotation')"
             text
             @click="$emit('deleteAnnotation', annotation)"
           />
           <Button
             style="width: 2rem"
             icon="pi pi-pencil"
-            v-tooltip.bottom="'Edit Annotation'"
+            v-tooltip.bottom="t('target.annotationsPanel.editAnnotation')"
             text
             @click="editingAnnotation = true"
           />
@@ -74,7 +77,7 @@ const cancelEditAnnotation = () => {
             class="p-button-text"
             style="width: 2rem"
             icon="pi pi-save"
-            v-tooltip.bottom="'Save'"
+            v-tooltip.bottom="t('common.save')"
             text
             @click="
               ($emit('saveAnnotation', localAnnotation),
@@ -85,7 +88,7 @@ const cancelEditAnnotation = () => {
             class="p-button-text"
             style="width: 2rem"
             icon="pi pi-times"
-            v-tooltip.bottom="'Cancel'"
+            v-tooltip.bottom="t('common.cancel')"
             text
             @click="cancelEditAnnotation()"
           />

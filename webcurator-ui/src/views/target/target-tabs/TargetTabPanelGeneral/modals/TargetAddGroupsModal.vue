@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { useTargetGropusDTO } from "@/stores/target";
 import type { TargetGroup, TargetGroups } from "@/types/target";
 import { useFetch, type UseFetchApis } from "@/utils/rest.api";
+const { t } = useI18n();
 
 const rest: UseFetchApis = useFetch();
 
@@ -16,9 +18,9 @@ const loading = ref(false);
 const searchTerm = ref("");
 
 const states: Record<number, string> = {
-  8: "Pending",
-  9: "Active",
-  10: "Inactive",
+  8: t("target.general.groups.states.pending"),
+  9: t("target.general.groups.states.active"),
+  10: t("target.general.groups.states.inactive"),
 };
 
 interface TargetGroupsResponse {
@@ -70,12 +72,12 @@ fetch();
 
 <template>
   <div class="h-full">
-    <h5>Search</h5>
+    <h5>{{ t("common.search") }}</h5>
     <div class="flex mb-4">
       <InputText v-model="searchTerm" type="text" class="mr-4" />
       <Button
         class="wct-primary-button"
-        label="Search&nbsp;&nbsp;"
+        :label="t('common.search') + '\u00A0\u00A0'"
         icon="pi pi-search"
         iconPos="right"
         @click="search()"
@@ -119,13 +121,13 @@ fetch();
         },
       }"
     >
-      <Column field="name" header="Name" />
-      <Column field="state" header="Status">
+      <Column field="name" :header="t('common.name')" />
+      <Column field="state" :header="t('common.status')">
         <template #body="{ data }">
           {{ states[data.state] }}
         </template>
       </Column>
-      <Column field="agency" header="Agency" sortable />
+      <Column field="agency" :header="t('common.agency')" sortable />
       <Column>
         <template #body="{ data }">
           <div class="flex justify-center">
@@ -133,7 +135,7 @@ fetch();
             <Button
               v-else
               class="p-0 m-0"
-              label="Add"
+              :label="t('common.add')"
               text
               @click="targetGroups.addGroup(data)"
             />

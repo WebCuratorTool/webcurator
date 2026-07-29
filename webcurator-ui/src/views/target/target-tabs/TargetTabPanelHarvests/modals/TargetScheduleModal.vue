@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { computed, inject, type Ref, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
 import Loading from "@/components/Loading.vue";
@@ -22,6 +23,7 @@ import { useFetch, type UseFetchApis } from "@/utils/rest.api";
 
 const targetGeneral = useTargetGeneralDTO();
 const targetHarvests = useTargetHarvestsDTO();
+const { t } = useI18n();
 
 const rest: UseFetchApis = useFetch();
 
@@ -291,7 +293,7 @@ fetch();
   <div v-else-if="targetSchedule && !loading" class="h-full mt-3 flex">
     <div :class="editing && scheduleType == 'Custom' ? 'w-70' : 'w-full'">
       <!-- From Date -->
-      <WctFormField label="From Date">
+      <WctFormField :label="t('target.harvestsPanel.scheduleModal.fromDate')">
         <DatePicker
           v-if="editing"
           v-model="startDate"
@@ -304,7 +306,7 @@ fetch();
       </WctFormField>
 
       <!-- To Date -->
-      <WctFormField label="To Date">
+      <WctFormField :label="t('target.harvestsPanel.scheduleModal.toDate')">
         <DatePicker
           v-if="editing"
           v-model="endDate"
@@ -317,7 +319,7 @@ fetch();
       </WctFormField>
 
       <!-- Schedule Type -->
-      <WctFormField label="Type">
+      <WctFormField :label="t('target.harvestsPanel.scheduleModal.type')">
         <Select
           v-if="editing"
           v-model="scheduleType"
@@ -329,7 +331,10 @@ fetch();
 
       <div v-if="scheduleType != 'Custom'">
         <!-- Day of Week -->
-        <WctFormField v-if="shouldShowDayOfWeek" label="Day">
+        <WctFormField
+          v-if="shouldShowDayOfWeek"
+          :label="t('target.harvestsPanel.scheduleModal.day')"
+        >
           <Select
             v-if="editing"
             v-model="newCronObject.dayOfWeek"
@@ -341,7 +346,7 @@ fetch();
         <!-- Time -->
         <WctFormField
           v-if="scheduleType != 'Every Monday at 9:00pm'"
-          label="Time"
+          :label="t('target.harvestsPanel.scheduleModal.time')"
         >
           <DatePicker v-if="editing" v-model="selectedTime" timeOnly />
           <p v-else class="font-semibold">
@@ -352,19 +357,22 @@ fetch();
         <!-- Day of Month -->
         <WctFormField
           v-if="!editing && !isNaN(cronFields.dayOfMonth)"
-          label="Day of Month"
+          :label="t('target.harvestsPanel.scheduleModal.dayOfMonth')"
         >
           <p class="font-semibold">{{ cronFields.dayOfMonth }}</p>
         </WctFormField>
         <WctFormField
           v-if="editing && shouldShowDayOfMonth"
-          label="Day of Month"
+          :label="t('target.harvestsPanel.scheduleModal.dayOfMonth')"
         >
           <Select v-model.sync="newCronObject.dayOfMonth" :options="dates" />
         </WctFormField>
 
         <!-- Month -->
-        <WctFormField v-if="editing && shouldShowMonths" label="Month">
+        <WctFormField
+          v-if="editing && shouldShowMonths"
+          :label="t('target.harvestsPanel.scheduleModal.month')"
+        >
           <Select
             v-if="editing"
             v-model="newCronObject.months"
@@ -377,7 +385,7 @@ fetch();
             !cronFields.month.includes('*') &&
             !cronFields.month.includes('?')
           "
-          label="Month"
+          :label="t('target.harvestsPanel.scheduleModal.month')"
         >
           <p class="font-semibold">{{ getCronMonths(targetSchedule.cron) }}</p>
         </WctFormField>
@@ -385,7 +393,7 @@ fetch();
 
       <!-- Custom cron input -->
       <div v-if="scheduleType == 'Custom'">
-        <WctFormField label="Minutes">
+        <WctFormField :label="t('target.harvestsPanel.scheduleModal.minutes')">
           <InputText
             v-if="editing"
             v-model="cronFields.minute"
@@ -402,7 +410,7 @@ fetch();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Hours">
+        <WctFormField :label="t('target.harvestsPanel.scheduleModal.hours')">
           <InputText
             v-if="editing"
             v-model="cronFields.hour"
@@ -419,7 +427,9 @@ fetch();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Days of Week">
+        <WctFormField
+          :label="t('target.harvestsPanel.scheduleModal.daysOfWeek')"
+        >
           <InputText
             v-if="editing"
             v-model="cronFields.dayOfWeek"
@@ -436,7 +446,9 @@ fetch();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Days of Month">
+        <WctFormField
+          :label="t('target.harvestsPanel.scheduleModal.daysOfMonth')"
+        >
           <InputText
             v-if="editing"
             v-model="cronFields.dayOfMonth"
@@ -453,7 +465,7 @@ fetch();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Months">
+        <WctFormField :label="t('target.harvestsPanel.scheduleModal.months')">
           <InputText
             v-if="editing"
             v-model="cronFields.month"
@@ -470,7 +482,7 @@ fetch();
           </Message>
         </WctFormField>
 
-        <WctFormField label="Years">
+        <WctFormField :label="t('target.harvestsPanel.scheduleModal.years')">
           <InputText
             v-if="editing"
             v-model="cronFields.year"
@@ -489,14 +501,27 @@ fetch();
       </div>
 
       <div v-if="editing" class="flex items-center justify-end w-full mt-4">
-        <Button class="wct-primary-button" label="Save" @click="saveSchedule" />
-        <Button label="Cancel" text class="ml-2" @click="closeDialog" />
+        <Button
+          class="wct-primary-button"
+          :label="t('common.save')"
+          @click="saveSchedule"
+        />
+        <Button
+          :label="t('common.cancel')"
+          text
+          class="ml-2"
+          @click="closeDialog"
+        />
       </div>
     </div>
 
     <div v-if="scheduleType == 'Custom' && editing">
-      <p>Next 10 scheduled times</p>
-      <Button label="Test" outlined @click="getNextCustomTimes" />
+      <p>{{ t("target.harvestsPanel.scheduleModal.nextTenScheduledTimes") }}</p>
+      <Button
+        :label="t('target.harvestsPanel.scheduleModal.test')"
+        outlined
+        @click="getNextCustomTimes"
+      />
       <div v-if="customScheduledTimes.length" class="pt-4">
         <p
           v-for="(time, index) in customScheduledTimes"

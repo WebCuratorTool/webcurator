@@ -2,6 +2,7 @@
 import { Textarea } from "primevue";
 import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
@@ -20,10 +21,15 @@ const newAnnotationModal = useDialog();
 
 const route = useRoute();
 const targetId = Number(route.params.id);
+const { t } = useI18n();
 
 const showNewAnnotationModal = () => {
   newAnnotationModal.open(NewAnnotationModal, {
-    props: { header: "New Annotation", modal: true, dismissableMask: true },
+    props: {
+      header: t("target.annotationsPanel.newAnnotation"),
+      modal: true,
+      dismissableMask: true,
+    },
     data: {
       annotation: newAnnotation,
       addAnnotation: addAnnotation,
@@ -45,13 +51,41 @@ const annotations = ref<Array<Annotation>>([]);
 const sortDirection = ref("desc");
 const targetAnnotations = useTargetAnnotationsDTO().targetAnnotations;
 const selectionTypes = [
-  "Area",
-  "Collection",
-  "Other collections",
-  "Producer type",
-  "Publication type",
+  {
+    label: t("target.annotationsPanel.selectionTypeOptions.area"),
+    value: "Area",
+  },
+  {
+    label: t("target.annotationsPanel.selectionTypeOptions.collection"),
+    value: "Collection",
+  },
+  {
+    label: t("target.annotationsPanel.selectionTypeOptions.otherCollections"),
+    value: "Other collections",
+  },
+  {
+    label: t("target.annotationsPanel.selectionTypeOptions.producerType"),
+    value: "Producer type",
+  },
+  {
+    label: t("target.annotationsPanel.selectionTypeOptions.publicationType"),
+    value: "Publication type",
+  },
 ];
-const harvestTypes = ["Event", "Subject", "Theme"];
+const harvestTypes = [
+  {
+    label: t("target.annotationsPanel.harvestTypeOptions.event"),
+    value: "Event",
+  },
+  {
+    label: t("target.annotationsPanel.harvestTypeOptions.subject"),
+    value: "Subject",
+  },
+  {
+    label: t("target.annotationsPanel.harvestTypeOptions.theme"),
+    value: "Theme",
+  },
+];
 const userProfile = useUserProfileStore();
 const newAnnotation = ref(<Annotation>{ alert: false, user: userProfile.name });
 const loading = ref(false);
@@ -137,11 +171,11 @@ if (targetId) {
 <template>
   <Loading v-if="loading" />
   <div v-else>
-    <h4 class="mt-4">Selection</h4>
+    <h4 class="mt-4">{{ t("target.annotationsPanel.selection") }}</h4>
     <WctTabViewPanel columns>
       <div class="flex items-start justify-between gap-8 w-full">
         <div class="flex flex-col items-start gap-2 w-full">
-          <WctFormField label="Selection date">
+          <WctFormField :label="t('target.annotationsPanel.selectionDate')">
             <p class="font-semibold">
               {{
                 targetAnnotations.selection.date &&
@@ -149,18 +183,20 @@ if (targetId) {
               }}
             </p>
           </WctFormField>
-          <WctFormField label="Selection type">
+          <WctFormField :label="t('target.annotationsPanel.selectionType')">
             <Select
               v-if="editing"
               v-model="targetAnnotations.selection.type"
               :options="selectionTypes"
+              optionLabel="label"
+              optionValue="value"
               showClear
             />
             <p v-else class="font-semibold">
               {{ targetAnnotations.selection.type }}
             </p>
           </WctFormField>
-          <WctFormField label="Selection note">
+          <WctFormField :label="t('target.annotationsPanel.selectionNote')">
             <Textarea
               v-if="editing"
               v-model="targetAnnotations.selection.note"
@@ -172,7 +208,7 @@ if (targetId) {
           </WctFormField>
         </div>
         <div class="flex flex-col items-start gap-2 w-full">
-          <WctFormField label="Evaluation note">
+          <WctFormField :label="t('target.annotationsPanel.evaluationNote')">
             <Textarea
               v-if="editing"
               v-model="targetAnnotations.evaluationNote"
@@ -182,11 +218,13 @@ if (targetId) {
               {{ targetAnnotations.evaluationNote }}
             </p>
           </WctFormField>
-          <WctFormField label="Harvest type">
+          <WctFormField :label="t('target.annotationsPanel.harvestType')">
             <Select
               v-if="editing"
               v-model="targetAnnotations.harvestType"
               :options="harvestTypes"
+              optionLabel="label"
+              optionValue="value"
               showClear
             />
             <p v-else class="font-semibold">
@@ -197,11 +235,11 @@ if (targetId) {
       </div>
     </WctTabViewPanel>
     <div class="flex justify-between">
-      <h4 class="mt-4">Annotations</h4>
+      <h4 class="mt-4">{{ t("target.annotationsPanel.annotations") }}</h4>
       <Button
         v-if="editing"
         icon="pi pi-plus"
-        label="Add"
+        :label="t('common.add')"
         text
         @click="showNewAnnotationModal()"
       />
@@ -209,14 +247,16 @@ if (targetId) {
     <WctTabViewPanel>
       <div v-if="annotations.length > 0">
         <div class="flex justify-between items-center">
-          <h4>Target</h4>
-          <h4 class="!mt-0">Target Instances</h4>
+          <h4>{{ t("target.target") }}</h4>
+          <h4 class="!mt-0">
+            {{ t("target.annotationsPanel.targetInstances") }}
+          </h4>
         </div>
         <div class="flex justify-center">
           <Button
             icon="pi pi-arrow-right-arrow-left"
             style="transform: rotate(90deg); display: inline-block"
-            v-tooltip.top="'Change sort direction'"
+            v-tooltip.top="t('target.annotationsPanel.changeSortDirection')"
             text
             @click="sortAnnotaions()"
           />
@@ -242,7 +282,7 @@ if (targetId) {
         </Timeline>
       </div>
       <div v-else-if="!editing" class="text-center">
-        <p class="text-500">No annotations to display</p>
+        <p class="text-500">{{ t("target.annotationsPanel.noAnnotations") }}</p>
       </div>
     </WctTabViewPanel>
   </div>

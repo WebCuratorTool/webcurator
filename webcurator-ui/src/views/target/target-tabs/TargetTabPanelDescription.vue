@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import WctFormField from "@/components/WctFormField.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
@@ -8,6 +9,8 @@ import { useTargetDescriptionDTO } from "@/stores/target";
 defineProps<{
   editing: boolean;
 }>();
+
+const { t } = useI18n();
 
 const targetDescription = ref(useTargetDescriptionDTO().targetDescription);
 
@@ -31,11 +34,11 @@ const types = ref([
 </script>
 
 <template>
-  <h4 class="mt-4">Description</h4>
+  <h4 class="mt-4">{{ t("target.description.description") }}</h4>
   <WctTabViewPanel columns>
     <div class="flex items-start justify-between gap-8 w-full">
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField label="Identifier">
+        <WctFormField :label="t('target.description.identifier')">
           <InputText
             v-if="editing"
             v-model="targetDescription.identifier"
@@ -43,7 +46,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.identifier }}</p>
         </WctFormField>
-        <WctFormField label="Description">
+        <WctFormField :label="t('target.description.description')">
           <Textarea
             v-if="editing"
             v-model="targetDescription.description"
@@ -53,7 +56,7 @@ const types = ref([
             {{ targetDescription.description }}
           </p>
         </WctFormField>
-        <WctFormField label="Subject">
+        <WctFormField :label="t('target.description.subject')">
           <Textarea
             v-if="editing"
             v-model="targetDescription.subject"
@@ -61,7 +64,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.subject }}</p>
         </WctFormField>
-        <WctFormField label="Creator">
+        <WctFormField :label="t('target.description.creator')">
           <InputText
             v-if="editing"
             v-model="targetDescription.creator"
@@ -69,7 +72,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.creator }}</p>
         </WctFormField>
-        <WctFormField label="Contributor">
+        <WctFormField :label="t('target.description.contributor')">
           <InputText
             v-if="editing"
             v-model="targetDescription.contributor"
@@ -82,7 +85,7 @@ const types = ref([
       </div>
 
       <div class="flex flex-col items-start gap-2 w-full">
-        <WctFormField label="Type">
+        <WctFormField :label="t('target.description.type')">
           <Select
             v-if="editing"
             v-model="targetDescription.type"
@@ -91,7 +94,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.type }}</p>
         </WctFormField>
-        <WctFormField label="Format">
+        <WctFormField :label="t('target.description.format')">
           <InputText
             v-if="editing"
             v-model="targetDescription.format"
@@ -99,7 +102,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.format }}</p>
         </WctFormField>
-        <WctFormField label="Source">
+        <WctFormField :label="t('target.description.source')">
           <InputText
             v-if="editing"
             v-model="targetDescription.source"
@@ -107,7 +110,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.source }}</p>
         </WctFormField>
-        <WctFormField label="Language">
+        <WctFormField :label="t('target.description.language')">
           <InputText
             v-if="editing"
             v-model="targetDescription.language"
@@ -115,7 +118,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.language }}</p>
         </WctFormField>
-        <WctFormField label="Relation">
+        <WctFormField :label="t('target.description.relation')">
           <InputText
             v-if="editing"
             v-model="targetDescription.relation"
@@ -123,7 +126,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.relation }}</p>
         </WctFormField>
-        <WctFormField label="Coverage">
+        <WctFormField :label="t('target.description.coverage')">
           <InputText
             v-if="editing"
             v-model="targetDescription.coverage"
@@ -131,7 +134,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.coverage }}</p>
         </WctFormField>
-        <WctFormField label="ISSN">
+        <WctFormField :label="t('target.description.issn')">
           <InputText
             v-if="editing"
             v-model="targetDescription.issn"
@@ -139,7 +142,7 @@ const types = ref([
           />
           <p v-else class="font-semibold">{{ targetDescription.issn }}</p>
         </WctFormField>
-        <WctFormField label="ISBN">
+        <WctFormField :label="t('target.description.isbn')">
           <InputText
             v-if="editing"
             v-model="targetDescription.isbn"

@@ -2,6 +2,7 @@
 import type { DataTableRowClickEvent } from "primevue/datatable";
 import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, onMounted, reactive, type Ref, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 
 import Loading from "@/components/Loading.vue";
@@ -12,6 +13,7 @@ import type { Permission } from "@/types/permission";
 import { formatDate } from "@/utils/helper";
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
+const { t } = useI18n();
 
 const route = useRoute();
 const targetId = route.params.id as string;
@@ -88,7 +90,7 @@ fetchPermissions();
 
 <template>
   <div class="h-full">
-    <h5>Search</h5>
+    <h5>{{ t("common.search") }}</h5>
     <div class="flex flex-wrap gap-4 mb-4">
       <div class="flex items-center gap-2">
         <RadioButton
@@ -97,7 +99,9 @@ fetchPermissions();
           name="searchType"
           value="harvestAuthorisationName"
         />
-        <label for="harvestAuthorisationName">Harvest Authorisation</label>
+        <label for="harvestAuthorisationName">{{
+          t("target.general.permission.harvestAuthorisation")
+        }}</label>
       </div>
       <div class="flex items-center gap-2">
         <RadioButton
@@ -106,26 +110,26 @@ fetchPermissions();
           name="searchType"
           value="url"
         />
-        <label for="url">URL</label>
+        <label for="url">{{ t("target.general.permission.url") }}</label>
       </div>
     </div>
     <div class="flex mb-4">
       <InputText
         v-model="searchTerm"
         type="text"
-        placeholder="Keyword"
-        v-tooltip.bottom="'Search for Harvest Authorisation or URL pattern'"
+        :placeholder="t('common.keyword')"
+        v-tooltip.bottom="t('target.general.permission.searchForHarvestOrUrl')"
         class="mr-4"
       />
       <Button
-        label="Search&nbsp;&nbsp;"
+        :label="t('common.search') + '\u00A0\u00A0'"
         icon="pi pi-search"
         iconPos="right"
         @click="fetchPermissions()"
       />
       <Button
         class="ml-2 wct-secondary-button"
-        label="Clear"
+        :label="t('common.clear')"
         icon="pi pi-times"
         iconPos="right"
         @click="searchTerm && clearSearch()"
@@ -134,7 +138,7 @@ fetchPermissions();
     <Button
       v-if="seed"
       class="p-0"
-      :label="`Search for ${seed.seed}`"
+      :label="t('target.general.permission.searchForSeed', { seed: seed.seed })"
       text
       iconPos="right"
       @click="
@@ -157,10 +161,13 @@ fetchPermissions();
       <Column expander style="width: 5rem" />
       <Column
         field="harvestAuthorisation.name"
-        header="Harvest Authorisation"
+        :header="t('target.general.permission.harvestAuthorisation')"
       />
-      <Column field="authorisingAgentName" header="Authorising Agent" />
-      <Column header="URL Patterns">
+      <Column
+        field="authorisingAgentName"
+        :header="t('target.general.permission.authorisingAgent')"
+      />
+      <Column :header="t('target.general.permission.urlPatterns')">
         <template #body="slotProps">
           <div
             v-for="(urlPattern, index) in slotProps.data.urlPatterns"
@@ -170,12 +177,15 @@ fetchPermissions();
           </div>
         </template>
       </Column>
-      <Column field="startDate" header="Start Date">
+      <Column
+        field="startDate"
+        :header="t('target.general.permission.startDate')"
+      >
         <template #body="slotProps">
           {{ slotProps.data.startDate && formatDate(slotProps.data.startDate) }}
         </template>
       </Column>
-      <Column field="endDate" header="End Date">
+      <Column field="endDate" :header="t('target.general.permission.endDate')">
         <template #body="slotProps">
           {{ slotProps.data.endDate && formatDate(slotProps.data.endDate) }}
         </template>
@@ -191,7 +201,7 @@ fetchPermissions();
               <Button
                 icon="pi pi-trash"
                 text
-                v-tooltip.bottom="'Remove from Seed'"
+                v-tooltip.bottom="t('target.general.permission.removeFromSeed')"
                 @click="
                   seed.authorisations = seed.authorisations.filter(
                     (auth: any) =>
@@ -203,9 +213,9 @@ fetchPermissions();
             <Button
               v-else
               class="p-0 m-0"
-              label="Add"
+              :label="t('common.add')"
               text
-              v-tooltip.bottom="'Add to Seed'"
+              v-tooltip.bottom="t('target.general.permission.addToSeed')"
               @click="
                 seed.authorisations.push({
                   id: slotProps.data.id,
@@ -226,7 +236,9 @@ fetchPermissions();
         <Loading v-if="loadingPermission" />
         <div v-else class="p-4">
           <div class="grid grid-cols-5">
-            <p class="font-semibold">Status:</p>
+            <p class="font-semibold">
+              {{ t("target.general.permission.status") }}:
+            </p>
             <p class="col-span-4">
               {{
                 expandedPermission.status &&
@@ -235,7 +247,9 @@ fetchPermissions();
             </p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="font-semibold">Auth Agency Response:</p>
+            <p class="font-semibold">
+              {{ t("target.general.permission.authAgencyResponse") }}:
+            </p>
             <p class="col-span-4">
               {{
                 expandedPermission.authResponse &&
@@ -244,13 +258,21 @@ fetchPermissions();
             </p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="font-semibold">Quick Pick:</p>
+            <p class="font-semibold">
+              {{ t("target.general.permission.quickPick") }}:
+            </p>
             <p class="col-span-4">
-              {{ expandedPermission.quickPick === true ? "Yes" : "No" }}
+              {{
+                expandedPermission.quickPick === true
+                  ? t("common.yes")
+                  : t("common.no")
+              }}
             </p>
           </div>
           <div class="grid grid-cols-5">
-            <p class="font-semibold">Display Name:</p>
+            <p class="font-semibold">
+              {{ t("target.general.permission.displayName") }}:
+            </p>
             <p class="col-span-4">{{ expandedPermission.displayName }}</p>
           </div>
           <div
@@ -259,7 +281,9 @@ fetchPermissions();
               expandedPermission.exclusions.length > 0
             "
           >
-            <p class="font-semibold">Exclusions</p>
+            <p class="font-semibold">
+              {{ t("target.general.permission.exclusions") }}
+            </p>
             <DataTable
               size="small"
               showGridlines
@@ -267,8 +291,11 @@ fetchPermissions();
               :rowHover="true"
               :value="expandedPermission.exclusions"
             >
-              <Column field="url" header="URL" />
-              <Column field="reason" header="Reason" />
+              <Column
+                field="url"
+                :header="t('target.general.permission.url')"
+              />
+              <Column field="reason" :header="t('common.reason')" />
             </DataTable>
           </div>
           <div
@@ -278,7 +305,7 @@ fetchPermissions();
             "
             class="mt-4"
           >
-            <p class="font-semibold">Annotations</p>
+            <p class="font-semibold">{{ t("target.annotations") }}</p>
             <DataTable
               size="small"
               showGridlines
@@ -286,9 +313,9 @@ fetchPermissions();
               :rowHover="true"
               :value="expandedPermission.annotations"
             >
-              <Column field="date" header="Date" />
-              <Column field="user" header="User" />
-              <Column field="notes" header="Notes" />
+              <Column field="date" :header="t('common.date')" />
+              <Column field="user" :header="t('common.user')" />
+              <Column field="notes" :header="t('common.notes')" />
             </DataTable>
           </div>
         </div>

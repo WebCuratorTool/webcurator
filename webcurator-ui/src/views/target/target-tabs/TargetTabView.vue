@@ -38,20 +38,20 @@ const { t } = useI18n();
         class="wct-primary-button"
         icon="pi pi-pencil"
         @click="$emit('setEditing', true)"
-        label="Edit"
+        :label="t('common.edit')"
       />
       <div v-else class="flex gap-2">
         <Button
           class="wct-primary-button"
           icon="pi pi-times"
           @click="$emit('setEditing', false)"
-          label="Cancel"
+          :label="t('common.cancel')"
         />
         <Button
           class="wct-primary-button ml-2"
           icon="pi pi-save"
           @click="$emit('save')"
-          label="Save"
+          :label="t('common.save')"
         />
       </div>
     </div>
@@ -74,12 +74,12 @@ const { t } = useI18n();
   <div class="2xl:w-5/6">
     <Tabs value="0" class="tabview-custom w-full">
       <TabList>
-        <Tab value="0">{{ t("target.tabs.general") }}</Tab>
-        <Tab value="1">{{ t("target.tabs.description") }}</Tab>
-        <Tab value="2">{{ t("target.tabs.profile") }}</Tab>
-        <Tab value="3">{{ t("target.tabs.harvests") }}</Tab>
-        <Tab value="4">{{ t("target.tabs.annotations") }}</Tab>
-        <Tab value="5">{{ t("target.tabs.access") }}</Tab>
+        <Tab value="0">{{ t("target.general.general") }}</Tab>
+        <Tab value="1">{{ t("target.description.description") }}</Tab>
+        <Tab value="2">{{ t("target.profile") }}</Tab>
+        <Tab value="3">{{ t("target.harvests") }}</Tab>
+        <Tab value="4">{{ t("target.annotations") }}</Tab>
+        <Tab value="5">{{ t("target.access") }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="0">

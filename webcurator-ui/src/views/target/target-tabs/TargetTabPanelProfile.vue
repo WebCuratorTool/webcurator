@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type SelectChangeEvent, Textarea } from "primevue";
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useProfiles } from "@/stores/profiles";
@@ -13,6 +14,7 @@ const progress = useProgressStore();
 const props = defineProps<{
   editing: boolean;
 }>();
+const { t } = useI18n();
 
 const targetProfile = useTargetProfileDTO().targetProfile;
 
@@ -53,10 +55,10 @@ watch(
 
 <template>
   <div v-if="!progress.visible">
-    <h4 class="mt-4">Base Profile</h4>
+    <h4 class="mt-4">{{ t("target.profilePanel.baseProfile") }}</h4>
     <WctTabViewPanel>
       <div class="grid grid-cols-5 p-1">
-        <p>Harvester Type</p>
+        <p>{{ t("target.profilePanel.harvesterType") }}</p>
         <Select
           v-if="editing"
           v-model="selectedHarvesterType"
@@ -66,7 +68,7 @@ watch(
         <p v-else class="font-semibold">{{ targetProfile.harvesterType }}</p>
       </div>
       <div class="grid grid-cols-5 p-1">
-        <p>Base Profile</p>
+        <p>{{ t("target.profilePanel.baseProfile") }}</p>
         <Select
           v-if="editing"
           v-model="selectedProfile"
@@ -79,19 +81,19 @@ watch(
       </div>
     </WctTabViewPanel>
 
-    <h4 class="mt-4">Profile Overrides</h4>
+    <h4 class="mt-4">{{ t("target.profilePanel.profileOverrides") }}</h4>
     <WctTabViewPanel>
       <DataTable
         class="w-full"
         :rowHover="true"
         :value="targetProfile.overrides"
       >
-        <Column field="id" header="Profile Element">
+        <Column field="id" :header="t('target.profilePanel.profileElement')">
           <template #body="{ data }">
             {{ camelCaseToTitleCase(data.id) }}
           </template>
         </Column>
-        <Column field="value" header="Override Value">
+        <Column field="value" :header="t('target.profilePanel.overrideValue')">
           <template #body="{ data }">
             <div v-if="typeof data.value == 'boolean'">
               <Checkbox
@@ -101,7 +103,7 @@ watch(
                 :disabled="!editing"
               />
               <p v-else class="font-semibold">
-                {{ data.value ? "Yes" : "No" }}
+                {{ data.value ? t("common.yes") : t("common.no") }}
               </p>
             </div>
             <div
@@ -165,7 +167,7 @@ watch(
         </Column>
         <Column
           field="enabled"
-          header="Enable Override"
+          :header="t('target.profilePanel.enableOverride')"
           :headerStyle="editing ? 'display: flex; justify-content: center' : ''"
         >
           <template #body="{ data }">
@@ -180,7 +182,9 @@ watch(
                 :disabled="!editing"
               />
             </div>
-            <p v-else class="font-semibold">{{ data.value ? "Yes" : "No" }}</p>
+            <p v-else class="font-semibold">
+              {{ data.value ? t("common.yes") : t("common.no") }}
+            </p>
           </template>
         </Column>
       </DataTable>
