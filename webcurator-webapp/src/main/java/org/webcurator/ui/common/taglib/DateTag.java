@@ -3,8 +3,8 @@ package org.webcurator.ui.common.taglib;
 import java.io.IOException;
 import java.util.Date;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.TagSupport;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.tagext.TagSupport;
 
 import org.webcurator.common.util.DateUtils;
 

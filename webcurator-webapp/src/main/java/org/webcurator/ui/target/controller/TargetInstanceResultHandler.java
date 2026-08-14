@@ -43,8 +43,8 @@ import org.webcurator.ui.util.TabHandler;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.HashMap;

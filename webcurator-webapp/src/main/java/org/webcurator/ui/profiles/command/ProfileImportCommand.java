@@ -32,7 +32,7 @@ package org.webcurator.ui.profiles.command;
 
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  *

@@ -37,8 +37,8 @@ import org.webcurator.ui.profiles.command.ProfileImportCommand;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import java.util.Date;
 
 /**

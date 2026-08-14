@@ -73,3 +73,18 @@ mvn install:install-file -DgroupId=com.exlibris -DartifactId=dps-sdk-deposit-api
 # Install the retired libs
 mvn install:install-file -DgroupId=org.apache.hadoop -DartifactId=hadoop-core -Dversion=0.20.2-cdh3u4 -Dpackaging=jar -Dfile=libs/hadoop-core-0.20.2-cdh3u4.jar
 mvn install:install-file -DgroupId=oracle -DartifactId=ojdbc6 -Dversion=11.2.0.3 -Dpackaging=jar -Dfile=libs/ojdbc6-11.2.0.3.jar
+
+
+# Build our copy of Apache Tiles, tweaked to work with Java 17+
+rm -rf apache-tiles-legacy
+git clone https://github.com/WebCuratorTool/apache-tiles-legacy.git
+cd apache-tiles-legacy/maven
+mvn -Dmaven.test.skip=true clean install
+cd ../autotag
+mvn -Dmaven.test.skip=true clean install
+cd ../request
+mvn -Dmaven.test.skip=true clean install
+cd ../framework
+export MAVEN_OPTS="--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED"
+mvn -Dmaven.test.skip=true clean install
+

@@ -25,7 +25,7 @@ import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.domain.model.auth.User;
 
-import javax.servlet.http.*;
+import jakarta.servlet.http.*;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;

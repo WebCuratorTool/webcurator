@@ -3,8 +3,8 @@ package org.webcurator.ui.profiles.forms;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 public class ProfileImportForm {
     String importAgency;

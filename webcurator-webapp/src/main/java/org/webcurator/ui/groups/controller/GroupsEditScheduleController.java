@@ -15,9 +15,9 @@ import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.controller.EditScheduleController;
 import org.webcurator.ui.util.TabbedController;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping("/curator/groups/schedule.html")

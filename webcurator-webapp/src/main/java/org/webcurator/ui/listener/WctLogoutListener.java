@@ -29,8 +29,8 @@ import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.tools.controller.BrowseController;
 
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 import java.util.Date;
 
 /**

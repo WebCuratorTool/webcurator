@@ -10,8 +10,6 @@ import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
-import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
-import org.springframework.web.servlet.view.tiles3.TilesView;
 import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.ui.common.validation.ProfilesBasicCredentialsValidator;
@@ -50,6 +48,8 @@ import org.webcurator.ui.util.EmptyCommand;
 import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
+import org.webcurator.webapp.beans.config.legacy.spring.tiles3.TilesConfigurer;
+import org.webcurator.webapp.beans.config.legacy.spring.tiles3.TilesView;
 
 import java.util.ArrayList;
 import java.util.List;

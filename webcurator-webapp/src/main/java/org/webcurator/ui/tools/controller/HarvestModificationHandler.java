@@ -42,8 +42,8 @@ import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
 import org.webcurator.ui.util.PlaceholderProcessor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;

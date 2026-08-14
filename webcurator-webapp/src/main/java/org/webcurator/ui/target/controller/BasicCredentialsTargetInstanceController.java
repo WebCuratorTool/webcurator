@@ -6,7 +6,7 @@ import org.webcurator.ui.common.controller.ProfileBasicCredentialsController;
 import org.webcurator.ui.common.validation.ProfilesBasicCredentialsValidator;
 import org.webcurator.ui.util.OverrideGetter;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Controller
 @RequestMapping(value = "/curator/target/ti-basic-credentials.html")

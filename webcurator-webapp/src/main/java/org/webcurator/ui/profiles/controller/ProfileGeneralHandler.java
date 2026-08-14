@@ -15,8 +15,8 @@
  */
 package org.webcurator.ui.profiles.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;

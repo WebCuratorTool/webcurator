@@ -7,7 +7,7 @@ import org.webcurator.ui.common.validation.ProfilesFormCredentialsValidator;
 import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.TabbedController;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Controller
 @RequestMapping("/curator/target/target-form-credentials.html")

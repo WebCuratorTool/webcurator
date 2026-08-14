@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.*;
 
-import javax.servlet.http.*;
+import jakarta.servlet.http.*;
 
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindingResult;

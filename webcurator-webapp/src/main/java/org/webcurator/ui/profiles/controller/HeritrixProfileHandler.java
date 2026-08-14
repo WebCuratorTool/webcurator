@@ -17,8 +17,8 @@ package org.webcurator.ui.profiles.controller;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.archive.crawler.settings.SimpleType;
 import org.springframework.validation.BindingResult;

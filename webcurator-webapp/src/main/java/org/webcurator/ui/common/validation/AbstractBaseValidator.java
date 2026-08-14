@@ -21,7 +21,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.Validator;
 import org.webcurator.common.ui.Constants;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Abstract base class to be extended by all WCT Validators.

@@ -15,7 +15,7 @@
  */
 package org.webcurator.ui.groups.controller;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.util.TabHandler;

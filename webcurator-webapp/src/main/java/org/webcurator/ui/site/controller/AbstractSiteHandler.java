@@ -15,7 +15,7 @@
  */
 package org.webcurator.ui.site.controller;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.util.TabHandler;

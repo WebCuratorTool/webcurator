@@ -15,7 +15,7 @@
  */
 package org.webcurator.ui.util;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.core.Overrideable;

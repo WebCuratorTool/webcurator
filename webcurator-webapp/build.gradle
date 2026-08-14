@@ -51,16 +51,21 @@ dependencies {
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
         exclude group: 'com.sleepycat', module: 'je'
     }
-    implementation(group: 'org.apache.tiles', name: 'tiles-jsp', version: '3.0.8') {
+    implementation(group: 'org.apache.tiles', name: 'tiles-jsp', version: '3.0.9') {
         // Use Spring boot logging.
         exclude group: 'org.slf4j', module: 'slf4j-api'
         exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
     }
+    implementation(group: 'org.apache.tiles', name: 'tiles-el', version: '3.0.9')
+    implementation(group: 'org.apache.tiles', name: 'tiles-extras', version: '3.0.9')
     implementation 'javax.servlet:jstl:1.2'
     implementation 'commons-fileupload:commons-fileupload:1.4'
     implementation 'commons-dbcp:commons-dbcp:1.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    implementation 'org.springframework.security:spring-security-ldap'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 //    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'jakarta.validation:jakarta.validation-api'
@@ -90,11 +95,14 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
     implementation 'org.apache.directory.server:apacheds-server-jndi:1.5.5'
+
+    compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
+
 //    implementation 'org.archive.heritrix:heritrix-engine:3.4.0-SNAPSHOT'
 
-    providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
+    //providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
 //    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
-    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.60'
+    //providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.60'
 
 }
 
