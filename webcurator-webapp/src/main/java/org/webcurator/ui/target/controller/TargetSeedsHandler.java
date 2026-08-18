@@ -15,49 +15,39 @@
  */
 package org.webcurator.ui.target.controller;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.NumberFormat;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Set;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
+import org.webcurator.common.ui.Constants;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
 import org.webcurator.core.permissionmapping.UrlUtils;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
-import org.webcurator.domain.model.core.BusinessObjectFactory;
-import org.webcurator.domain.model.core.Permission;
-import org.webcurator.domain.model.core.PermissionExclusion;
-import org.webcurator.domain.model.core.Seed;
-import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.ui.Constants;
-import org.webcurator.common.ui.target.TargetEditorContext;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.SeedsCommand;
 import org.webcurator.ui.target.validator.TargetSeedsValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.NumberFormat;
+import java.util.*;
 
 /**
  * The handler for the target seeds handler.
@@ -501,7 +491,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				BufferedReader reader = null;
 
 				MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) req;
-				CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("seedsFile");
+				MultipartFile file = (MultipartFile) multipartRequest.getFile("seedsFile");
 
 				if(command.getSeedsFile().length == 0 || file.getOriginalFilename() == null || "".equals(file.getOriginalFilename().trim())) {
 					bindingResult.reject("target.seeds.import.nofile");

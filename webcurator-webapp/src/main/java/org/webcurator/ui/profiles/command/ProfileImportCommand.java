@@ -30,9 +30,8 @@ package org.webcurator.ui.profiles.command;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
-
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -48,7 +47,7 @@ public class ProfileImportCommand extends ProfileListCommand {
     boolean showInactive = false;
 
     @NotNull
-    CommonsMultipartFile uploadedFile;
+    MultipartFile uploadedFile;
 
 
     public String getImportAgency() {
@@ -67,11 +66,11 @@ public class ProfileImportCommand extends ProfileListCommand {
         this.importName = importName;
     }
 
-    public CommonsMultipartFile getUploadedFile() {
+    public MultipartFile getUploadedFile() {
         return uploadedFile;
     }
 
-    public void setUploadedFile(CommonsMultipartFile uploadedFile) {
+    public void setUploadedFile(MultipartFile uploadedFile) {
         this.uploadedFile = uploadedFile;
     }
 

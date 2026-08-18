@@ -16,25 +16,21 @@
 package org.webcurator.ui.tools.controller;
 
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URLDecoder;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
-import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.common.util.Utils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The BrowseHelper is responsible for performing replacement of URLs within

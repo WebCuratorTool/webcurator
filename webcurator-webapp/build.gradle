@@ -51,6 +51,15 @@ dependencies {
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
         exclude group: 'com.sleepycat', module: 'je'
     }
+    implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
+        exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
+    }
+    implementation 'com.sleepycat:je:18.3.12'
+    implementation 'jakarta.mail:jakarta.mail-api'
+    implementation('org.archive:heritrix:1.14.2-webcuratortool-2.0.2') {
+        exclude group: 'javax.servlet', module: 'servlet-api'
+        exclude group: 'commons-pool', module: 'commons-pool'
+    }
     implementation(group: 'org.apache.tiles', name: 'tiles-jsp', version: '3.0.9') {
         // Use Spring boot logging.
         exclude group: 'org.slf4j', module: 'slf4j-api'
@@ -118,7 +127,6 @@ task sourcesJar(type: Jar) {
     from(sourceSets.main.allJava)
 }
 
-
 publishing {
     publications {
         webApp(MavenPublication) {
@@ -127,8 +135,13 @@ publishing {
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+tasks.withType(Jar).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
 }
 
 build.dependsOn war, sourcesJar

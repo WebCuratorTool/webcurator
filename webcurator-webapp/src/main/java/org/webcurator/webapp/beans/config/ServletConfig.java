@@ -3,9 +3,11 @@ package org.webcurator.webapp.beans.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
@@ -223,13 +225,14 @@ public class ServletConfig {
         return new FixedLocaleResolver();
     }
 
-    @Bean
-    public CommonsMultipartResolver multipartResolver() {
-        CommonsMultipartResolver bean = new CommonsMultipartResolver();
-        bean.setMaxUploadSize(1500000);
-
-        return bean;
-    }
+    // FIXME Maybe this not actually used anymore? Remove after upgrade to Java 21+/Spring Boot 3.5 if possible
+//    @Bean
+//    public CommonsMultipartResolver multipartResolver() {
+//        CommonsMultipartResolver bean = new CommonsMultipartResolver();
+//        bean.setMaxUploadSize(1500000);
+//
+//        return bean;
+//    }
 
     @Bean
     public UrlBasedViewResolver tilesViewResolver() {

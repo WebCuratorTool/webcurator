@@ -1,22 +1,28 @@
 package org.webcurator.webapp.beans.config;
 
+import jakarta.servlet.http.*;
 import org.apache.catalina.session.StandardSession;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.*;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.webcurator.auth.TransitionalPasswordEncoder;
 import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
@@ -25,14 +31,16 @@ import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.domain.model.auth.User;
 
-import jakarta.servlet.http.*;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Base64;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Contains configuration that used to be found in {@code wct-core-security.xml}. This
@@ -41,7 +49,8 @@ import java.util.*;
  */
 @Configuration
 @EnableWebSecurity
-public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
+public class WctSecurityConfig {
     private static final Logger log = LoggerFactory.getLogger(WctSecurityConfig.class);
     private final String SESSION_LOCK = "lock";
 
@@ -114,40 +123,65 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 //        return new DefaultHttpFirewall();
 //    }
 
-    @Override
-    protected void configure(final HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/admin/**").hasRole("ADMIN")
-                .antMatchers("/curator/**").hasRole("LOGIN")
-//                .antMatchers("/curator/**").permitAll()
-                .antMatchers("/jsp/**").hasRole("LOGIN")
-                .antMatchers("/replay/**").hasRole("LOGIN")
-                .antMatchers("/help/**").hasRole("LOGIN")
-                .antMatchers("/styles/**").permitAll()
-                .antMatchers("/images/**").permitAll()
-                .antMatchers("/scripts/**").permitAll()
-                .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
-                .antMatchers("**/digital-asset-store/**").permitAll()
-                .antMatchers("/spa/**").permitAll()
-//                .antMatchers("/visualization/**").permitAll()
-                .anyRequest().authenticated()
-                .and().formLogin()
-                .loginPage("/logon.jsp")
-                .permitAll()
-                .loginProcessingUrl("/login")
-                .successHandler(wctAuthenticationSuccessHandler())
-                //TODO configure default page for app
-                .failureHandler(wctAuthenticationFailureHandler())
-//                .failureUrl("/logon.jsp?failed=true")
-                .and().logout()
-                .invalidateHttpSession(true)
-                .logoutSuccessUrl("/logon.jsp");
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
+                authorizationManagerRequestMatcherRegistry
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/curator/**").hasRole("LOGIN")
+                        .requestMatchers("/jsp/**").hasRole("LOGIN")
+                        .requestMatchers("/replay/**").hasRole("LOGIN")
+                        .requestMatchers("/help/**").hasRole("LOGIN")
+                        .requestMatchers("/styles/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .requestMatchers("/scripts/**").permitAll()
+                        .requestMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
+                        .requestMatchers("**/digital-asset-store/**").permitAll()
+                        .requestMatchers("/spa/**").permitAll()
+                        .anyRequest().authenticated())
+                .httpBasic(Customizer.withDefaults()).formLogin(httpSecurityFormLoginConfigurer ->
+                        httpSecurityFormLoginConfigurer.loginPage("logon.jsp").permitAll()
+                                .loginProcessingUrl("/login")
+                                .successHandler(wctAuthenticationSuccessHandler())
+                                .failureHandler(wctAuthenticationFailureHandler()));
 
-        http.headers().frameOptions().sameOrigin();
+        return http.build();
 
-//                .and().sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true)
     }
+
+    // FIXME Replaced by filterChain, remove after Java 21+/Spring Boot 3.5 upgrade
+//    protected void configure(final HttpSecurity http) throws Exception {
+//        http.csrf().disable()
+//                .authorizeRequests()
+//                .antMatchers("/admin/**").hasRole("ADMIN")
+//                .antMatchers("/curator/**").hasRole("LOGIN")
+////                .antMatchers("/curator/**").permitAll()
+//                .antMatchers("/jsp/**").hasRole("LOGIN")
+//                .antMatchers("/replay/**").hasRole("LOGIN")
+//                .antMatchers("/help/**").hasRole("LOGIN")
+//                .antMatchers("/styles/**").permitAll()
+//                .antMatchers("/images/**").permitAll()
+//                .antMatchers("/scripts/**").permitAll()
+//                .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
+//                .antMatchers("**/digital-asset-store/**").permitAll()
+//                .antMatchers("/spa/**").permitAll()
+////                .antMatchers("/visualization/**").permitAll()
+//                .anyRequest().authenticated()
+//                .and().formLogin()
+//                .loginPage("/logon.jsp")
+//                .permitAll()
+//                .loginProcessingUrl("/login")
+//                .successHandler(wctAuthenticationSuccessHandler())
+//                //TODO configure default page for app
+//                .failureHandler(wctAuthenticationFailureHandler())
+////                .failureUrl("/logon.jsp?failed=true")
+//                .and().logout()
+//                .invalidateHttpSession(true)
+//                .logoutSuccessUrl("/logon.jsp");
+//
+//        http.headers().frameOptions().sameOrigin();
+//
+////                .and().sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true)
+//    }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {

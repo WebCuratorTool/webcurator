@@ -1,17 +1,16 @@
 package org.webcurator.ui.profiles.forms;
 
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
-import org.webcurator.ui.profiles.command.ProfileListCommand;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.multipart.MultipartFile;
+import org.webcurator.ui.profiles.command.ProfileListCommand;
 
 public class ProfileImportForm {
     String importAgency;
     String importType;
     String importName;
     @NotNull
-    CommonsMultipartFile uploadedFile;
+    MultipartFile uploadedFile;
 
     @Valid ProfileListCommand command;
 
@@ -42,11 +41,11 @@ public class ProfileImportForm {
         this.importName = importName;
     }
 
-    public CommonsMultipartFile getUploadedFile() {
+    public MultipartFile getUploadedFile() {
         return uploadedFile;
     }
 
-    public void setUploadedFile(CommonsMultipartFile uploadedFile) {
+    public void setUploadedFile(MultipartFile uploadedFile) {
         this.uploadedFile = uploadedFile;
     }
 

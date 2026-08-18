@@ -39,6 +39,8 @@ import org.webcurator.ui.util.HarvestAgentUtil;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -65,7 +67,7 @@ public class ProfileListController extends ProfileListViewController {
     protected ModelAndView importList(@Valid @ModelAttribute ProfileImportCommand profileImportCommand,
                                       // Note that the BindingResult must come right after the object it validates
                                       // in the parameter list.
-                                      BindingResult bindingResult, HttpSession session) {
+                                      BindingResult bindingResult, HttpSession session) throws IOException {
         session.setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, profileImportCommand.isShowInactive());
         Profile profile = new Profile();
         profile.setProfile(new String(profileImportCommand.getUploadedFile().getBytes()));
