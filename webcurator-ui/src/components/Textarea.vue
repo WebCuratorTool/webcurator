@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from "vue";
+
 const props = defineProps<{
   modelValue?: string | null;
   rows?: number;
@@ -9,24 +11,21 @@ const props = defineProps<{
 const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
+
+const attrs = useAttrs();
+
+const model = computed({
+  get: () => String(props.modelValue ?? ""),
+  set: (value: string) => emit("update:modelValue", value),
+});
 </script>
 
 <template>
-  <textarea
-    class="wct-textarea"
+  <UTextarea
+    v-bind="attrs"
+    v-model="model"
     :rows="rows"
     :cols="cols"
-    :value="props.modelValue ?? ''"
     :disabled="disabled"
-    @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
   />
 </template>
-
-<style scoped>
-.wct-textarea {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.65rem;
-}
-</style>

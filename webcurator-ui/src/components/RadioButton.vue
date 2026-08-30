@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from "vue";
+
 const props = defineProps<{
   modelValue?: any;
   value?: any;
@@ -10,15 +12,25 @@ const props = defineProps<{
 const emit = defineEmits<{
   "update:modelValue": [value: any];
 }>();
+
+const attrs = useAttrs();
+
+const checked = computed(() => props.modelValue === props.value);
+
+const onUpdate = (nextState: boolean | "indeterminate") => {
+  if (nextState === true) {
+    emit("update:modelValue", props.value);
+  }
+};
 </script>
 
 <template>
-  <input
+  <UCheckbox
+    v-bind="attrs"
     :id="inputId"
     :name="name"
-    type="radio"
-    :checked="modelValue === value"
+    :model-value="checked"
     :disabled="disabled"
-    @change="emit('update:modelValue', value)"
+    @update:model-value="onUpdate"
   />
 </template>

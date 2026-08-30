@@ -1,17 +1,15 @@
 <script setup lang="ts"></script>
 
 <template>
-  <span class="wct-spinner" aria-label="loading" />
+  <UIcon name="i-lucide-loader-circle" class="wct-spinner" aria-label="loading" />
 </template>
 
 <style scoped>
 .wct-spinner {
-  display: inline-block;
+  display: inline-flex;
   width: 2rem;
   height: 2rem;
-  border: 3px solid #cbd5e1;
-  border-top-color: #2563eb;
-  border-radius: 9999px;
+  color: #2563eb;
   animation: spin 0.8s linear infinite;
 }
 

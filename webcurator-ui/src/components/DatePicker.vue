@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from "vue";
+
 const props = defineProps<{
   modelValue?: string | number | Date | null;
   disabled?: boolean;
@@ -9,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
+
+const attrs = useAttrs();
 
 const toInputValue = () => {
   if (props.modelValue instanceof Date) {
@@ -22,24 +26,18 @@ const toInputValue = () => {
   }
   return String(props.modelValue ?? "");
 };
+
+const model = computed({
+  get: () => toInputValue(),
+  set: (value: string) => emit("update:modelValue", value),
+});
 </script>
 
 <template>
-  <input
-    class="wct-input"
+  <UInput
+    v-bind="attrs"
+    v-model="model"
     :type="timeOnly ? 'time' : showTime ? 'datetime-local' : 'date'"
-    :value="toInputValue()"
     :disabled="disabled"
-    @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
   />
 </template>
-
-<style scoped>
-.wct-input {
-  width: 100%;
-  min-height: 2.25rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.65rem;
-}
-</style>

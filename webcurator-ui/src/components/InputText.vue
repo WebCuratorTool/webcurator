@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from "vue";
+
 const props = defineProps<{
   modelValue?: string | number | null;
   type?: string;
@@ -10,28 +12,20 @@ const emit = defineEmits<{
   "update:modelValue": [value: string];
 }>();
 
-const update = (event: Event) => {
-  emit("update:modelValue", (event.target as HTMLInputElement).value);
-};
+const attrs = useAttrs();
+
+const model = computed({
+  get: () => String(props.modelValue ?? ""),
+  set: (value: string) => emit("update:modelValue", value),
+});
 </script>
 
 <template>
-  <input
+  <UInput
+    v-bind="attrs"
+    v-model="model"
     :type="type || 'text'"
-    :value="props.modelValue ?? ''"
     :placeholder="placeholder"
     :disabled="disabled"
-    class="wct-input"
-    @input="update"
   />
 </template>
-
-<style scoped>
-.wct-input {
-  width: 100%;
-  min-height: 2.25rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.65rem;
-}
-</style>

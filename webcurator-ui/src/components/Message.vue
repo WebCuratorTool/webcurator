@@ -1,33 +1,27 @@
 <script setup lang="ts">
-defineProps<{ severity?: string }>();
+import { computed, useAttrs } from "vue";
+
+const props = defineProps<{ severity?: string }>();
+const attrs = useAttrs();
+
+const color = computed(() => {
+  if (props.severity === "error" || props.severity === "danger") {
+    return "error";
+  }
+  if (props.severity === "warn" || props.severity === "warning") {
+    return "warning";
+  }
+  if (props.severity === "success") {
+    return "success";
+  }
+  return "info";
+});
 </script>
 
 <template>
-  <div class="wct-message" :class="severity ? `wct-message--${severity}` : ''">
-    <slot />
-  </div>
+  <UAlert v-bind="attrs" :color="color" variant="soft">
+    <template #description>
+      <slot />
+    </template>
+  </UAlert>
 </template>
-
-<style scoped>
-.wct-message {
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  border: 1px solid #93c5fd;
-  background: #eff6ff;
-  color: #1e3a8a;
-}
-
-.wct-message--error,
-.wct-message--danger {
-  border-color: #fca5a5;
-  background: #fef2f2;
-  color: #991b1b;
-}
-
-.wct-message--warn,
-.wct-message--warning {
-  border-color: #fcd34d;
-  background: #fffbeb;
-  color: #92400e;
-}
-</style>

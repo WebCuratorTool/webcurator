@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, useAttrs } from "vue";
+
 const props = defineProps<{
   modelValue?: number | string | null;
   min?: number;
@@ -10,35 +12,28 @@ const emit = defineEmits<{
   "update:modelValue": [value: number | null];
 }>();
 
-const onInput = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
-  if (value === "") {
-    emit("update:modelValue", null);
-    return;
-  }
-  const parsed = Number(value);
-  emit("update:modelValue", Number.isNaN(parsed) ? null : parsed);
-};
+const attrs = useAttrs();
+
+const model = computed<number | undefined>({
+  get: () => {
+    if (props.modelValue === null || props.modelValue === undefined || props.modelValue === "") {
+      return undefined;
+    }
+    const parsed = Number(props.modelValue);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  },
+  set: (value) => {
+    emit("update:modelValue", value ?? null);
+  },
+});
 </script>
 
 <template>
-  <input
-    type="number"
-    class="wct-input"
-    :value="props.modelValue ?? ''"
+  <UInputNumber
+    v-bind="attrs"
+    v-model="model"
     :min="min"
     :max="max"
     :disabled="disabled"
-    @input="onInput"
   />
 </template>
-
-<style scoped>
-.wct-input {
-  width: 100%;
-  min-height: 2.25rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.35rem 0.65rem;
-}
-</style>

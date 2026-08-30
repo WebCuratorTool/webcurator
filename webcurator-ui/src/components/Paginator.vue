@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 
 const props = defineProps<{
   first?: number;
@@ -11,30 +11,28 @@ const emit = defineEmits<{
   page: [event: { page: number }];
 }>();
 
-const currentPage = computed(() => Math.floor((props.first ?? 0) / (props.rows ?? 10)));
+const attrs = useAttrs();
+
+const rows = computed(() => props.rows ?? 10);
+const currentPage = computed(() => Math.floor((props.first ?? 0) / rows.value) + 1);
 const totalPages = computed(() => {
-  const rows = props.rows ?? 10;
   const total = props.totalRecords ?? 0;
-  return Math.max(Math.ceil(total / rows), 1);
+  return Math.max(Math.ceil(total / rows.value), 1);
 });
 
-const goTo = (page: number) => {
-  if (page < 0 || page >= totalPages.value) {
-    return;
-  }
-  emit("page", { page });
-};
+const onUpdatePage = (page: number) => emit("page", { page: page - 1 });
 </script>
 
 <template>
   <div class="wct-paginator">
-    <Button :disabled="currentPage <= 0" label="Prev" @click="goTo(currentPage - 1)" />
-    <span>Page {{ currentPage + 1 }} / {{ totalPages }}</span>
-    <Button
-      :disabled="currentPage >= totalPages - 1"
-      label="Next"
-      @click="goTo(currentPage + 1)"
+    <UPagination
+      v-bind="attrs"
+      :page="currentPage"
+      :items-per-page="rows"
+      :total="totalRecords ?? 0"
+      @update:page="onUpdatePage"
     />
+    <span>Page {{ currentPage + 1 }} / {{ totalPages }}</span>
   </div>
 </template>
 

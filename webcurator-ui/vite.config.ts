@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from "node:url";
 
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
+import ui from "@nuxt/ui/vite";
 import Components from "unplugin-vue-components/vite";
 import { defineConfig, loadEnv } from "vite";
 
@@ -12,7 +13,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: "/wct/",
-    plugins: [vue(), vueJsx(), Components()],
+    plugins: [ui(), vue(), vueJsx(), Components()],
     resolve: {
       alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     },

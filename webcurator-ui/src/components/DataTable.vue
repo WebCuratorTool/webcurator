@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useSlots, type VNode } from "vue";
+import { computed, h, useSlots, type VNode } from "vue";
 
 const getValueByPath = (object: Record<string, any>, path?: string) => {
   if (!path) {
@@ -64,26 +64,6 @@ const columns = computed(() => {
   return defaultNodes.filter((node) => isColumnNode(node as VNode));
 });
 
-const isExpanded = (row: Record<string, any>) =>
-  props.expandedRows.some(
-    (expanded) => expanded?.[props.dataKey] === row?.[props.dataKey],
-  );
-
-const toggleExpand = (row: Record<string, any>) => {
-  if (isExpanded(row)) {
-    emit(
-      "update:expandedRows",
-      props.expandedRows.filter(
-        (expanded) => expanded?.[props.dataKey] !== row?.[props.dataKey],
-      ),
-    );
-    return;
-  }
-
-  emit("update:expandedRows", [row]);
-  emit("rowExpand", { data: row });
-};
-
 const getColumnProps = (column: any) => (column?.props ?? {}) as Record<string, any>;
 
 const renderBody = (column: any, row: Record<string, any>, rowIndex: number) => {
@@ -94,45 +74,84 @@ const renderBody = (column: any, row: Record<string, any>, rowIndex: number) => 
 
   return String(getValueByPath(row, getColumnProps(column).field));
 };
+
+const tableColumns = computed(() => {
+  return columns.value.map((column, index) => {
+    const columnProps = getColumnProps(column);
+    if (columnProps.expander) {
+      return {
+        id: `expander_${index}`,
+        header: columnProps.header ?? "",
+        cell: ({ row }: any) =>
+          h(
+            "button",
+            {
+              type: "button",
+              onClick: () => row.toggleExpanded(!row.getIsExpanded()),
+            },
+            row.getIsExpanded() ? "-" : "+",
+          ),
+      };
+    }
+
+    return {
+      id: columnProps.field ?? `col_${index}`,
+      accessorKey: columnProps.field,
+      header: columnProps.header ?? "",
+      cell: ({ row }: any) => renderBody(column, row.original, row.index),
+    };
+  });
+});
+
+const expanded = computed({
+  get() {
+    return props.expandedRows.reduce(
+      (acc: Record<string, boolean>, row) => {
+        const key = String(row?.[props.dataKey]);
+        if (key && key !== "undefined") {
+          acc[key] = true;
+        }
+        return acc;
+      },
+      {},
+    );
+  },
+  set(nextExpanded: Record<string, boolean>) {
+    const previousKeys = new Set(
+      props.expandedRows.map((row) => String(row?.[props.dataKey])),
+    );
+    const nextKeys = Object.keys(nextExpanded).filter((key) => nextExpanded[key]);
+
+    const firstExpandedKey = nextKeys[0];
+    const rows = firstExpandedKey
+      ? props.value.filter(
+          (row) => String(row?.[props.dataKey]) === firstExpandedKey,
+        )
+      : [];
+
+    emit("update:expandedRows", rows);
+
+    if (firstExpandedKey && !previousKeys.has(firstExpandedKey) && rows[0]) {
+      emit("rowExpand", { data: rows[0] });
+    }
+  },
+});
 </script>
 
 <template>
-  <div v-if="loading" class="wct-table-loading">Loading...</div>
-  <div v-else class="wct-table-wrapper">
-    <table class="wct-table">
-      <thead>
-        <tr>
-          <th v-for="(column, colIndex) in columns" :key="colIndex" class="wct-th">
-            {{ getColumnProps(column).header ?? "" }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-for="(row, rowIndex) in value" :key="row?.[dataKey] ?? rowIndex">
-          <tr>
-            <td v-for="(column, colIndex) in columns" :key="colIndex" class="wct-td">
-              <button
-                v-if="getColumnProps(column).expander"
-                type="button"
-                @click="toggleExpand(row)"
-              >
-                {{ isExpanded(row) ? "-" : "+" }}
-              </button>
-              <template v-else>
-                <component
-                  :is="{ render: () => renderBody(column, row, rowIndex) }"
-                />
-              </template>
-            </td>
-          </tr>
-          <tr v-if="isExpanded(row) && $slots.expansion">
-            <td class="wct-td" :colspan="String(Math.max(columns.length, 1))">
-              <slot name="expansion" :data="row" />
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+  <div class="wct-table-wrapper">
+    <UTable
+      :data="value"
+      :columns="tableColumns"
+      :loading="loading"
+      :get-row-id="(row: Record<string, any>) => String(row?.[dataKey])"
+      v-model:expanded="expanded"
+      class="wct-table"
+    >
+      <template #expanded="{ row }">
+        <slot v-if="$slots.expansion" name="expansion" :data="row.original" />
+      </template>
+    </UTable>
     <div v-if="$slots.footer" class="wct-table-footer">
       <slot name="footer" />
     </div>
@@ -144,17 +163,8 @@ const renderBody = (column: any, row: Record<string, any>, rowIndex: number) => 
   width: 100%;
 }
 
-.wct-table {
+.wct-table :deep(table) {
   width: 100%;
-  border-collapse: collapse;
-}
-
-.wct-th,
-.wct-td {
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-  padding: 0.5rem;
-  vertical-align: top;
 }
 
 .wct-table-footer {
