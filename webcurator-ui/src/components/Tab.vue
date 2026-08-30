@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { inject } from "vue";
+import { computed, inject } from "vue";
 
 import { tabsKey } from "./TabState";
 
@@ -9,19 +9,20 @@ const props = defineProps<{
 }>();
 
 const tabs = inject(tabsKey);
-const isActive = () => tabs?.value.value === String(props.value);
+const isActive = computed(() => tabs?.value.value === String(props.value));
 </script>
 
 <template>
-  <button
-    type="button"
+  <UButton
+    variant="ghost"
+    color="neutral"
     :disabled="disabled"
     class="wct-tab"
-    :class="{ 'wct-tab--active': isActive() }"
+    :class="{ 'wct-tab--active': isActive }"
     @click="tabs?.setValue(String(props.value))"
   >
     <slot />
-  </button>
+  </UButton>
 </template>
 
 <style scoped>

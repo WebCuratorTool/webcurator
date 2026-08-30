@@ -10,49 +10,33 @@ const dialogRef = computed<DynamicDialogInstance>(() => ({
 }));
 
 provide("dialogRef", dialogRef);
+
+const open = computed({
+  get: () => Boolean(dialogState.value),
+  set: (nextValue: boolean) => {
+    if (!nextValue && dialogState.value) {
+      closeDialog();
+    }
+  },
+});
 </script>
 
 <template>
-  <div v-if="dialogState" class="wct-modal-backdrop">
-    <div class="wct-modal-card" :style="dialogState.options.props?.style as any">
-      <header class="wct-modal-header">
-        <h3>{{ dialogState.options.props?.header || "Dialog" }}</h3>
-        <Button
-          v-if="dialogState.options.props?.closable !== false"
-          label="Close"
-          text
-          @click="closeDialog"
-        />
-      </header>
-      <component :is="dialogState.component" />
-    </div>
-  </div>
+  <UModal
+    v-model:open="open"
+    :dismissible="dialogState?.options.props?.dismissableMask !== false"
+    :close="dialogState?.options.props?.closable !== false"
+  >
+    <template #header>
+      <h3>{{ dialogState?.options.props?.header || "Dialog" }}</h3>
+    </template>
+    <template #body>
+      <div :style="dialogState?.options.props?.style as any">
+        <component v-if="dialogState" :is="dialogState.component" />
+      </div>
+    </template>
+  </UModal>
 </template>
 
 <style scoped>
-.wct-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(2, 6, 23, 0.3);
-  z-index: 1400;
-}
-
-.wct-modal-card {
-  width: min(48rem, 92vw);
-  max-height: 92vh;
-  overflow: auto;
-  background: #fff;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #cbd5e1;
-}
-
-.wct-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
 </style>

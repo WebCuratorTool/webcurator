@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div>
+  <UCard>
     <slot />
-  </div>
+  </UCard>
 </template>

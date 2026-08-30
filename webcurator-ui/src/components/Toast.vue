@@ -15,12 +15,20 @@ const messages = computed(() => {
 
 <template>
   <div class="wct-toast-stack">
-    <article v-for="message in messages" :key="message.id" class="wct-toast" :class="`wct-toast--${message.severity || 'info'}`">
-      <slot name="message" :message="message">
-        <strong>{{ message.summary }}</strong>
-        <div>{{ message.detail }}</div>
-      </slot>
-    </article>
+    <UAlert
+      v-for="message in messages"
+      :key="message.id"
+      :color="message.severity === 'warn' || message.severity === 'error' ? 'warning' : 'info'"
+      variant="soft"
+      class="wct-toast"
+    >
+      <template #description>
+        <slot name="message" :message="message">
+          <strong>{{ message.summary }}</strong>
+          <div>{{ message.detail }}</div>
+        </slot>
+      </template>
+    </UAlert>
   </div>
 </template>
 
@@ -37,18 +45,5 @@ const messages = computed(() => {
 
 .wct-toast {
   min-width: 18rem;
-  border-radius: 0.6rem;
-  border: 1px solid #93c5fd;
-  background: #eff6ff;
-  color: #1e3a8a;
-  padding: 0.65rem 0.75rem;
-}
-
-.wct-toast--warn,
-.wct-toast--warning,
-.wct-toast--error {
-  border-color: #fcd34d;
-  background: #fffbeb;
-  color: #78350f;
 }
 </style>

@@ -8,7 +8,7 @@ const tabs = inject(tabsKey);
 </script>
 
 <template>
-  <section v-show="tabs?.value.value === String(props.value)">
+  <div v-show="tabs?.value.value === String(props.value)">
     <slot />
-  </section>
+  </div>
 </template>

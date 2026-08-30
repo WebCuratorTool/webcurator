@@ -1,9 +1,9 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="wct-tab-list">
+  <UButtonGroup class="wct-tab-list">
     <slot />
-  </div>
+  </UButtonGroup>
 </template>
 
 <style scoped>

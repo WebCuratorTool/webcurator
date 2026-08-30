@@ -15,46 +15,39 @@ const activeMessage = computed(() => {
   }
   return message;
 });
+
+const open = computed({
+  get: () => Boolean(activeMessage.value),
+  set: (nextValue: boolean) => {
+    if (!nextValue && activeMessage.value) {
+      resolveConfirm(false);
+    }
+  },
+});
 </script>
 
 <template>
-  <div v-if="activeMessage" class="wct-modal-backdrop">
-    <div class="wct-modal-card">
+  <UModal v-model:open="open" :dismissible="false">
+    <template #body>
       <slot
+        v-if="activeMessage"
         name="container"
         :message="activeMessage"
         :acceptCallback="() => resolveConfirm(true)"
         :rejectCallback="() => resolveConfirm(false)"
       >
-        <h3>{{ activeMessage.header || "Confirm" }}</h3>
-        <p>{{ activeMessage.message }}</p>
+        <h3>{{ activeMessage?.header || "Confirm" }}</h3>
+        <p>{{ activeMessage?.message }}</p>
         <div class="wct-modal-actions">
           <Button label="Cancel" @click="resolveConfirm(false)" />
           <Button label="OK" @click="resolveConfirm(true)" />
         </div>
       </slot>
-    </div>
-  </div>
+    </template>
+  </UModal>
 </template>
 
 <style scoped>
-.wct-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(2, 6, 23, 0.3);
-  z-index: 1300;
-}
-
-.wct-modal-card {
-  width: min(36rem, 92vw);
-  background: #fff;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #cbd5e1;
-}
-
 .wct-modal-actions {
   margin-top: 1rem;
   display: flex;
