@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <div class="wct-input-group">
     <slot />

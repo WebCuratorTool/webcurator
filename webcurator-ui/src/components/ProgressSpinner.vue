@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <span class="wct-spinner" aria-label="loading" />
 </template>
