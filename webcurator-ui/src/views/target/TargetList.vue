@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useConfirm } from "primevue/useconfirm";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { useRouter } from "vue-router";
 
+import { useConfirm } from "@/composables/useConfirm";
 import Loading from "@/components/Loading.vue";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import WctTopLabel from "@/components/WctTopLabel.vue";

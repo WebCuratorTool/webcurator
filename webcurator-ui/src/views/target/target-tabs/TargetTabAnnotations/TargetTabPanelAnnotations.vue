@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { Textarea } from "primevue";
-import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent, ref } from "vue";
 import { useRoute } from "vue-router";
 
+import { useDialog } from "@/composables/useDialog";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetAnnotationsDTO } from "@/stores/target";
 import { useTargetInstanceListStore } from "@/stores/targetInstanceList";

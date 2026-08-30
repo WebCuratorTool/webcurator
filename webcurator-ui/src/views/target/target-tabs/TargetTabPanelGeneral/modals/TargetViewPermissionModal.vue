@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, onMounted, type Ref, ref } from "vue";
 
 import Loading from "@/components/Loading.vue";
 import WctFormField from "@/components/WctFormField.vue";
+import type { DynamicDialogInstance } from "@/types/ui";
 import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
 import { usePermissionStore } from "@/stores/permission";
 import type { Permission } from "@/types/permission";
@@ -17,7 +17,8 @@ const permissionStatuses = ref<{ [key: string]: string }>({});
 
 onMounted(async () => {
   try {
-    await usePermissionStore().fetch(dialogRef?.value.data.permissionId);
+    const permissionId = Number(dialogRef?.value?.data?.permissionId ?? 0);
+    await usePermissionStore().fetch(permissionId);
     permission.value = usePermissionStore().permission;
     const statuses = await useHarvestAuthorisationStatusStore().fetch();
     permissionStatuses.value = statuses;
@@ -42,7 +43,9 @@ onMounted(async () => {
         </p>
       </WctFormField>
       <WctFormField label="Status">
-        <p class="font-semibold">{{ permissionStatuses[permission.status] }}</p>
+        <p class="font-semibold">
+          {{ permissionStatuses[String(permission.status || "")] }}
+        </p>
       </WctFormField>
       <WctFormField label="Auth Agency Response">
         <p class="font-semibold">{{ permission.authResponse }}</p>
@@ -67,7 +70,7 @@ onMounted(async () => {
 
       <p class="font-semibold">Exclusions</p>
       <DataTable
-        v-if="permission.exclusions.length > 0"
+        v-if="permission.exclusions && permission.exclusions.length > 0"
         size="small"
         showGridlines
         class="mb-4 w-full"
@@ -83,7 +86,7 @@ onMounted(async () => {
 
       <p class="font-semibold">Annotations</p>
       <DataTable
-        v-if="permission.annotations.length > 0"
+        v-if="permission.annotations && permission.annotations.length > 0"
         size="small"
         showGridlines
         class="w-full"

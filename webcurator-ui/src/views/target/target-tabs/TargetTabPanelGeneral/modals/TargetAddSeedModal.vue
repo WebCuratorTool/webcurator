@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, type Ref, ref } from "vue";
 
+import type { DynamicDialogInstance } from "@/types/ui";
 import { useTargetSeedsDTO } from "@/stores/target";
 import { useAlertStore } from "@/utils/alertStore";
 

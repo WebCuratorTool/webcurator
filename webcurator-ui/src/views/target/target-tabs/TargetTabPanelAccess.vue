@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Select } from "primevue";
 import { ref } from "vue";
 
 import WctFormField from "@/components/WctFormField.vue";

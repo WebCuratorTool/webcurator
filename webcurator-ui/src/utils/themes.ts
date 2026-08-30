@@ -1,4 +1,3 @@
-import { updatePreset, updateSurfacePalette } from "@primeuix/themes";
 import { ref } from "vue";
 
 import { useLayout } from "@/layout/composables/layout";
@@ -375,9 +374,11 @@ function updateColors(type: string, color: Color) {
 
 function applyTheme(type: string, color: Color) {
   if (type === "primary") {
-    updatePreset(getPresetExt());
+    const shade = color.palette[500] || "#2563eb";
+    document.documentElement.style.setProperty("--wct-primary", shade);
   } else if (type === "surface") {
-    updateSurfacePalette(color.palette);
+    const shade = color.palette[50] || "#f8fafc";
+    document.documentElement.style.setProperty("--wct-surface", shade);
   }
 }
 

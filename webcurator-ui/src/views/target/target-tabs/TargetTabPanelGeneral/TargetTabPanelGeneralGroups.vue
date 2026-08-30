@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent } from "vue";
 
+import { useDialog } from "@/composables/useDialog";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetGropusDTO } from "@/stores/target";
 

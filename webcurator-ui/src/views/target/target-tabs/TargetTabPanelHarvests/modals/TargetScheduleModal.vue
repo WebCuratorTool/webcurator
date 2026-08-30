@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { computed, inject, type Ref, ref, watch } from "vue";
+
+import type { DynamicDialogInstance } from "@/types/ui";
 import * as z from "zod";
 
 import Loading from "@/components/Loading.vue";
@@ -27,14 +28,28 @@ const rest: UseFetchApis = useFetch();
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
-const targetSchedule = ref(dialogRef?.value.data.targetSchedule);
+type TargetScheduleDialogData = {
+  targetSchedule: Record<string, any>;
+  editingSchedule: boolean;
+  isNewSchedule: boolean;
+};
+
+const dialogData =
+  (dialogRef?.value?.data as TargetScheduleDialogData | undefined) ??
+  ({
+    targetSchedule: {},
+    editingSchedule: false,
+    isNewSchedule: false,
+  } as TargetScheduleDialogData);
+
+const targetSchedule = ref<Record<string, any>>(dialogData.targetSchedule);
 const cronFields = ref();
 const scheduleType = ref("");
 const startDate = ref();
 const endDate = ref();
 const time = ref();
-const editing = ref(dialogRef?.value.data.editingSchedule);
-const isNewSchedule = ref(dialogRef?.value.data.isNewSchedule);
+const editing = ref(Boolean(dialogData.editingSchedule));
+const isNewSchedule = ref(Boolean(dialogData.isNewSchedule));
 const scheduleTypes = ref(<Record<number, string>>{});
 const loading = ref(true);
 const monthGroups = ref<string[]>([]);
@@ -52,18 +67,18 @@ const newCronObject = ref({
 
 const validationErrors = ref<FlattenedErrors>({});
 
-startDate.value = formatDate(dialogRef?.value.data.targetSchedule.startDate);
+startDate.value = formatDate(dialogData.targetSchedule.startDate);
 endDate.value =
-  dialogRef?.value.data.targetSchedule.endDate != null
-    ? formatDate(dialogRef?.value.data.targetSchedule.endDate)
+  dialogData.targetSchedule.endDate != null
+    ? formatDate(dialogData.targetSchedule.endDate)
     : "";
 time.value =
-  dialogRef?.value.data.targetSchedule.nextExecutionDate != null
-    ? formatTime(dialogRef?.value.data.targetSchedule.nextExecutionDate)
+  dialogData.targetSchedule.nextExecutionDate != null
+    ? formatTime(dialogData.targetSchedule.nextExecutionDate)
     : "";
 cronFields.value =
-  dialogRef?.value.data.targetSchedule.cron != ""
-    ? parseCron(dialogRef?.value.data.targetSchedule.cron)
+  dialogData.targetSchedule.cron != ""
+    ? parseCron(dialogData.targetSchedule.cron)
     : {
         dayOfMonth: "",
         month: "",

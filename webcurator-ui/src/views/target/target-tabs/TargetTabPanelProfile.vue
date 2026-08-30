@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { type SelectChangeEvent, Textarea } from "primevue";
 import { computed, ref, watch } from "vue";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useProfiles } from "@/stores/profiles";
 import { useTargetProfileDTO } from "@/stores/target";
 import type { Profile } from "@/types/profile";
+import type { SelectChangeEvent } from "@/types/ui";
 import { camelCaseToTitleCase } from "@/utils/helper";
 import { useProgressStore } from "@/utils/progress";
 
@@ -26,7 +26,7 @@ const profileStore = useProfiles();
 const selectedHarvesterType = ref(targetProfile.harvesterType);
 const selectedProfile = ref({} as Profile | undefined);
 
-const onChangeProfile = (event: SelectChangeEvent) => {
+const onChangeProfile = (event: SelectChangeEvent<Profile>) => {
   useTargetProfileDTO().setProfile(event.value);
 };
 

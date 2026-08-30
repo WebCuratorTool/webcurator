@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { DataTableRowClickEvent } from "primevue/datatable";
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, onMounted, reactive, type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
 
 import Loading from "@/components/Loading.vue";
+import type {
+  DataTableRowClickEvent,
+  DynamicDialogInstance,
+} from "@/types/ui";
 import { useHarvestAuthorisationStatusStore } from "@/stores/harvestAuthorisations";
 import { usePermissionStore } from "@/stores/permission";
 import { usePermissionsStore } from "@/stores/permissions";
@@ -78,7 +80,9 @@ const isAuthAdded = (authPermissionId: number) =>
   );
 
 onMounted(async () => {
-  seed.value = dialogRef?.value.data.seed;
+  seed.value = (dialogRef?.value?.data?.seed as any) ?? {
+    authorisations: [],
+  };
   const statuses = await useHarvestAuthorisationStatusStore().fetch();
   harvestAuthorisationStatuses.value = statuses;
 });

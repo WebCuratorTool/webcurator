@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
 import { inject, type Ref, ref } from "vue";
+
+import type { Annotation } from "@/types/annotation";
+import type { DynamicDialogInstance } from "@/types/ui";
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");
 
-const payload = dialogRef?.value?.data;
+type NewAnnotationDialogPayload = {
+  annotation: Annotation;
+  addAnnotation: (annotation: Annotation) => void;
+};
+
+const payload = dialogRef?.value?.data as NewAnnotationDialogPayload | undefined;
 if (!payload) {
   dialogRef?.value.close();
 }
 
-const { annotation, addAnnotation } = payload!;
+const { annotation, addAnnotation } = payload as NewAnnotationDialogPayload;
 
 const newAnnotation = ref(annotation);
 

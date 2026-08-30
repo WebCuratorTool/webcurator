@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useDialog } from "primevue/usedialog";
 import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 
+import { useDialog } from "@/composables/useDialog";
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";
 import { useTargetHarvestsDTO } from "@/stores/target";
 import { useTargetInstanceStateStore } from "@/stores/targetInstance";
