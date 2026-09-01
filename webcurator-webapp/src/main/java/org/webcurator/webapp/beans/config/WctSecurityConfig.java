@@ -9,7 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
@@ -18,8 +22,11 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.ldap.EmbeddedLdapServerContextSourceFactoryBean;
+import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.ldap.userdetails.PersonContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -123,6 +130,7 @@ public class WctSecurityConfig {
 //        return new DefaultHttpFirewall();
 //    }
 
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                 authorizationManagerRequestMatcherRegistry
@@ -183,11 +191,13 @@ public class WctSecurityConfig {
 ////                .and().sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true)
 //    }
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        // Set optional LDAP/AD configuration
-        if (ldapEnable.toLowerCase().equals("true")) {
-            auth.ldapAuthentication()
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        if (ldapEnable.equalsIgnoreCase("true")) {
+            authenticationManagerBuilder.ldapAuthentication()
                     .userSearchBase(ldapUsrSearchBase)
                     .userSearchFilter(ldapUsrSearchFilter)
                     .groupSearchBase(ldapGroupSearchBase)
@@ -198,9 +208,10 @@ public class WctSecurityConfig {
                     .managerDn(ldapContextSourceManagerDn)
                     .managerPassword(ldapContextSourceManagerPassword)
                     .root(ldapContextSourceRoot);
+        } else {
+            authenticationManagerBuilder.authenticationProvider(authenticationProvider());
         }
-
-        auth.authenticationProvider(authenticationProvider());
+        return authenticationManagerBuilder.build();
     }
 
     @Bean

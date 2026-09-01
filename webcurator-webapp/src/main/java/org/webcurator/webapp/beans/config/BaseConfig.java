@@ -320,8 +320,6 @@ public class BaseConfig {
     @Autowired
     private ListsConfig listsConfig;
 
-    @Autowired
-    private WctCoordinator wctCoordinator;
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -389,7 +387,6 @@ public class BaseConfig {
     }
 
     @Bean
-    @Autowired
     public HibernateTransactionManager transactionManager() {
         HibernateTransactionManager hibernateTransactionManager = new HibernateTransactionManager(sessionFactory().getObject());
 //        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
@@ -685,6 +682,27 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
+    public WctCoordinator wctCoordinator() {
+        WctCoordinator bean = new WctCoordinator();
+        bean.setTargetInstanceManager(targetInstanceManager());
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setHarvestLogManager(harvestLogManager());
+        bean.setHarvestQaManager(harvestQaManager());
+        bean.setTargetInstanceDao(targetInstanceDao());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setVisualizationDirectoryManager(visualizationManager());
+        bean.setTargetManager(targetManager());
+        bean.setInTrayManager(inTrayManager());
+        bean.setSipBuilder(sipBuilder());
+        bean.setHarvestResultManager(harvestResultManager());
+        bean.setScreenshotClient(screenshotClient());
+
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
     public TargetInstanceManager targetInstanceManager() {
         TargetInstanceManager bean = new TargetInstanceManager();
         bean.setTargetInstanceDao(targetInstanceDao());
@@ -844,7 +862,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail processScheduleJob() {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("wctCoordinator", wctCoordinator);
+        jobDataMap.put("wctCoordinator", wctCoordinator());
 
         JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
                 .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
@@ -995,7 +1013,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeDigitalAssetsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(wctCoordinator);
+        bean.setTargetObject(wctCoordinator());
         bean.setTargetMethod("purgeDigitalAssets");
 
         return bean;
@@ -1020,7 +1038,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeAbortedTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(wctCoordinator);
+        bean.setTargetObject(wctCoordinator());
         bean.setTargetMethod("purgeAbortedTargetInstances");
 
         return bean;

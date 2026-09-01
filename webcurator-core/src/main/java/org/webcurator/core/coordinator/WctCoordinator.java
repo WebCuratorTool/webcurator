@@ -74,40 +74,29 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("all")
-@Component("wctCoordinator")
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoordinator {
 
     private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
     private static final Tika tika = new Tika();
 
-    @Autowired
     private TargetInstanceManager targetInstanceManager;
 
     // Functionality segregated to reduce complexity and increase testability
-    @Autowired
     private HarvestAgentManager harvestAgentManager;
-    @Autowired
     private HarvestLogManager harvestLogManager;
-    @Autowired
     private HarvestQaManager harvestQaManager;
-    @Autowired
     private TargetInstanceDAO targetInstanceDao;
-    @Autowired
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
-    @Autowired
     private VisualizationDirectoryManager visualizationDirectoryManager;
 
     /**
      * The Target Manager.
      */
-    @Autowired
     private TargetManager targetManager;
 
     /**
      * The InTrayManager.
      */
-    @Autowired
     private InTrayManager inTrayManager;
 
     /**
@@ -123,7 +112,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
      */
     @Value("${harvestCoordinator.daysBeforeAbortedTargetInstancePurge}")
     private int daysBeforeAbortedTargetInstancePurge = 7;
-    @Autowired
+
     private SipBuilder sipBuilder = null;
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -136,16 +125,11 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
     @Value("${harvestCoordinator.harvestOptimizationEnabled}")
     private boolean harvestOptimizationEnabled;
 
-    @Autowired
     private HarvestResultManager harvestResultManager;
-
-    @Autowired
-    private NetworkMapClient networkMapClient;
 
     @Value("${enableScreenshots}")
     private boolean enableScreenshots;
 
-    @Autowired
     private ScreenshotClient screenshotClient;
 
     /**

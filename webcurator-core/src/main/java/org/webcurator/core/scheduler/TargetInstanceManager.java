@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.stereotype.Component;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.util.Auditor;
@@ -37,6 +38,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * @author nwaight
  */
 @SuppressWarnings("all")
+@Component
 public class TargetInstanceManager {
     /**
      * The Data access object for target instances.

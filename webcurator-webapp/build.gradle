@@ -127,6 +127,7 @@ task sourcesJar(type: Jar) {
     from(sourceSets.main.allJava)
 }
 
+
 publishing {
     publications {
         webApp(MavenPublication) {
