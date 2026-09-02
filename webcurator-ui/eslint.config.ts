@@ -48,4 +48,11 @@ export default defineConfig([
       "vue/multi-word-component-names": "off",
     },
   },
+
+  {
+    files: ["tests/**/*.{ts,js}", "src/**/__tests__/**/*.{ts,js}"],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+    },
+  },
 ]);

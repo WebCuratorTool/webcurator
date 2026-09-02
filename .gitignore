@@ -75,7 +75,7 @@ local.properties
 /webcurator-ui/.node/
 
 # VS Code
-.vscode
+/.vscode/
 
 # Credentials for the ReST API tests
 credentials 
