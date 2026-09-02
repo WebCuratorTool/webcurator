@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import type { DynamicDialogInstance } from "openvue/dynamicdialogoptions";
 import { inject, type Ref, ref } from "vue";
 
 const dialogRef = inject<Ref<DynamicDialogInstance>>("dialogRef");

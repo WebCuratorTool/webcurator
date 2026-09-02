@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { DataTableRowClickEvent } from "primevue/datatable";
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import type { DataTableRowClickEvent } from "openvue/datatable";
+import type { DynamicDialogInstance } from "openvue/dynamicdialogoptions";
 import { inject, onMounted, reactive, type Ref, ref } from "vue";
 import { useRoute } from "vue-router";
 

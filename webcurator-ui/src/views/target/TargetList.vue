@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useConfirm } from "primevue/useconfirm";
+import { useConfirm } from "openvue/useconfirm";
 import { onMounted } from "vue";
 import { watch } from "vue";
 import { useRouter } from "vue-router";

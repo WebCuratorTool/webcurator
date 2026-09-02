@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { useConfirm, useToast } from "primevue";
+import { useConfirm, useToast } from "openvue";
 
 const ToastLifeInfo = 3 * 1000;
 const ToastLifeWarning = 5 * 1000;

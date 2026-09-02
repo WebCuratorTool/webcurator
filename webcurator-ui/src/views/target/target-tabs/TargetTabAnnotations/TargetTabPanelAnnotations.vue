@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Textarea } from "primevue";
-import { useDialog } from "primevue/usedialog";
+import { Textarea } from "openvue";
+import { useDialog } from "openvue/usedialog";
 import { defineAsyncComponent, ref } from "vue";
 import { useRoute } from "vue-router";
 

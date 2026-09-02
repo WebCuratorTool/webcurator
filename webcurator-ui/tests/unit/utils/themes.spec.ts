@@ -13,7 +13,7 @@ const themeMocks = vi.hoisted(() => ({
   isDarkThemeMock: { value: false },
 }));
 
-vi.mock("@primeuix/themes", () => ({
+vi.mock("@openvue/themes", () => ({
   updatePreset: themeMocks.updatePresetMock,
   updateSurfacePalette: themeMocks.updateSurfacePaletteMock,
 }));

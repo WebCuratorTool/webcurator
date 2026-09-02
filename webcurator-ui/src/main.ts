@@ -1,11 +1,11 @@
 import "@/assets/styles.scss";
 
-import Aura from "@primeuix/themes/aura";
+import Aura from "@openvue/themes/aura";
 import { createPinia } from "pinia";
-import PrimeVue from "primevue/config";
-import ConfirmationService from "primevue/confirmationservice";
-import DialogService from "primevue/dialogservice";
-import ToastService from "primevue/toastservice";
+import PrimeVue from "openvue/config";
+import ConfirmationService from "openvue/confirmationservice";
+import DialogService from "openvue/dialogservice";
+import ToastService from "openvue/toastservice";
 import { createApp } from "vue";
 
 import App from "./App.vue";

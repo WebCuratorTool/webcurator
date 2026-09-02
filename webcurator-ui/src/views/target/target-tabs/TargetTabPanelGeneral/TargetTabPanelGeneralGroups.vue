@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDialog } from "primevue/usedialog";
+import { useDialog } from "openvue/usedialog";
 import { defineAsyncComponent } from "vue";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";

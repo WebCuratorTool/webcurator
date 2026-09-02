@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type SelectChangeEvent, Textarea } from "primevue";
+import { type SelectChangeEvent, Textarea } from "openvue";
 import { computed, ref, watch } from "vue";
 
 import WctTabViewPanel from "@/components/WctTabViewPanel.vue";

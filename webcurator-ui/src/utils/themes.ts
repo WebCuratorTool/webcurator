@@ -1,4 +1,4 @@
-import { updatePreset, updateSurfacePalette } from "@primeuix/themes";
+import { updatePreset, updateSurfacePalette } from "@openvue/themes";
 import { ref } from "vue";
 
 import { useLayout } from "@/layout/composables/layout";

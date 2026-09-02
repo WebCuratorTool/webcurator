@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import type { DynamicDialogInstance } from "openvue/dynamicdialogoptions";
 import { computed, inject, type Ref, ref, watch } from "vue";
 import * as z from "zod";
 

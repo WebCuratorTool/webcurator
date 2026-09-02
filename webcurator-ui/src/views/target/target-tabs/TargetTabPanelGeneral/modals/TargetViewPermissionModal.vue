@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DynamicDialogInstance } from "primevue/dynamicdialogoptions";
+import type { DynamicDialogInstance } from "openvue/dynamicdialogoptions";
 import { inject, onMounted, type Ref, ref } from "vue";
 
 import Loading from "@/components/Loading.vue";

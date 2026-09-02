@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDialog } from "primevue/usedialog";
+import { useDialog } from "openvue/usedialog";
 import { defineAsyncComponent, ref, toRaw, watch } from "vue";
 import { useRoute } from "vue-router";
 
