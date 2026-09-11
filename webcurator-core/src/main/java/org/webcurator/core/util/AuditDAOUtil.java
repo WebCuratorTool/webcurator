@@ -19,7 +19,8 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -31,11 +32,13 @@ import org.webcurator.domain.model.auth.User;
  * system.
  * @author bprice
  */
-public class AuditDAOUtil extends HibernateDaoSupport implements Auditor {
+public class AuditDAOUtil implements Auditor {
 	/** the logger. */
     private static Log log = LogFactory.getLog(AuditDAOUtil.class); 
     /** the transaction template to use. */
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
     
     /**
      * Create an audit entry with the specified data.
@@ -55,7 +58,7 @@ public class AuditDAOUtil extends HibernateDaoSupport implements Auditor {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of the Audit Object");
-                            getHibernateTemplate().saveOrUpdate(audit);
+                            currentSession().persist(audit);
                             log.debug("After Saving of the AUdit Object");
                         }
                         catch(Exception ex) {
@@ -100,7 +103,7 @@ public class AuditDAOUtil extends HibernateDaoSupport implements Auditor {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of the Audit Object");
-                            getHibernateTemplate().saveOrUpdate(audit);
+                            currentSession().persist(audit);
                             log.debug("After Saving of the AUdit Object");
                         }
                         catch(Exception ex) {
@@ -140,7 +143,7 @@ public class AuditDAOUtil extends HibernateDaoSupport implements Auditor {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of the Audit Object");
-                            getHibernateTemplate().saveOrUpdate(audit);
+                            currentSession().persist(audit);
                             log.debug("After Saving of the AUdit Object");
                         }
                         catch(Exception ex) {
@@ -160,5 +163,13 @@ public class AuditDAOUtil extends HibernateDaoSupport implements Auditor {
      */
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 }

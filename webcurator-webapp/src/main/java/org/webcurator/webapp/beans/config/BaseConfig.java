@@ -22,6 +22,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.RollbackOn;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
@@ -89,7 +90,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
  */
 @SuppressWarnings("all")
 @Configuration
-@EnableTransactionManagement
+@EnableTransactionManagement(rollbackOn = RollbackOn.ALL_EXCEPTIONS)
 @ComponentScan("org.webcurator.core.coordinator")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);

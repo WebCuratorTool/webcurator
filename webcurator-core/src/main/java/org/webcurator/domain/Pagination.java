@@ -22,8 +22,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 
 import java.util.*;
 
@@ -32,7 +30,7 @@ import java.util.*;
  * to help display them in a page by page manner.
  * @author bprice
  */
-public class Pagination extends HibernateDaoSupport {
+public class Pagination {
 	/** the list of results. */
 	private List results;
 
@@ -47,6 +45,8 @@ public class Pagination extends HibernateDaoSupport {
 
 	/** The logger. */
 	private static Log log = LogFactory.getLog(Pagination.class);
+
+	private SessionFactory sessionFactory;
 
 	/** The default constructor. */
 	public Pagination() {
@@ -136,20 +136,14 @@ public class Pagination extends HibernateDaoSupport {
 	 */
 	public Pagination(final String cntQuery, final String aQuery, final Map aParams, final int aPage, final int aPageSize, final boolean isNamedQuery, SessionFactory aSessionFactory) {
 		setSessionFactory(aSessionFactory);
-        page = aPage;
-        pageSize = aPageSize;
-		getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
-						Query q = isNamedQuery ? session.getNamedQuery(aQuery) : session.createQuery(aQuery);
-						Query cq = isNamedQuery ? session.getNamedQuery(cntQuery) : session.createQuery(cntQuery);
-						bindQueryParams(q, aParams);
-						bindQueryParams(cq, aParams);
-	                    init(cq, q);
-	                    return null;
-					}
-				}
-			);		
+		page = aPage;
+		pageSize = aPageSize;
+		Session session = currentSession();
+		Query q = isNamedQuery ? session.createNamedQuery(aQuery) : session.createQuery(aQuery);
+		Query cq = isNamedQuery ? session.createNamedQuery(cntQuery) : session.createQuery(cntQuery);
+		bindQueryParams(q, aParams);
+		bindQueryParams(cq, aParams);
+		init(cq, q);
 	}
 	
 
@@ -264,4 +258,13 @@ public class Pagination extends HibernateDaoSupport {
 	public int getNumberOfPages() {
 		return (total - 1) / pageSize;
 	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	private Session currentSession() {
+		return sessionFactory.getCurrentSession();
+	}
+
 }

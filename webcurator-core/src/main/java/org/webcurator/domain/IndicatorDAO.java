@@ -19,11 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -33,11 +32,13 @@ import org.webcurator.domain.model.core.Indicator;
 /**
  * The object for accessing <code>Indicator</code>s from the persistent store.
  */
-public class IndicatorDAO extends HibernateDaoSupport {
+public class IndicatorDAO {
     
     private Log log = LogFactory.getLog(IndicatorDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -45,7 +46,7 @@ public class IndicatorDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            currentSession().saveOrUpdate(aObject);
+                            currentSession().persist(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -64,7 +65,7 @@ public class IndicatorDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Deletes Object");
                         }
                         catch (DataAccessException e) {
@@ -80,29 +81,29 @@ public class IndicatorDAO extends HibernateDaoSupport {
 
     @Transactional
     public Indicator getIndicatorByOid(final Long indicatorOid) {
-        return (Indicator)getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        Query query = session.getNamedQuery(Indicator.QRY_GET_INDICATOR_BY_OID);
-                        query.setParameter(1, indicatorOid);
-                        return query.uniqueResult();
-                    }
-                }
-            );
-          
+        Query<Indicator> query = currentSession().createNamedQuery(Indicator.QRY_GET_INDICATOR_BY_OID, Indicator.class);
+        query.setParameter(1, indicatorOid);
+        return query.uniqueResult();
+
     }
 
     public List<Indicator> getIndicatorsByTargetInstanceOid(Long targetInstanceOid) {
-        List<Indicator> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Indicator.QRY_GET_INDICATORS_BY_TI_OID)
-                        .setParameter(1, targetInstanceOid)
-                        .list());
+        return currentSession().createNamedQuery(Indicator.QRY_GET_INDICATORS_BY_TI_OID, Indicator.class)
+                .setParameter(1, targetInstanceOid)
+                .list();
 
-        return results;
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 
 }

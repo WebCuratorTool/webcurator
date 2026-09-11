@@ -22,11 +22,11 @@ import jakarta.persistence.*;
 @Table(name = "INDICATOR_CRITERIA")
 @NamedQueries({
         @NamedQuery(name = "org.webcurator.domain.model.core.IndicatorCriteria.getIndicatorCriterias",
-                query = "SELECT ic FROM IndicatorCriteria ic ORDER BY ic_agc_oid, ic.name"),
+                query = "SELECT ic FROM IndicatorCriteria ic ORDER BY ic.agency.oid, ic.name"),
         @NamedQuery(name = "org.webcurator.domain.model.core.IndicatorCriteria.getIndicatorCriteriasByAgency",
                 query = "SELECT ic FROM IndicatorCriteria ic WHERE ic.agency.oid=?1 ORDER BY ic.name"),
         @NamedQuery(name = "org.webcurator.domain.model.core.IndicatorCriteria.getIndicatorCriteriaByOid",
-                query = "SELECT ic FROM IndicatorCriteria ic WHERE ic_oid=?1")
+                query = "SELECT ic FROM IndicatorCriteria ic WHERE ic.oid=?1")
 })
 public class IndicatorCriteria {
 	

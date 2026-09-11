@@ -19,8 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -31,33 +33,39 @@ import org.webcurator.domain.model.core.PermissionTemplate;
  * Persistance Interface for the managing the Permission Template Request object
  * @author BPrice
  */
-public class PermissionTemplateDAO extends HibernateDaoSupport {
+public class PermissionTemplateDAO {
 
     private Log log = LogFactory.getLog(PermissionTemplateDAO.class);
     
     private TransactionTemplate txTemplate;
+
+    private SessionFactory sessionFactory;
     
     public PermissionTemplateDAO() {
 
     }
 
     public PermissionTemplate getTemplate(Long oid) {
-        return (PermissionTemplate)getHibernateTemplate().load(PermissionTemplate.class,oid);
+        return (PermissionTemplate)currentSession().getReference(PermissionTemplate.class,oid);
     }
 
-    public List getTemplates(Long agencyOid) {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY)
+    public List<PermissionTemplate> getTemplates(Long agencyOid) {
+                return currentSession().createNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY, PermissionTemplate.class)
                     .setParameter(1, agencyOid)
-                    .list());
+                    .list();
     }
 
-    public List getAllTemplates() {
-        return getHibernateTemplate().loadAll(PermissionTemplate.class);
+    public List<PermissionTemplate> getAllTemplates() {
+        Query<PermissionTemplate> q = currentSession().createQuery("from PermissionTemplate", PermissionTemplate.class);
+        return q.getResultList();
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
     public void saveOrUpdate(final Object aObject) {
@@ -81,7 +89,7 @@ public class PermissionTemplateDAO extends HibernateDaoSupport {
     }
 
     public Permission getPermission(Long oid) {
-        return (Permission)getHibernateTemplate().load(Permission.class,oid);
+        return (Permission)currentSession().getReference(Permission.class,oid);
     }
 
     public void delete(final Object aObject) {
@@ -90,7 +98,7 @@ public class PermissionTemplateDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Delete Object");
                         }
                         catch (DataAccessException e) {
@@ -103,6 +111,10 @@ public class PermissionTemplateDAO extends HibernateDaoSupport {
                 }
         );    
         
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 
 }

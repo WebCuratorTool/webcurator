@@ -19,11 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -34,11 +33,13 @@ import org.webcurator.domain.model.core.IndicatorCriteria;
  * The object for accessing <code>IndicatorCriteria</code>s from the persistent store.
  */
 @Transactional
-public class IndicatorCriteriaDAO extends HibernateDaoSupport {
+public class IndicatorCriteriaDAO {
     
     private Log log = LogFactory.getLog(IndicatorCriteriaDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -46,7 +47,7 @@ public class IndicatorCriteriaDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            currentSession().saveOrUpdate(aObject);
+                            currentSession().persist(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -65,7 +66,7 @@ public class IndicatorCriteriaDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Deletes Object");
                         }
                         catch (DataAccessException e) {
@@ -80,34 +81,36 @@ public class IndicatorCriteriaDAO extends HibernateDaoSupport {
     }
 
     public IndicatorCriteria getIndicatorCriteriaByOid(final Long indicatorCriteriaOid) {
-        return (IndicatorCriteria)getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        Query query = session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIA_BY_OID);
-                        query.setParameter(1,indicatorCriteriaOid, Long.class);
-                        return query.uniqueResult();
-                    }
-                }
-            );
-          
+        Query<IndicatorCriteria> query = currentSession().createNamedQuery(
+                IndicatorCriteria.QRY_GET_INDICATOR_CRITERIA_BY_OID, IndicatorCriteria.class);
+        query.setParameter(1, indicatorCriteriaOid, Long.class);
+        return query.uniqueResult();
+
     }
-    
+
     public List<IndicatorCriteria> getIndicatorCriterias() {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS)
-                    .list());
+        return currentSession()
+                .createNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS, IndicatorCriteria.class)
+                .list();
     }
 
     public List<IndicatorCriteria> getIndicatorCriteriasByAgencyOid(Long agencyOid) {
-        List<IndicatorCriteria> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS_BY_AGENCY)
-                    .setParameter(1, agencyOid)
-                    .list());
-        return results;
+        return currentSession()
+                .createNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS_BY_AGENCY, IndicatorCriteria.class)
+                .setParameter(1, agencyOid)
+                .list();
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 
 }

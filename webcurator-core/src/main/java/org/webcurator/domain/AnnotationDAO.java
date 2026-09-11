@@ -15,21 +15,19 @@
  */
 package org.webcurator.domain;
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.HibernateException;
-import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Annotation;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The interface that defines the Data Access Object for 
@@ -37,27 +35,23 @@ import org.webcurator.domain.model.core.Annotation;
  * @author nwaight
  */
 @Transactional
-public class AnnotationDAO extends HibernateDaoSupport {
+public class AnnotationDAO {
 	/** the logger. */
     private Log log = LogFactory.getLog(AnnotationDAO.class);    
     /** The transaction template object to use. */
     private TransactionTemplate txTemplate = null;
+
+	private SessionFactory sessionFactory;
     
 	public List<Annotation> loadAnnotations(final String aType, final Long aOid) {
 		if (log.isDebugEnabled()) {
 			log.debug("Load annotations for " + aType + " " + aOid);
 		}
-		Object obj = getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) throws HibernateException {
-				Query q = aSession.getNamedQuery(Annotation.QRY_GET_NOTES);
-				q.setParameter(Annotation.PARAM_TYPE, aType, String.class);
-				q.setParameter(Annotation.PARAM_OID, aOid, Long.class);
-				
-				return q.list();
-			}
-		});			
-        
-        return (List<Annotation>) obj;
+		Query q = currentSession().getNamedQuery(Annotation.QRY_GET_NOTES);
+		q.setParameter(Annotation.PARAM_TYPE, aType, String.class);
+		q.setParameter(Annotation.PARAM_OID, aOid, Long.class);
+
+		return q.list();
 	}
 
 	public void saveAnnotations(final List<Annotation> aAnnotations) {
@@ -99,7 +93,7 @@ public class AnnotationDAO extends HibernateDaoSupport {
 							if (log.isDebugEnabled()) {
 								log.debug("Deleting annotation " + a.getNote());
 							}
-							currentSession().delete(a);
+							currentSession().remove(a);
 						}                    	                       
                     }
                     catch(Exception ex) {
@@ -113,8 +107,16 @@ public class AnnotationDAO extends HibernateDaoSupport {
             }
         );		
 	}
+
+	private Session currentSession() {
+		return sessionFactory.getCurrentSession();
+	}
 	
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
-    }       
+    }
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 }

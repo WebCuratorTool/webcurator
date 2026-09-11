@@ -30,7 +30,7 @@ import jakarta.persistence.*;
 		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.all",
 				query = "from org.webcurator.domain.model.core.HeatmapConfig hm order by hm.thresholdLowest"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid",
-				query = "SELECT hm FROM HeatmapConfig hm WHERE hm_oid=?1")
+				query = "SELECT hm FROM HeatmapConfig hm WHERE hm.oid=?1")
 })
 public class HeatmapConfig {
 	public static final String QUERY_ALL = "org.webcurator.domain.model.core.HeatmapConfig.all";

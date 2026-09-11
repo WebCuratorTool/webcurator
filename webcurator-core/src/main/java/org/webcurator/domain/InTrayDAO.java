@@ -27,8 +27,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -53,11 +51,13 @@ import java.util.Map;
  * @author bprice
  */
 @Transactional
-public class InTrayDAO extends HibernateDaoSupport {
+public class InTrayDAO {
 
     private Log log = LogFactory.getLog(InTrayDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
     
     public InTrayDAO() {
 
@@ -65,6 +65,10 @@ public class InTrayDAO extends HibernateDaoSupport {
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
     
     public void saveOrUpdate(final Object aObject) {
@@ -90,20 +94,15 @@ public class InTrayDAO extends HibernateDaoSupport {
         Map <String,Long>params = new HashMap<String,Long>();
         params.put("recipientOid", userOid);
 
-        SessionFactory aSessionFactory = getHibernateTemplate().getSessionFactory();
-        return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true, aSessionFactory);
+        return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true, sessionFactory);
     }
 
     public long countNotifications(final Long userOid) {
-        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException {
-				
-				Query query = session.createQuery("select count(*) from Notification n where n.recipientOid = :userOid ");
-				query.setParameter("userOid", userOid, Long.class);
-				
-				return ((Number) query.uniqueResult()).longValue();
-			}
-    	});
+
+        Query<Long> query = currentSession().createQuery("select count(*) from Notification n where n.recipientOid = :userOid ", Long.class);
+        query.setParameter("userOid", userOid, Long.class);
+
+        return ((Number) query.uniqueResult()).longValue();
     }
     
     public void delete(final Object obj) {
@@ -112,7 +111,7 @@ public class InTrayDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(obj);
+                            currentSession().remove(obj);
                             log.debug("After Delete of Object");
                         }
                         catch (DataAccessException e) {
@@ -127,143 +126,118 @@ public class InTrayDAO extends HibernateDaoSupport {
     }
 
     public Object load(Class clazz, Long oid) {
-        return getHibernateTemplate().load(clazz,oid);
+        return currentSession().getReference(clazz,oid);
     }
 
     public InTrayResource populateOwner(final InTrayResource wctResource) {
-        return (InTrayResource)getHibernateTemplate().execute(new HibernateCallback(){
 
-            public Object doInHibernate(Session aSession) throws HibernateException {
-                Object object = aSession.load(wctResource.getResourceType(),wctResource.getOid());
-                if (wctResource instanceof UserInTrayResource) {
-                    UserInTrayResource uitr = (UserInTrayResource) object;
-                    Hibernate.initialize(uitr.getOwningUser());
-                    Hibernate.initialize(uitr.getOwningUser().getAgency());
-                    return uitr;
-                } else if (wctResource instanceof AgencyInTrayResource) {
-                    AgencyInTrayResource aitr = (AgencyInTrayResource) object;
-                    Hibernate.initialize(aitr.getOwningAgency());
-                    return aitr;
-                }
-                return null;
-            }
+        Object object = currentSession().getReference(wctResource.getResourceType(), wctResource.getOid());
+        if (wctResource instanceof UserInTrayResource) {
+            UserInTrayResource uitr = (UserInTrayResource) object;
+            Hibernate.initialize(uitr.getOwningUser());
+            Hibernate.initialize(uitr.getOwningUser().getAgency());
+            return uitr;
+        } else if (wctResource instanceof AgencyInTrayResource) {
+            AgencyInTrayResource aitr = (AgencyInTrayResource) object;
+            Hibernate.initialize(aitr.getOwningAgency());
+            return aitr;
         }
-
-        );
+        return null;
     }
 
     public Pagination getTasks(final User user, final List<RolePrivilege> privs, final int pageNum, final int pageSize) {
-        return (Pagination) getHibernateTemplate().execute(new HibernateCallback() {
-  
-            public Object doInHibernate(Session aSession) throws HibernateException {
 
-                CriteriaBuilder cb = aSession.getCriteriaBuilder();
-                CriteriaQuery<Task> query = cb.createQuery(Task.class);
-                CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                Root<Task> root = query.from(Task.class);
-                Root<Task> cntRoot = cntQuery.from(Task.class);
-                query.select(root);
-                cntQuery.select(cb.count(cntRoot));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Task> query = cb.createQuery(Task.class);
+        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+        Root<Task> root = query.from(Task.class);
+        Root<Task> cntRoot = cntQuery.from(Task.class);
+        query.select(root);
+        cntQuery.select(cb.count(cntRoot));
 
 
-                List<Predicate> disjunction = new ArrayList<>();
-                List<Predicate> cntDisjunction = new ArrayList<>();
-                for(RolePrivilege userPriv: privs) {
-                    disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
-                    cntDisjunction.add(cb.equal(cntRoot.get("privilege"), userPriv.getPrivilege()));
-                }
-                disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
-                cntDisjunction.add(cb.equal(cntRoot.get("assigneeOid"), user.getOid()));
-                Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
-                Predicate cntPrivsPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
+        List<Predicate> disjunction = new ArrayList<>();
+        List<Predicate> cntDisjunction = new ArrayList<>();
+        for (RolePrivilege userPriv : privs) {
+            disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
+            cntDisjunction.add(cb.equal(cntRoot.get("privilege"), userPriv.getPrivilege()));
+        }
+        disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
+        cntDisjunction.add(cb.equal(cntRoot.get("assigneeOid"), user.getOid()));
+        Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+        Predicate cntPrivsPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
 
-                Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
-                Predicate cntAgencyPredicate = cb.equal(cntRoot.get("agency").get("oid"), user.getAgency().getOid());
+        Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
+        Predicate cntAgencyPredicate = cb.equal(cntRoot.get("agency").get("oid"), user.getAgency().getOid());
 
-                Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
-                Predicate cntWhereClause = cb.and(cntPrivsPredicate, cntAgencyPredicate);
-                query.where(whereClause);
-                cntQuery.where(cntWhereClause);
+        Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
+        Predicate cntWhereClause = cb.and(cntPrivsPredicate, cntAgencyPredicate);
+        query.where(whereClause);
+        cntQuery.where(cntWhereClause);
 
-                query.orderBy(cb.desc(root.get("sentDate")));
+        query.orderBy(cb.desc(root.get("sentDate")));
 
-                return new Pagination(aSession.createQuery(cntQuery), aSession.createQuery(query), pageNum, pageSize);
-            }
-        });
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNum, pageSize);
     }
-    
+
     public long countTasks(final User user, final List<RolePrivilege> privs) {
-    	return (Long) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException {
 
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                Root<Task> root = query.from(Task.class);
-                query.select(cb.count(root));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Task> root = query.from(Task.class);
+        query.select(cb.count(root));
 
-                List<Predicate> disjunction = new ArrayList<>();
-                for(RolePrivilege userPriv: privs) {
-                    disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
-                }
-                disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
-                Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+        List<Predicate> disjunction = new ArrayList<>();
+        for (RolePrivilege userPriv : privs) {
+            disjunction.add(cb.equal(root.get("privilege"), userPriv.getPrivilege()));
+        }
+        disjunction.add(cb.equal(root.get("assigneeOid"), user.getOid()));
+        Predicate privsPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
 
-                Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
+        Predicate agencyPredicate = cb.equal(root.get("agency").get("oid"), user.getAgency().getOid());
 
-                Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
-                query.where(whereClause);
+        Predicate whereClause = cb.and(privsPredicate, agencyPredicate);
+        query.where(whereClause);
 
-                Long count = (Long) session.createQuery(query).uniqueResult();
-                
-                return count;
-			}
-    	});
+        Long count = (Long) currentSession().createQuery(query).uniqueResult();
+
+        return count;
     }
     
     public Task getTask(final Long aResourceOid, final String aResourceType, final String aTaskType) {
-        return (Task) getHibernateTemplate().execute(new HibernateCallback() {
-  
-            public Object doInHibernate(Session aSession) throws HibernateException {
 
-                CriteriaBuilder cb = aSession.getCriteriaBuilder();
-                CriteriaQuery<Task> query = cb.createQuery(Task.class);
-                Root<Task> root = query.from(Task.class);
-                query.select(root);
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Task> query = cb.createQuery(Task.class);
+        Root<Task> root = query.from(Task.class);
+        query.select(root);
 
-                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
-                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
-                Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
+        Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
+        Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
+        Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
 
-                Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
-                query.where(whereClause);
+        Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
+        query.where(whereClause);
 
-                return aSession.createQuery(query).uniqueResult();
-            }            
-        });
-    }    
+        return currentSession().createQuery(query).uniqueResult();
+    }
     
     @SuppressWarnings("unchecked")
     public List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType) {
-        return (List<Task>) getHibernateTemplate().execute(new HibernateCallback() {
 
-            public Object doInHibernate(Session aSession) throws HibernateException {
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Task> query = cb.createQuery(Task.class);
+        Root<Task> root = query.from(Task.class);
+        query.select(root);
 
-                CriteriaBuilder cb = aSession.getCriteriaBuilder();
-                CriteriaQuery<Task> query = cb.createQuery(Task.class);
-                Root<Task> root = query.from(Task.class);
-                query.select(root);
+        Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
+        Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
+        Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
 
-                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), aResourceOid);
-                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), aResourceType);
-                Predicate messageTypePredicate = cb.equal(root.get("messageType"), aTaskType);
+        Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
+        query.where(whereClause);
 
-                Predicate whereClause = cb.and(resourceOidPredicate, resourceTypePredicate, messageTypePredicate);
-                query.where(whereClause);
-
-                return aSession.createQuery(query).list();
-            }
-        });
-    }    
+        return currentSession().createQuery(query).list();
+    }
 
     public void claimTask(User user, final Task task) {
         task.setPrivilege(null);
@@ -274,7 +248,7 @@ public class InTrayDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Save of Object");
-                            getHibernateTemplate().saveOrUpdate(task);
+                            currentSession().persist(task);
                             log.debug("After Save of Object");
                         }
                         catch (DataAccessException e) {
@@ -310,7 +284,7 @@ public class InTrayDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Save of Object");
-                            getHibernateTemplate().saveOrUpdate(task);
+                            currentSession().persist(task);
                             log.debug("After Save of Object");
                         }
                         catch (DataAccessException e) {
@@ -326,23 +300,19 @@ public class InTrayDAO extends HibernateDaoSupport {
     }
     
     public long countTasks(final String messageType, final InTrayResource wctResource) {
-        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException {
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                Root<Task> root = query.from(Task.class);
-                query.select(cb.count(root));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Task> root = query.from(Task.class);
+        query.select(cb.count(root));
 
-                Predicate messageTypePredicate = cb.equal(root.get("messageType"), messageType);
-                Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), wctResource.getOid());
-                Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), wctResource.getResourceType());
+        Predicate messageTypePredicate = cb.equal(root.get("messageType"), messageType);
+        Predicate resourceOidPredicate = cb.equal(root.get("resourceOid"), wctResource.getOid());
+        Predicate resourceTypePredicate = cb.equal(root.get("resourceType"), wctResource.getResourceType());
 
-                Predicate whereClause = cb.and(messageTypePredicate, resourceOidPredicate, resourceTypePredicate);
-                query.where(whereClause);
+        Predicate whereClause = cb.and(messageTypePredicate, resourceOidPredicate, resourceTypePredicate);
+        query.where(whereClause);
 
-                return session.createQuery(query).uniqueResult();
-			}
-    	});    	
+        return currentSession().createQuery(query).uniqueResult();
     }
 
 	public void deleteNotificationsByUser(final Long userOid) {
@@ -397,4 +367,8 @@ public class InTrayDAO extends HibernateDaoSupport {
         ); 
 		
 	}
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
+    }
 }

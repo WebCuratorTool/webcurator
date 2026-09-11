@@ -22,7 +22,6 @@ import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -194,36 +193,31 @@ public class TargetDAO extends BaseDAO {
 
     public Target load(final long targetOid, final boolean fullyInitialise) {
 
-        return (Target) getHibernateTemplate().execute(new HibernateCallback() {
+        if (!fullyInitialise) {
+            Target aTarget = (Target) currentSession().load(Target.class, targetOid);
+            aTarget.setDirty(false);
+            return aTarget;
+        } else {
+            // Initialise some more items that we'll need. This is used
+            // to prevent lazy load exceptions, since we're doing things
+            // across multiple sessions.
+            Target t = (Target) currentSession().load(Target.class, targetOid);
 
-            public Object doInHibernate(Session aSession) throws HibernateException {
-                if (!fullyInitialise) {
-                    Target aTarget = (Target) aSession.load(Target.class, targetOid);
-                    aTarget.setDirty(false);
-                    return aTarget;
-                } else {
-                    // Initialise some more items that we'll need. This is used
-                    // to prevent lazy load exceptions, since we're doing things
-                    // across multiple sessions.
-                    Target t = (Target) aSession.load(Target.class, targetOid);
+            Hibernate.initialize(t.getSeeds());
+            Hibernate.initialize(t.getSchedules());
+            Hibernate.initialize(t.getOverrides());
+            Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+            Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+            Hibernate.initialize(t.getOverrides().getCredentials());
 
-                    Hibernate.initialize(t.getSeeds());
-                    Hibernate.initialize(t.getSchedules());
-                    Hibernate.initialize(t.getOverrides());
-                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getCredentials());
-
-                    for (Seed s : t.getSeeds()) {
-                        Hibernate.initialize(s.getPermissions());
-                    }
-
-                    t.setDirty(false);
-
-                    return t;
-                }
+            for (Seed s : t.getSeeds()) {
+                Hibernate.initialize(s.getPermissions());
             }
-        });
+
+            t.setDirty(false);
+
+            return t;
+        }
     }
 
 
@@ -231,18 +225,12 @@ public class TargetDAO extends BaseDAO {
         if (aTargetGroup.isNew()) {
             return new Pagination(aTargetGroup.getNewChildren(), pageNum, pageSize);
         } else {
-            return (Pagination) getHibernateTemplate().execute(
-                    new HibernateCallback() {
-                        public Object doInHibernate(Session session) {
-                            Query query = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERS);
-                            Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_MEMBERS);
-                            query.setParameter("parentOid", aTargetGroup.getOid());
-                            cntQuery.setParameter("parentOid", aTargetGroup.getOid());
-                            Pagination pagination = new Pagination(aTargetGroup.getNewChildren(), cntQuery, query, pageNum, pageSize);
-                            return pagination;
-                        }
-                    }
-            );
+            Query query = currentSession().getNamedQuery(GroupMember.QUERY_GET_MEMBERS);
+            Query cntQuery = currentSession().getNamedQuery(GroupMember.QUERY_CNT_MEMBERS);
+            query.setParameter("parentOid", aTargetGroup.getOid());
+            cntQuery.setParameter("parentOid", aTargetGroup.getOid());
+            Pagination pagination = new Pagination(aTargetGroup.getNewChildren(), cntQuery, query, pageNum, pageSize);
+            return pagination;
         }
     }
 
@@ -251,18 +239,11 @@ public class TargetDAO extends BaseDAO {
         if (aTargetGroup.isNew()) {
             return new LinkedList<Integer>();
         } else {
-            return (List<Integer>) getHibernateTemplate().execute(
-                    new HibernateCallback() {
-                        @SuppressWarnings("unchecked")
-                        public Object doInHibernate(Session session) {
-                            Query q = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERSTATES);
-                            q.setParameter("parentOid", aTargetGroup.getOid());
-                            List<Integer> states = q.list();
+            Query q = currentSession().getNamedQuery(GroupMember.QUERY_GET_MEMBERSTATES);
+            q.setParameter("parentOid", aTargetGroup.getOid());
+            List<Integer> states = q.list();
 
-                            return states;
-                        }
-                    }
-            );
+            return states;
         }
     }
 
@@ -272,22 +253,15 @@ public class TargetDAO extends BaseDAO {
         if (aTarget.isNew()) {
             return new LinkedList<GroupMemberDTO>();
         } else {
-            return (List<GroupMemberDTO>) getHibernateTemplate().execute(
-                    new HibernateCallback() {
-                        @SuppressWarnings("unchecked")
-                        public Object doInHibernate(Session session) {
-                            Query q = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
-                            q.setParameter("childOid", aTarget.getOid());
-                            List<GroupMemberDTO> dtos = q.list();
+            Query q = currentSession().getNamedQuery(GroupMember.QUERY_GET_PARENTS);
+            q.setParameter("childOid", aTarget.getOid());
+            List<GroupMemberDTO> dtos = q.list();
 
-                            for (GroupMemberDTO dto : dtos) {
-                                dto.setSaveState(SAVE_STATE.ORIGINAL);
-                            }
+            for (GroupMemberDTO dto : dtos) {
+                dto.setSaveState(SAVE_STATE.ORIGINAL);
+            }
 
-                            return dtos;
-                        }
-                    }
-            );
+            return dtos;
         }
     }
 
@@ -296,347 +270,305 @@ public class TargetDAO extends BaseDAO {
         if (aTarget.isNew()) {
             return new Pagination(aTarget.getNewParents(), pageNum, pageSize);
         } else {
-            return (Pagination) getHibernateTemplate().execute(
-                    new HibernateCallback() {
-                        public Object doInHibernate(Session session) {
-                            Query query = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
-                            Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_PARENTS);
-                            query.setParameter("childOid", aTarget.getOid());
-                            cntQuery.setParameter("childOid", aTarget.getOid());
-                            //FIXME Need to get the new parent groups.
-                            Pagination pagination = new Pagination(aTarget.getNewParents(), cntQuery, query, pageNum, pageSize);
-                            return pagination;
-                        }
-                    }
-            );
+            Query query = currentSession().getNamedQuery(GroupMember.QUERY_GET_PARENTS);
+            Query cntQuery = currentSession().getNamedQuery(GroupMember.QUERY_CNT_PARENTS);
+            query.setParameter("childOid", aTarget.getOid());
+            cntQuery.setParameter("childOid", aTarget.getOid());
+            //FIXME Need to get the new parent groups.
+            Pagination pagination = new Pagination(aTarget.getNewParents(), cntQuery, query, pageNum, pageSize);
+            return pagination;
         }
     }
 
 
     public Pagination getTargetsForProfile(final int pageNumber, final int pageSize, final Long profileOid, final String agencyName) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Target> query = cb.createQuery(Target.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Target> root = query.from(Target.class);
-                        Root<Target> cntRoot = cntQuery.from(Target.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Target> query = cb.createQuery(Target.class);
+        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+        Root<Target> root = query.from(Target.class);
+        Root<Target> cntRoot = cntQuery.from(Target.class);
+        query.select(root);
+        cntQuery.select(cb.count(cntRoot));
 
-                        Predicate profileOidPredicate = cb.and(); // Set it to true by default
-                        Predicate cntProfileOidPredicate = cb.and();
-                        if (profileOid != null) {
-                            Join<Target, Profile> profileJoin = root.join("profile");
-                            profileOidPredicate = cb.equal(profileJoin.get("oid"), profileOid);
-                            Join<Target, Profile> cntProfileJoin = cntRoot.join("profile");
-                            cntProfileOidPredicate = cb.equal(cntProfileJoin.get("oid"), profileOid);
-                        }
+        Predicate profileOidPredicate = cb.and(); // Set it to true by default
+        Predicate cntProfileOidPredicate = cb.and();
+        if (profileOid != null) {
+            Join<Target, Profile> profileJoin = root.join("profile");
+            profileOidPredicate = cb.equal(profileJoin.get("oid"), profileOid);
+            Join<Target, Profile> cntProfileJoin = cntRoot.join("profile");
+            cntProfileOidPredicate = cb.equal(cntProfileJoin.get("oid"), profileOid);
+        }
 
-                        Predicate agencyNamePredicate = cb.and();
-                        Predicate cntAgencyNamePredicate = cb.and();
-                        if (!Utils.isEmpty(agencyName)) {
-                            Join<User, Agency> agencyJoin = root.join("owner").join("agency");
-                            Join<User, Agency> cntAgencyJoin = cntRoot.join("owner").join("agency");
-                            agencyNamePredicate = cb.equal(agencyJoin.get("name"), agencyName);
-                            cntAgencyNamePredicate = cb.equal(cntAgencyJoin.get("name"), agencyName);
-                        }
+        Predicate agencyNamePredicate = cb.and();
+        Predicate cntAgencyNamePredicate = cb.and();
+        if (!Utils.isEmpty(agencyName)) {
+            Join<User, Agency> agencyJoin = root.join("owner").join("agency");
+            Join<User, Agency> cntAgencyJoin = cntRoot.join("owner").join("agency");
+            agencyNamePredicate = cb.equal(agencyJoin.get("name"), agencyName);
+            cntAgencyNamePredicate = cb.equal(cntAgencyJoin.get("name"), agencyName);
+        }
 
-                        Predicate whereClause = cb.and(profileOidPredicate, agencyNamePredicate);
-                        Predicate cntWhereClause = cb.and(cntProfileOidPredicate, cntAgencyNamePredicate);
-                        query.where(whereClause);
-                        cntQuery.where(cntWhereClause);
-                        query.orderBy(cb.asc(root.get("name")));
+        Predicate whereClause = cb.and(profileOidPredicate, agencyNamePredicate);
+        Predicate cntWhereClause = cb.and(cntProfileOidPredicate, cntAgencyNamePredicate);
+        query.where(whereClause);
+        cntQuery.where(cntWhereClause);
+        query.orderBy(cb.asc(root.get("name")));
 
-                        return new Pagination(session.createQuery(cntQuery), session.createQuery(query), pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
     }
 
 
     public Pagination getAbstractTargetDTOsForProfile(final int pageNumber, final int pageSize, final Long profileOid) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        Query q = session.getNamedQuery(AbstractTarget.QUERY_TARGET_DTOS_BY_PROFILE);
-                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_TARGET_DTOS_BY_PROFILE);
-                        q.setParameter("profileoid", profileOid);
-                        cq.setParameter("profileoid", profileOid);
+        Query q = currentSession().getNamedQuery(AbstractTarget.QUERY_TARGET_DTOS_BY_PROFILE);
+        Query cq = currentSession().getNamedQuery(AbstractTarget.QUERY_CNT_TARGET_DTOS_BY_PROFILE);
+        q.setParameter("profileoid", profileOid);
+        cq.setParameter("profileoid", profileOid);
 
-                        return new Pagination(cq, q, pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(cq, q, pageNumber, pageSize);
     }
 
 
     public Pagination search(final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Target> query = cb.createQuery(Target.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Target> root = query.from(Target.class);
-                        Root<Target> cntRoot = cntQuery.from(Target.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Target> query = cb.createQuery(Target.class);
+        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+        Root<Target> root = query.from(Target.class);
+        Root<Target> cntRoot = cntQuery.from(Target.class);
+        query.select(root);
+        cntQuery.select(cb.count(cntRoot));
 
-                        query.distinct(true);
-                        cntQuery.distinct(true);
+        query.distinct(true);
+        cntQuery.distinct(true);
 
-                        Predicate targetNamePredicate = cb.and(); // Set it to true by default
-                        Predicate cntTargetNamePredicate = cb.and();
-                        if (targetName != null && !"".equals(targetName.trim())) {
-                            targetNamePredicate = cb.like(root.get("name"), targetName.trim() + "%");
-                            cntTargetNamePredicate = cb.like(cntRoot.get("name"), targetName.trim() + "%");
-                        }
+        Predicate targetNamePredicate = cb.and(); // Set it to true by default
+        Predicate cntTargetNamePredicate = cb.and();
+        if (targetName != null && !"".equals(targetName.trim())) {
+            targetNamePredicate = cb.like(root.get("name"), targetName.trim() + "%");
+            cntTargetNamePredicate = cb.like(cntRoot.get("name"), targetName.trim() + "%");
+        }
 
-                        Predicate descriptionPredicate = cb.and();
-                        Predicate cntDescriptionPredicate = cb.and();
-                        if (description != null && !"".equals(description.trim())) {
-                            descriptionPredicate = cb.like(root.get("description"), "%" + description.trim() + "%");
-                            cntDescriptionPredicate = cb.like(cntRoot.get("description"), "%" + description.trim() + "%");
-                        }
+        Predicate descriptionPredicate = cb.and();
+        Predicate cntDescriptionPredicate = cb.and();
+        if (description != null && !"".equals(description.trim())) {
+            descriptionPredicate = cb.like(root.get("description"), "%" + description.trim() + "%");
+            cntDescriptionPredicate = cb.like(cntRoot.get("description"), "%" + description.trim() + "%");
+        }
 
-                        Predicate statesPredicate = cb.and();
-                        Predicate cntStatesPredicate = cb.and();
-                        if (states != null && states.size() > 0) {
-                            List<Predicate> predicates = new ArrayList<>();
-                            List<Predicate> cntPredicates = new ArrayList<>();
-                            for (Integer i : states) {
-                                predicates.add(cb.equal(root.get("state"), i));
-                                cntPredicates.add(cb.equal(cntRoot.get("state"), i));
-                            }
-                            statesPredicate = cb.or(predicates.toArray(new Predicate[predicates.size()]));
-                            cntStatesPredicate = cb.or(cntPredicates.toArray(new Predicate[cntPredicates.size()]));
-                        }
+        Predicate statesPredicate = cb.and();
+        Predicate cntStatesPredicate = cb.and();
+        if (states != null && states.size() > 0) {
+            List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> cntPredicates = new ArrayList<>();
+            for (Integer i : states) {
+                predicates.add(cb.equal(root.get("state"), i));
+                cntPredicates.add(cb.equal(cntRoot.get("state"), i));
+            }
+            statesPredicate = cb.or(predicates.toArray(new Predicate[predicates.size()]));
+            cntStatesPredicate = cb.or(cntPredicates.toArray(new Predicate[cntPredicates.size()]));
+        }
 
-                        Predicate seedPredicate = cb.and();
-                        Predicate cntSeedPredicate = cb.and();
-                        if (seed != null && !"".equals(seed.trim())) {
-                            Join<Target, Seed> seedJoin = root.join("seeds");
-                            Join<Target, Seed> cntSeedJoin = cntRoot.join("seeds");
-                            seedPredicate = cb.like(seedJoin.get("seed"), seed.trim() + "%");
-                            cntSeedPredicate = cb.like(cntSeedJoin.get("seed"), seed.trim() + "%");
-                        }
+        Predicate seedPredicate = cb.and();
+        Predicate cntSeedPredicate = cb.and();
+        if (seed != null && !"".equals(seed.trim())) {
+            Join<Target, Seed> seedJoin = root.join("seeds");
+            Join<Target, Seed> cntSeedJoin = cntRoot.join("seeds");
+            seedPredicate = cb.like(seedJoin.get("seed"), seed.trim() + "%");
+            cntSeedPredicate = cb.like(cntSeedJoin.get("seed"), seed.trim() + "%");
+        }
 
-                        Predicate userNamePredicate = cb.and();
-                        Predicate cntUserNamePredicate = cb.and();
-                        Join<Target, User> userJoin = null;
-                        Join<Target, User> cntUserJoin = null;
-                        if (!Utils.isEmpty(username)) {
-                            userJoin = root.join("owner");
-                            cntUserJoin = cntRoot.join("owner");
-                            userNamePredicate = cb.equal(userJoin.get("username"), username);
-                            cntUserNamePredicate = cb.equal(cntUserJoin.get("username"), username);
-                        }
+        Predicate userNamePredicate = cb.and();
+        Predicate cntUserNamePredicate = cb.and();
+        Join<Target, User> userJoin = null;
+        Join<Target, User> cntUserJoin = null;
+        if (!Utils.isEmpty(username)) {
+            userJoin = root.join("owner");
+            cntUserJoin = cntRoot.join("owner");
+            userNamePredicate = cb.equal(userJoin.get("username"), username);
+            cntUserNamePredicate = cb.equal(cntUserJoin.get("username"), username);
+        }
 
-                        // Parents criteria; note that this involves a many-to-many self join
-                        Predicate memberOfPredicate = cb.and();
-                        Predicate cntMemberOfPredicate = cb.and();
-                        if (!Utils.isEmpty(memberOf)) {
-                            Join<GroupMember, Target> groupMemberJoin = root.join("parents").join("parent");
-                            Join<GroupMember, Target> cntGroupMemberJoin = cntRoot.join("parents").join("parent");
-                            memberOfPredicate = cb.like(groupMemberJoin.get("name"), memberOf.trim() + "%");
-                            cntMemberOfPredicate = cb.like(cntGroupMemberJoin.get("name"), memberOf.trim() + "%");
-                        }
+        // Parents criteria; note that this involves a many-to-many self join
+        Predicate memberOfPredicate = cb.and();
+        Predicate cntMemberOfPredicate = cb.and();
+        if (!Utils.isEmpty(memberOf)) {
+            Join<GroupMember, Target> groupMemberJoin = root.join("parents").join("parent");
+            Join<GroupMember, Target> cntGroupMemberJoin = cntRoot.join("parents").join("parent");
+            memberOfPredicate = cb.like(groupMemberJoin.get("name"), memberOf.trim() + "%");
+            cntMemberOfPredicate = cb.like(cntGroupMemberJoin.get("name"), memberOf.trim() + "%");
+        }
 
-                        Predicate agencyNamePredicate = cb.and();
-                        Predicate cntAgencyNamePredicate = cb.and();
-                        if (!Utils.isEmpty(agencyName)) {
-                            if (userJoin == null) {
-                                userJoin = root.join("owner");
-                                cntUserJoin = cntRoot.join("owner");
-                            }
-                            Join<User, Agency> agencyJoin = userJoin.join("agency");
-                            Join<User, Agency> cntAgencyJoin = cntUserJoin.join("agency");
-                            agencyNamePredicate = cb.equal(agencyJoin.get("name"), agencyName);
-                            cntAgencyNamePredicate = cb.equal(cntAgencyJoin.get("name"), agencyName);
-                        }
+        Predicate agencyNamePredicate = cb.and();
+        Predicate cntAgencyNamePredicate = cb.and();
+        if (!Utils.isEmpty(agencyName)) {
+            if (userJoin == null) {
+                userJoin = root.join("owner");
+                cntUserJoin = cntRoot.join("owner");
+            }
+            Join<User, Agency> agencyJoin = userJoin.join("agency");
+            Join<User, Agency> cntAgencyJoin = cntUserJoin.join("agency");
+            agencyNamePredicate = cb.equal(agencyJoin.get("name"), agencyName);
+            cntAgencyNamePredicate = cb.equal(cntAgencyJoin.get("name"), agencyName);
+        }
 
-                        Predicate searchOidPredicate = cb.and();
-                        Predicate cntSearchOidPredicate = cb.and();
-                        if (searchOid != null) {
-                            searchOidPredicate = cb.equal(root.get("oid"), searchOid);
-                            cntSearchOidPredicate = cb.equal(cntRoot.get("oid"), searchOid);
-                        }
+        Predicate searchOidPredicate = cb.and();
+        Predicate cntSearchOidPredicate = cb.and();
+        if (searchOid != null) {
+            searchOidPredicate = cb.equal(root.get("oid"), searchOid);
+            cntSearchOidPredicate = cb.equal(cntRoot.get("oid"), searchOid);
+        }
 
-                        Predicate nondisplayonlyPredicate = cb.and();
-                        Predicate cntNondisplayonlyPredicate = cb.and();
-                        if (nondisplayonly) {
-                            nondisplayonlyPredicate = cb.equal(root.get("displayTarget"), false);
-                            cntNondisplayonlyPredicate = cb.equal(cntRoot.get("displayTarget"), false);
-                        }
+        Predicate nondisplayonlyPredicate = cb.and();
+        Predicate cntNondisplayonlyPredicate = cb.and();
+        if (nondisplayonly) {
+            nondisplayonlyPredicate = cb.equal(root.get("displayTarget"), false);
+            cntNondisplayonlyPredicate = cb.equal(cntRoot.get("displayTarget"), false);
+        }
 
-                        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
-                            query.orderBy(cb.asc(root.get("name")));
-                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
-                            query.orderBy(cb.desc(root.get("name")));
-                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
-                            query.orderBy(cb.asc(root.get("creationDate")));
-                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
-                            query.orderBy(cb.desc(root.get("creationDate")));
-                        }
+        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
+            query.orderBy(cb.asc(root.get("name")));
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
+            query.orderBy(cb.desc(root.get("name")));
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
+            query.orderBy(cb.asc(root.get("creationDate")));
+        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
+            query.orderBy(cb.desc(root.get("creationDate")));
+        }
 
-                        Predicate whereClause = cb.and(targetNamePredicate, descriptionPredicate, statesPredicate,
-                                seedPredicate, userNamePredicate, memberOfPredicate, agencyNamePredicate, searchOidPredicate,
-                                nondisplayonlyPredicate);
-                        Predicate cntWhereClause = cb.and(cntTargetNamePredicate, cntDescriptionPredicate, cntStatesPredicate,
-                                cntSeedPredicate, cntUserNamePredicate, cntMemberOfPredicate, cntAgencyNamePredicate, cntSearchOidPredicate,
-                                cntNondisplayonlyPredicate);
-                        query.where(whereClause);
-                        cntQuery.where(cntWhereClause);
+        Predicate whereClause = cb.and(targetNamePredicate, descriptionPredicate, statesPredicate,
+                seedPredicate, userNamePredicate, memberOfPredicate, agencyNamePredicate, searchOidPredicate,
+                nondisplayonlyPredicate);
+        Predicate cntWhereClause = cb.and(cntTargetNamePredicate, cntDescriptionPredicate, cntStatesPredicate,
+                cntSeedPredicate, cntUserNamePredicate, cntMemberOfPredicate, cntAgencyNamePredicate, cntSearchOidPredicate,
+                cntNondisplayonlyPredicate);
+        query.where(whereClause);
+        cntQuery.where(cntWhereClause);
 
-                        return new Pagination(session.createQuery(cntQuery), session.createQuery(query), pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
     }
 
 
     public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name, final String owner, final String agency, final String memberOf, final String groupType, final boolean nondisplayonly) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Target> query = cb.createQuery(Target.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Target> root = query.from(Target.class);
-                        Root<Target> cntRoot = cntQuery.from(Target.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Target> query = cb.createQuery(Target.class);
+        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+        Root<Target> root = query.from(Target.class);
+        Root<Target> cntRoot = cntQuery.from(Target.class);
+        query.select(root);
+        cntQuery.select(cb.count(cntRoot));
 
-                        Predicate namePredicate = cb.and(); // Set it to true by default
-                        Predicate cntNamePredicate = cb.and();
-                        if (name != null && !"".equals(name.trim())) {
-                            namePredicate = cb.like(root.get("name"), "%" + name.trim() + "%");
-                            cntNamePredicate = cb.like(cntRoot.get("name"), "%" + name.trim() + "%");
-                        }
+        Predicate namePredicate = cb.and(); // Set it to true by default
+        Predicate cntNamePredicate = cb.and();
+        if (name != null && !"".equals(name.trim())) {
+            namePredicate = cb.like(root.get("name"), "%" + name.trim() + "%");
+            cntNamePredicate = cb.like(cntRoot.get("name"), "%" + name.trim() + "%");
+        }
 
-                        Predicate ownerPredicate = cb.and();
-                        Predicate cntOwnerPredicate = cb.and();
-                        Join<Target, User> userJoin = null;
-                        Join<Target, User> cntUserJoin = null;
-                        if (!Utils.isEmpty(owner)) {
-                            userJoin = root.join("owner");
-                            cntUserJoin = cntRoot.join("owner");
-                            ownerPredicate = cb.equal(userJoin.get("username"), owner);
-                            cntOwnerPredicate = cb.equal(cntUserJoin.get("username"), owner);
-                        }
+        Predicate ownerPredicate = cb.and();
+        Predicate cntOwnerPredicate = cb.and();
+        Join<Target, User> userJoin = null;
+        Join<Target, User> cntUserJoin = null;
+        if (!Utils.isEmpty(owner)) {
+            userJoin = root.join("owner");
+            cntUserJoin = cntRoot.join("owner");
+            ownerPredicate = cb.equal(userJoin.get("username"), owner);
+            cntOwnerPredicate = cb.equal(cntUserJoin.get("username"), owner);
+        }
 
-                        // Parents criteria; note that this involves a many-to-many self join
-                        Predicate memberOfPredicate = cb.and();
-                        Predicate cntMemberOfPredicate = cb.and();
-                        if (!Utils.isEmpty(memberOf)) {
-                            Join<GroupMember, Target> groupMemberJoin = root.join("parents").join("parent");
-                            Join<GroupMember, Target> cntGroupMemberJoin = cntRoot.join("parents").join("parent");
-                            memberOfPredicate = cb.like(groupMemberJoin.get("name"), memberOf.trim() + "%");
-                            cntMemberOfPredicate = cb.like(cntGroupMemberJoin.get("name"), memberOf.trim() + "%");
-                        }
+        // Parents criteria; note that this involves a many-to-many self join
+        Predicate memberOfPredicate = cb.and();
+        Predicate cntMemberOfPredicate = cb.and();
+        if (!Utils.isEmpty(memberOf)) {
+            Join<GroupMember, Target> groupMemberJoin = root.join("parents").join("parent");
+            Join<GroupMember, Target> cntGroupMemberJoin = cntRoot.join("parents").join("parent");
+            memberOfPredicate = cb.like(groupMemberJoin.get("name"), memberOf.trim() + "%");
+            cntMemberOfPredicate = cb.like(cntGroupMemberJoin.get("name"), memberOf.trim() + "%");
+        }
 
-                        Predicate groupTypePredicate = cb.and();
-                        Predicate cntGroupTypePredicate = cb.and();
-                        if (!Utils.isEmpty(groupType)) {
-                            groupTypePredicate = cb.equal(root.get("type"), groupType);
-                            cntGroupTypePredicate = cb.equal(cntRoot.get("type"), groupType);
-                        }
+        Predicate groupTypePredicate = cb.and();
+        Predicate cntGroupTypePredicate = cb.and();
+        if (!Utils.isEmpty(groupType)) {
+            groupTypePredicate = cb.equal(root.get("type"), groupType);
+            cntGroupTypePredicate = cb.equal(cntRoot.get("type"), groupType);
+        }
 
-                        Predicate agencyPredicate = cb.and();
-                        Predicate cntAgencyPredicate = cb.and();
-                        if (!Utils.isEmpty(agency)) {
-                            if (userJoin == null) {
-                                userJoin = root.join("owner");
-                                cntUserJoin = cntRoot.join("owner");
-                            }
-                            Join<User, Agency> agencyJoin = userJoin.join("agency");
-                            Join<User, Agency> cntAgencyJoin = cntUserJoin.join("agency");
-                            agencyPredicate = cb.equal(agencyJoin.get("name"), agency);
-                            cntAgencyPredicate = cb.equal(cntAgencyJoin.get("name"), agency);
-                        }
+        Predicate agencyPredicate = cb.and();
+        Predicate cntAgencyPredicate = cb.and();
+        if (!Utils.isEmpty(agency)) {
+            if (userJoin == null) {
+                userJoin = root.join("owner");
+                cntUserJoin = cntRoot.join("owner");
+            }
+            Join<User, Agency> agencyJoin = userJoin.join("agency");
+            Join<User, Agency> cntAgencyJoin = cntUserJoin.join("agency");
+            agencyPredicate = cb.equal(agencyJoin.get("name"), agency);
+            cntAgencyPredicate = cb.equal(cntAgencyJoin.get("name"), agency);
+        }
 
-                        Predicate searchOidPredicate = cb.and();
-                        Predicate cntSearchOidPredicate = cb.and();
-                        if (searchOid != null) {
-                            searchOidPredicate = cb.equal(root.get("oid"), searchOid);
-                            cntSearchOidPredicate = cb.equal(cntRoot.get("oid"), searchOid);
-                        }
+        Predicate searchOidPredicate = cb.and();
+        Predicate cntSearchOidPredicate = cb.and();
+        if (searchOid != null) {
+            searchOidPredicate = cb.equal(root.get("oid"), searchOid);
+            cntSearchOidPredicate = cb.equal(cntRoot.get("oid"), searchOid);
+        }
 
-                        Predicate nondisplayonlyPredicate = cb.and();
-                        Predicate cntNondisplayonlyPredicate = cb.and();
-                        if (nondisplayonly) {
-                            nondisplayonlyPredicate = cb.equal(root.get("displayTarget"), false);
-                            cntNondisplayonlyPredicate = cb.equal(cntRoot.get("displayTarget"), false);
-                        }
+        Predicate nondisplayonlyPredicate = cb.and();
+        Predicate cntNondisplayonlyPredicate = cb.and();
+        if (nondisplayonly) {
+            nondisplayonlyPredicate = cb.equal(root.get("displayTarget"), false);
+            cntNondisplayonlyPredicate = cb.equal(cntRoot.get("displayTarget"), false);
+        }
 
-                        query.orderBy(cb.asc(root.get("name")));
+        query.orderBy(cb.asc(root.get("name")));
 
-                        Predicate whereClause = cb.and(namePredicate, ownerPredicate, memberOfPredicate, groupTypePredicate,
-                                agencyPredicate, searchOidPredicate, nondisplayonlyPredicate);
-                        Predicate cntWhereClause = cb.and(cntNamePredicate, cntOwnerPredicate, cntMemberOfPredicate, cntGroupTypePredicate,
-                                cntAgencyPredicate, cntSearchOidPredicate, cntNondisplayonlyPredicate);
-                        query.where(whereClause);
-                        cntQuery.where(cntWhereClause);
+        Predicate whereClause = cb.and(namePredicate, ownerPredicate, memberOfPredicate, groupTypePredicate,
+                agencyPredicate, searchOidPredicate, nondisplayonlyPredicate);
+        Predicate cntWhereClause = cb.and(cntNamePredicate, cntOwnerPredicate, cntMemberOfPredicate, cntGroupTypePredicate,
+                cntAgencyPredicate, cntSearchOidPredicate, cntNondisplayonlyPredicate);
+        query.where(whereClause);
+        cntQuery.where(cntWhereClause);
 
-                        return new Pagination(session.createQuery(cntQuery), session.createQuery(query), pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
     }
 
 
     public long countTargets(final String username) {
-        return (Long) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                        Root<Target> root = query.from(Target.class);
-                        query.select(cb.count(root));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<Target> root = query.from(Target.class);
+        query.select(cb.count(root));
 
-                        Predicate whereClause = cb.and();
-                        if (!Utils.isEmpty(username)) {
-                            Join<Target, User> userJoin = root.join("owner");
-                            whereClause = cb.equal(userJoin.get("username"), username);
-                        }
-                        query.where(whereClause);
-                        Long count = session.createQuery(query).uniqueResult();
+        Predicate whereClause = cb.and();
+        if (!Utils.isEmpty(username)) {
+            Join<Target, User> userJoin = root.join("owner");
+            whereClause = cb.equal(userJoin.get("username"), username);
+        }
+        query.where(whereClause);
+        Long count = currentSession().createQuery(query).uniqueResult();
 
-                        return count;
-                    }
-                }
-        );
+        return count;
     }
 
 
     public long countTargetGroups(final String username) {
-        return (Long) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                        Root<TargetGroup> root = query.from(TargetGroup.class);
-                        query.select(cb.count(root));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> query = cb.createQuery(Long.class);
+        Root<TargetGroup> root = query.from(TargetGroup.class);
+        query.select(cb.count(root));
 
-                        Predicate whereClause = cb.and();
-                        if (!Utils.isEmpty(username)) {
-                            Join<TargetGroup, User> userJoin = root.join("owner");
-                            whereClause = cb.equal(userJoin.get("username"), username);
-                        }
-                        query.where(whereClause);
-                        Long count = session.createQuery(query).uniqueResult();
+        Predicate whereClause = cb.and();
+        if (!Utils.isEmpty(username)) {
+            Join<TargetGroup, User> userJoin = root.join("owner");
+            whereClause = cb.equal(userJoin.get("username"), username);
+        }
+        query.where(whereClause);
+        Long count = currentSession().createQuery(query).uniqueResult();
 
-                        return count;
-                    }
-                }
-        );
+        return count;
     }
 
 
@@ -646,7 +578,6 @@ public class TargetDAO extends BaseDAO {
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
     }
-
 
     public boolean isNameOk(AbstractTarget aTarget) {
 
@@ -678,83 +609,53 @@ public class TargetDAO extends BaseDAO {
 
 
     public Pagination getAbstractTargetDTOs(final String name, final int pageNumber, final int pageSize) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        Query q = session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
-                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
-                        q.setParameter(1, name);
-                        cq.setParameter(1, name);
+        Query q = currentSession().getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
+        Query cq = currentSession().getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
+        q.setParameter(1, name);
+        cq.setParameter(1, name);
 
-                        return new Pagination(cq, q, pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(cq, q, pageNumber, pageSize);
     }
 
     public Pagination getGroupDTOs(final String name, final int pageNumber, final int pageSize) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        Query q = session.getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
-                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
-                        q.setParameter(1, name);
-                        cq.setParameter(1, name);
+        Query q = currentSession().getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
+        Query cq = currentSession().getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
+        q.setParameter(1, name);
+        cq.setParameter(1, name);
 
-                        return new Pagination(cq, q, pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(cq, q, pageNumber, pageSize);
     }
 
     public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber, final int pageSize) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        Query q = session.getNamedQuery(TargetGroup.QUERY_GROUP_DTOS_BY_NAME_AND_TYPE);
-                        Query cq = session.getNamedQuery(TargetGroup.QUERY_CNT_GROUP_DTOS_BY_NAME_AND_TYPE);
-                        q.setParameter("name", name);
-                        q.setParameterList("types", types);
-                        cq.setParameter("name", name);
-                        cq.setParameterList("types", types);
+        Query q = currentSession().getNamedQuery(TargetGroup.QUERY_GROUP_DTOS_BY_NAME_AND_TYPE);
+        Query cq = currentSession().getNamedQuery(TargetGroup.QUERY_CNT_GROUP_DTOS_BY_NAME_AND_TYPE);
+        q.setParameter("name", name);
+        q.setParameterList("types", types);
+        cq.setParameter("name", name);
+        cq.setParameterList("types", types);
 
-                        return new Pagination(cq, q, pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(cq, q, pageNumber, pageSize);
     }
 
     public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber, final int pageSize) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        Query q = session.getNamedQuery(AbstractTargetGroupTypeView.QUERY_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
-                        Query cq = session.getNamedQuery(AbstractTargetGroupTypeView.QUERY_CNT_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
-                        q.setParameter("name", name);
-                        q.setParameter("subgrouptype", subGroupType);
-                        cq.setParameter("name", name);
-                        cq.setParameter("subgrouptype", subGroupType);
+        Query q = currentSession().getNamedQuery(AbstractTargetGroupTypeView.QUERY_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
+        Query cq = currentSession().getNamedQuery(AbstractTargetGroupTypeView.QUERY_CNT_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
+        q.setParameter("name", name);
+        q.setParameter("subgrouptype", subGroupType);
+        cq.setParameter("name", name);
+        cq.setParameter("subgrouptype", subGroupType);
 
-                        return new Pagination(cq, q, pageNumber, pageSize);
-                    }
-                }
-        );
+        return new Pagination(cq, q, pageNumber, pageSize);
     }
 
     public AbstractTargetDTO loadAbstractTargetDTO(final Long oid) {
-        return (AbstractTargetDTO) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        return session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_OID)
+                        return currentSession().createNamedQuery(AbstractTarget.QUERY_DTO_BY_OID, AbstractTargetDTO.class)
                                 .setParameter("oid", oid)
                                 .uniqueResult();
-                    }
-                }
-        );
     }
 
     public TargetGroup loadGroup(long targetGroupOid) {
@@ -762,37 +663,32 @@ public class TargetDAO extends BaseDAO {
     }
 
     public TargetGroup loadGroup(final long targetGroupOid, final boolean fullyInitialise) {
-        return (TargetGroup) getHibernateTemplate().execute(new HibernateCallback() {
+        if (!fullyInitialise) {
+            TargetGroup aTargetGroup = (TargetGroup) currentSession().load(TargetGroup.class, targetGroupOid);
+            aTargetGroup.setDirty(false);
+            return aTargetGroup;
+        } else {
+            // Initialise some more items that we'll need. This is used
+            // to prevent lazy load exceptions, since we're doing things
+            // across multiple sessions.
+            TargetGroup t = (TargetGroup) currentSession().load(TargetGroup.class, targetGroupOid);
 
-            public Object doInHibernate(Session aSession) throws HibernateException {
-                if (!fullyInitialise) {
-                    TargetGroup aTargetGroup = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
-                    aTargetGroup.setDirty(false);
-                    return aTargetGroup;
-                } else {
-                    // Initialise some more items that we'll need. This is used
-                    // to prevent lazy load exceptions, since we're doing things
-                    // across multiple sessions.
-                    TargetGroup t = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
+            Hibernate.initialize(t.getSchedules());
+            Hibernate.initialize(t.getOverrides());
+            Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+            Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+            Hibernate.initialize(t.getOverrides().getCredentials());
+            //Hibernate.initialize(t.getChildren());
 
-                    Hibernate.initialize(t.getSchedules());
-                    Hibernate.initialize(t.getOverrides());
-                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getCredentials());
-                    //Hibernate.initialize(t.getChildren());
+            t.setDirty(false);
 
-                    t.setDirty(false);
-
-                    return t;
-                }
-            }
-        });
+            return t;
+        }
     }
 
 
     public AbstractTarget loadAbstractTarget(Long oid) {
-        return (AbstractTarget) getHibernateTemplate().load(AbstractTarget.class, oid);
+        return (AbstractTarget) currentSession().getReference(AbstractTarget.class, oid);
     }
 
     public void refresh(Object anObject) {
@@ -801,96 +697,82 @@ public class TargetDAO extends BaseDAO {
 
     public TargetGroup reloadTargetGroup(Long oid) {
         // Evict the group from the session and reload.
-        currentSession().evict(getHibernateTemplate().load(TargetGroup.class, oid));
+        currentSession().evict(currentSession().getReference(TargetGroup.class, oid));
 
-        return (TargetGroup) getHibernateTemplate().load(TargetGroup.class, oid);
+        return (TargetGroup) currentSession().getReference(TargetGroup.class, oid);
     }
 
     public Target reloadTarget(Long oid) {
         // Evict the group from the session and reload.
-        currentSession().evict(getHibernateTemplate().load(Target.class, oid));
+        currentSession().evict(currentSession().getReference(Target.class, oid));
 
-        return (Target) getHibernateTemplate().load(Target.class, oid);
+        return (Target) currentSession().getReference(Target.class, oid);
     }
 
     public Date getLatestScheduledDate(final AbstractTarget aTarget, final Schedule aSchedule) {
-        return (Date) getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) {
-                Query query = aSession.getNamedQuery(TargetInstance.QUERY_GET_LATEST_FOR_TARGET);
-                query.setParameter("targetOid", aTarget.getOid());
-                query.setParameter("scheduleOid", aSchedule.getOid());
+        Query query = currentSession().getNamedQuery(TargetInstance.QUERY_GET_LATEST_FOR_TARGET);
+        query.setParameter("targetOid", aTarget.getOid());
+        query.setParameter("scheduleOid", aSchedule.getOid());
 
-                Date dt = (Date) query.uniqueResult();
-                return dt;
-            }
-        });
+        Date dt = (Date) query.uniqueResult();
+        return dt;
     }
 
 
     @SuppressWarnings(value = "unchecked")
     public Set<Seed> getSeeds(final Target aTarget) {
-        List<Seed> rst = (List<Seed>) getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) {
-                Query q = aSession.createNamedQuery(Seed.QUERY_SEED_BY_TARGET_ID, Seed.class);
-                q.setParameter("targetOid", aTarget.getOid(), Long.class);
-                return q.list();
-            }
-        });
-
         Set<Seed> seeds = new HashSet<Seed>();
-        seeds.addAll(rst);
+        Query q = currentSession().createNamedQuery(Seed.QUERY_SEED_BY_TARGET_ID, Seed.class);
+        q.setParameter("targetOid", aTarget.getOid(), Long.class);
+        seeds.addAll(q.list());
         return seeds;
     }
 
+    /**
+     * Get the seeds from the supplied target group recursively
+     */
+    private Set<Seed> getSeeds(AbstractTarget target, Long agencyOid, String subGroupTypeName) {
+        if (target.getObjectType() == AbstractTarget.TYPE_GROUP) {
+            Set<Seed> seeds = new HashSet<Seed>();
+            for (GroupMember groupMember : ((TargetGroup) target).getChildren()) {
+                AbstractTarget child = groupMember.getChild();
+
+                if (child.getObjectType() == AbstractTarget.TYPE_GROUP) {
+                    TargetGroup childGroup;
+                    if (child instanceof TargetGroup) {
+                        childGroup = (TargetGroup) child;
+                    } else {
+                        childGroup = (TargetGroup) currentSession().getReference(TargetGroup.class, child.getOid());
+                    }
+
+                    //If the childGroup is a sub-group, we don't want to include the seeds from the sub-group members
+                    if (!subGroupTypeName.equals(childGroup.getType())) {
+                        seeds.addAll(getSeeds(childGroup, agencyOid, subGroupTypeName));
+                    }
+                } else {
+                    Target childTarget;
+                    if (child instanceof Target) {
+                        childTarget = (Target) child;
+                    } else {
+                        childTarget = (Target) currentSession().getReference(Target.class, child.getOid());
+                    }
+
+                    if (isApprovedForHarvest(childTarget) && childTarget.getOwner().getAgency().getOid().equals(agencyOid)) {
+                        seeds.addAll(childTarget.getSeeds());
+                    }
+                }
+            }
+            return seeds;
+        } else {
+            return target.getSeeds();
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public Set<Seed> getSeeds(final TargetGroup aTarget, final Long agencyOid, final String subGroupTypeName) {
         Set<Seed> seeds = new HashSet<Seed>();
-        seeds.addAll((Set) getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) {
-                TargetGroup tg = (TargetGroup) aSession.load(TargetGroup.class, aTarget.getOid());
-                return getSeeds(aSession, tg);
-            }
-
-            public Set<Seed> getSeeds(Session aSession, AbstractTarget target) {
-                if (target.getObjectType() == AbstractTarget.TYPE_GROUP) {
-                    Set<Seed> seeds = new HashSet<Seed>();
-                    for (GroupMember groupMember : ((TargetGroup) target).getChildren()) {
-                        AbstractTarget child = groupMember.getChild();
-
-                        if (child.getObjectType() == AbstractTarget.TYPE_GROUP) {
-                            TargetGroup childGroup;
-                            if (child instanceof TargetGroup) {
-                                childGroup = (TargetGroup) child;
-                            } else {
-                                childGroup = (TargetGroup) aSession.load(TargetGroup.class, child.getOid());
-                            }
-
-                            //If the childGroup is a sub-group, we don't want to include the seeds from the sub-group members
-                            if (!subGroupTypeName.equals(childGroup.getType())) {
-                                seeds.addAll(getSeeds(aSession, childGroup));
-                            }
-                        } else {
-                            Target childTarget;
-                            if (child instanceof Target) {
-                                childTarget = (Target) child;
-                            } else {
-                                childTarget = (Target) aSession.load(Target.class, child.getOid());
-                            }
-
-                            if (isApprovedForHarvest(childTarget) && childTarget.getOwner().getAgency().getOid().equals(agencyOid)) {
-                                seeds.addAll(childTarget.getSeeds());
-                            }
-                        }
-                    }
-                    return seeds;
-                } else {
-                    return target.getSeeds();
-                }
-            }
-
-        }));
-        return seeds;
+        TargetGroup tg = (TargetGroup) currentSession().getReference(TargetGroup.class, aTarget.getOid());
+        return getSeeds(tg, agencyOid, subGroupTypeName);
     }
 
     private boolean isApprovedForHarvest(Target aTarget) {
@@ -944,10 +826,10 @@ public class TargetDAO extends BaseDAO {
 
         Set<Long> parentOids = new HashSet<Long>();
 
-        List<Long> immediateParents = getHibernateTemplate().execute(session ->
-                session.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
-                        .setParameter("childOid", childOid)
-                        .list());
+        List<Long> immediateParents = currentSession()
+                .createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
+                .setParameter("childOid", childOid)
+                .list();
 
         for (Long parentOid : immediateParents) {
             if(!duplicateValidator.containsKey(parentOid.longValue())) {
@@ -979,10 +861,10 @@ public class TargetDAO extends BaseDAO {
 
         Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
 
-        List<AbstractTargetDTO> immediateParents = getHibernateTemplate().execute(session ->
-                session.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
-                        .setParameter("childOid", childOid)
-                        .list());
+        List<AbstractTargetDTO> immediateParents = currentSession()
+                .createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
+                .setParameter("childOid", childOid)
+                .list();
 
         for (AbstractTargetDTO parent : immediateParents) {
             if(!duplicateValidator.containsKey(parent.getOid().longValue())) {
@@ -1000,10 +882,10 @@ public class TargetDAO extends BaseDAO {
         if (parentOid == null) {
             return Collections.EMPTY_SET;
         } else {
-            List<Long> immediateChildren = getHibernateTemplate().execute(session ->
-                    session.createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
-                            .setParameter("parentOid", parentOid)
-                            .list());
+            List<Long> immediateChildren = currentSession()
+                    .createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
+                    .setParameter("parentOid", parentOid)
+                    .list();
 
             Set<Long> retval = new HashSet<Long>();
             retval.addAll(immediateChildren);
@@ -1018,20 +900,16 @@ public class TargetDAO extends BaseDAO {
      */
     @SuppressWarnings("unchecked")
     public List<TargetGroup> findEndedGroups() {
-        // TODO HIBERNATE Note the previous version. This is an attempt to convert to JPA 2.0 notation using lambdas.
-        // TODO HIBERNATE The joins and query may not be set up correctly and will need to be verified.
-        List<TargetGroup> results = getHibernateTemplate().execute(session -> {
-            CriteriaBuilder builder = session.getCriteriaBuilder();
-            CriteriaQuery<TargetGroup> criteriaQuery = builder.createQuery(TargetGroup.class);
-            Root<TargetGroup> root = criteriaQuery.from(TargetGroup.class);
-            Predicate notEqual = builder.notEqual(root.get("state"), TargetGroup.STATE_ACTIVE);
-            Predicate lessThan = builder.lessThan(root.get("toDate"), new Date());
-            root.fetch("schedules", JoinType.LEFT);
-            root.fetch("parents", JoinType.LEFT);
-            root.fetch("parents", JoinType.LEFT);
-            criteriaQuery.select(root).where(builder.and(notEqual, lessThan));
-            return session.createQuery(criteriaQuery).list();
-        });
+        CriteriaBuilder builder = currentSession().getCriteriaBuilder();
+        CriteriaQuery<TargetGroup> criteriaQuery = builder.createQuery(TargetGroup.class);
+        Root<TargetGroup> root = criteriaQuery.from(TargetGroup.class);
+        Predicate notEqual = builder.notEqual(root.get("state"), TargetGroup.STATE_ACTIVE);
+        Predicate lessThan = builder.lessThan(root.get("toDate"), new Date());
+        root.fetch("schedules", JoinType.LEFT);
+        root.fetch("parents", JoinType.LEFT);
+        root.fetch("parents", JoinType.LEFT);
+        criteriaQuery.select(root).where(builder.and(notEqual, lessThan));
+        List<TargetGroup> results = currentSession().createQuery(criteriaQuery).list();
         log.debug("Found " + results.size() + " groups that need to be unscheduled");
 
         return results;
@@ -1044,10 +922,10 @@ public class TargetDAO extends BaseDAO {
      * @return oid The OID of the TargetGroup.
      */
     public Integer loadPersistedGroupSipType(final Long oid) {
-        return (Integer) getHibernateTemplate().execute(session ->
-                session.createQuery("SELECT new java.lang.Integer(sipType) FROM TargetGroup WHERE oid=:groupOid")
-                        .setParameter("groupOid", oid)
-                        .uniqueResult());
+        return (Integer) currentSession()
+                .createQuery("SELECT new java.lang.Integer(sipType) FROM TargetGroup WHERE oid=:groupOid")
+                .setParameter("groupOid", oid)
+                .uniqueResult();
     }
 
 
@@ -1131,54 +1009,49 @@ public class TargetDAO extends BaseDAO {
      * @return A Pagination of permission records.
      */
     public Pagination searchPermissions(final PermissionCriteria aPermissionCriteria) {
-        return (Pagination) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Permission> query = cb.createQuery(Permission.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Permission> root = query.from(Permission.class);
-                        Root<Permission> cntRoot = cntQuery.from(Permission.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Permission> query = cb.createQuery(Permission.class);
+        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+        Root<Permission> root = query.from(Permission.class);
+        Root<Permission> cntRoot = cntQuery.from(Permission.class);
+        query.select(root);
+        cntQuery.select(cb.count(cntRoot));
 
-                        Predicate siteNamePredicate = cb.and(); // Set is to true by default
-                        Predicate cntSiteNamePredicate = cb.and();
-                        if (!nullOrEmpty(aPermissionCriteria.getSiteName())) {
-                            Join<Permission, Site> siteJoin = root.join("site");
-                            Join<Permission, Site> cntSiteJoin = cntRoot.join("site");
-                            siteNamePredicate = cb.like(siteJoin.get("title"), aPermissionCriteria.getSiteName() + "%");
-                            cntSiteNamePredicate = cb.like(cntSiteJoin.get("title"), aPermissionCriteria.getSiteName() + "%");
-                        }
+        Predicate siteNamePredicate = cb.and(); // Set is to true by default
+        Predicate cntSiteNamePredicate = cb.and();
+        if (!nullOrEmpty(aPermissionCriteria.getSiteName())) {
+            Join<Permission, Site> siteJoin = root.join("site");
+            Join<Permission, Site> cntSiteJoin = cntRoot.join("site");
+            siteNamePredicate = cb.like(siteJoin.get("title"), aPermissionCriteria.getSiteName() + "%");
+            cntSiteNamePredicate = cb.like(cntSiteJoin.get("title"), aPermissionCriteria.getSiteName() + "%");
+        }
 
-                        Predicate urlsPredicate = cb.and();
-                        Predicate cntUrlsPredicate = cb.and();
-                        if (!nullOrEmpty(aPermissionCriteria.getUrlPattern())) {
-                            Join<Permission, UrlPattern> urlPatternJoin = root.join("urls");
-                            Join<Permission, UrlPattern> cntUrlPatternJoin = cntRoot.join("urls");
-                            urlsPredicate = cb.like(urlPatternJoin.get("pattern"), aPermissionCriteria.getUrlPattern() + "%");
-                            cntUrlsPredicate = cb.like(cntUrlPatternJoin.get("pattern"), aPermissionCriteria.getUrlPattern() + "%");
-                        }
+        Predicate urlsPredicate = cb.and();
+        Predicate cntUrlsPredicate = cb.and();
+        if (!nullOrEmpty(aPermissionCriteria.getUrlPattern())) {
+            Join<Permission, UrlPattern> urlPatternJoin = root.join("urls");
+            Join<Permission, UrlPattern> cntUrlPatternJoin = cntRoot.join("urls");
+            urlsPredicate = cb.like(urlPatternJoin.get("pattern"), aPermissionCriteria.getUrlPattern() + "%");
+            cntUrlsPredicate = cb.like(cntUrlPatternJoin.get("pattern"), aPermissionCriteria.getUrlPattern() + "%");
+        }
 
-                        Predicate agencyOidPredicate = cb.and();
-                        Predicate cntAgencyOidPredicate = cb.and();
-                        if (aPermissionCriteria.getAgencyOid() != null) {
-                            Join<Permission, Agency> agencyJoin = root.join("owningAgency");
-                            Join<Permission, Agency> cntAgencyJoin = cntRoot.join("owningAgency");
-                            agencyOidPredicate = cb.equal(agencyJoin.get("oid"), aPermissionCriteria.getAgencyOid());
-                            cntAgencyOidPredicate = cb.equal(cntAgencyJoin.get("oid"), aPermissionCriteria.getAgencyOid());
-                        }
+        Predicate agencyOidPredicate = cb.and();
+        Predicate cntAgencyOidPredicate = cb.and();
+        if (aPermissionCriteria.getAgencyOid() != null) {
+            Join<Permission, Agency> agencyJoin = root.join("owningAgency");
+            Join<Permission, Agency> cntAgencyJoin = cntRoot.join("owningAgency");
+            agencyOidPredicate = cb.equal(agencyJoin.get("oid"), aPermissionCriteria.getAgencyOid());
+            cntAgencyOidPredicate = cb.equal(cntAgencyJoin.get("oid"), aPermissionCriteria.getAgencyOid());
+        }
 
-                        Predicate whereClause = cb.and(siteNamePredicate, urlsPredicate, agencyOidPredicate);
-                        Predicate cntWhereClause = cb.and(cntSiteNamePredicate, cntUrlsPredicate, cntAgencyOidPredicate);
-                        query.where(whereClause);
-                        cntQuery.where(cntWhereClause);
+        Predicate whereClause = cb.and(siteNamePredicate, urlsPredicate, agencyOidPredicate);
+        Predicate cntWhereClause = cb.and(cntSiteNamePredicate, cntUrlsPredicate, cntAgencyOidPredicate);
+        query.where(whereClause);
+        cntQuery.where(cntWhereClause);
 
-                        return new Pagination(session.createQuery(cntQuery), session.createQuery(query), aPermissionCriteria.getPageNumber(), Constants.GBL_PAGE_SIZE);
-                    }
-                }
-        );
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query),
+                aPermissionCriteria.getPageNumber(), Constants.GBL_PAGE_SIZE);
     }
 
 
@@ -1291,43 +1164,36 @@ public class TargetDAO extends BaseDAO {
      */
     public List<Schedule> getSchedulesToRun() {
 
-        return (List<Schedule>) getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
+        final Calendar cal = Calendar.getInstance();
 
-                        final Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.DAY_OF_MONTH, EnvironmentFactory.getEnv().getDaysToSchedule());
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
 
-                        cal.setTime(new Date());
-                        cal.add(Calendar.DAY_OF_MONTH, EnvironmentFactory.getEnv().getDaysToSchedule());
-                        cal.set(Calendar.HOUR_OF_DAY, 23);
-                        cal.set(Calendar.MINUTE, 59);
-                        cal.set(Calendar.SECOND, 59);
-                        cal.set(Calendar.MILLISECOND, 999);
+        CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+        CriteriaQuery<Schedule> query = cb.createQuery(Schedule.class);
+        Root<Schedule> root = query.from(Schedule.class);
+        query.select(root);
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Schedule> query = cb.createQuery(Schedule.class);
-                        Root<Schedule> root = query.from(Schedule.class);
-                        query.select(root);
+        Predicate whereClause = cb.lessThanOrEqualTo(root.get("nextScheduleAfterPeriod"), cal.getTime());
 
-                        Predicate whereClause = cb.lessThanOrEqualTo(root.get("nextScheduleAfterPeriod"), cal.getTime());
+        query.where(whereClause);
+        List<Schedule> schedules = currentSession().createQuery(query).list();
 
-                        query.where(whereClause);
-                        List<Schedule> schedules = session.createQuery(query).list();
+        for (Schedule s : schedules) {
+            if (s.getTarget() == null) {
+                System.out.println("Schedule has null target so skipping initialisation: " + s.getOid());
+                log.debug("Schedule has null target so skipping initialisation: " + s.getOid());
+            } else {
+                log.debug("Initialising target and children for schedule: " + s.getOid());
+                initTargetAndChildrenInSession(s.getTarget(), currentSession());
+            }
+        }
 
-                        for (Schedule s : schedules) {
-                            if (s.getTarget() == null) {
-                                System.out.println("Schedule has null target so skipping initialisation: " + s.getOid());
-                                log.debug("Schedule has null target so skipping initialisation: " + s.getOid());
-                            } else {
-                                log.debug("Initialising target and children for schedule: " + s.getOid());
-                                initTargetAndChildrenInSession(s.getTarget(), session);
-                            }
-                        }
-
-                        return schedules;
-                    }
-                }
-        );
+        return schedules;
     }
 
     private void initTargetAndChildrenInSession(AbstractTarget aTarget, Session session) {

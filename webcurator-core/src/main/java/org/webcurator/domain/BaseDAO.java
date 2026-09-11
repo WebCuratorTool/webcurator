@@ -19,7 +19,9 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -32,17 +34,27 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
  * 
  * @author bbeaumont
  */
-public class BaseDAO extends HibernateDaoSupport {
+public class BaseDAO {
 	private Log log = LogFactory.getLog(BaseDAO.class);
 	
 	protected TransactionTemplate txTemplate;
-	
+
+	private SessionFactory sessionFactory;
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
 	public void setTxTemplate(TransactionTemplate txTemplate) {
 		this.txTemplate = txTemplate;
 	}
 	
 	public void evict(Object anObject) {
-		getHibernateTemplate().evict(anObject);
+		currentSession().evict(anObject);
+	}
+
+	public Session currentSession() {
+		return sessionFactory.getCurrentSession();
 	}
 	
 	/**
@@ -95,7 +107,7 @@ public class BaseDAO extends HibernateDaoSupport {
 	}	
 
 	public void initialize(Object anObject) {
-		getHibernateTemplate().initialize(anObject);
+		Hibernate.initialize(anObject);
 	}
 	
 }

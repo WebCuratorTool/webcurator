@@ -19,11 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -35,11 +34,13 @@ import org.webcurator.domain.model.core.RejReason;
  * data from the persistent data store. 
  * @author oakleigh_sk
  */
-public class RejReasonDAO extends HibernateDaoSupport {
+public class RejReasonDAO {
     
     private Log log = LogFactory.getLog(RejReasonDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -66,7 +67,7 @@ public class RejReasonDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Deletes Object");
                         }
                         catch (DataAccessException e) {
@@ -81,35 +82,33 @@ public class RejReasonDAO extends HibernateDaoSupport {
     }
 
     public RejReason getRejReasonByOid(final Long reasonOid) {
-        return (RejReason)getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        Query query = session.getNamedQuery(RejReason.QRY_GET_REASON_BY_OID);
-                        query.setParameter(1,reasonOid);
-                        return query.uniqueResult();
-                    }
-                }
-            );
-          
+        Query<RejReason> query = currentSession().createNamedQuery(RejReason.QRY_GET_REASON_BY_OID, RejReason.class);
+        query.setParameter(1, reasonOid);
+        return query.uniqueResult();
     }
     
-    public List getRejReasons() {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(RejReason.QRY_GET_REASONS)
-                    .list());
+    public List<RejReason> getRejReasons() {
+        return currentSession().createNamedQuery(RejReason.QRY_GET_REASONS, RejReason.class)
+                .list();
     }
 
     @Transactional
     public List getRejReasons(Long agencyOid) {
-        List results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY)
-                    .setParameter(1, agencyOid)
-                    .list());
-        return results;
+        return currentSession().createNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY, RejReason.class)
+                .setParameter(1, agencyOid)
+                .list();
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 
 }

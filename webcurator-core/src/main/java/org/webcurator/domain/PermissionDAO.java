@@ -16,7 +16,8 @@
 
 package org.webcurator.domain;
 
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.core.Permission;
 
@@ -28,14 +29,25 @@ import java.util.List;
  * @author FrankLee
  */
 @Transactional
-public class PermissionDAO extends HibernateDaoSupport {
+public class PermissionDAO {
+
+    private SessionFactory sessionFactory;
+
     public Permission load(long permissionOid) {
-        return (Permission) getHibernateTemplate().load(Permission.class, permissionOid);
+        return (Permission) currentSession().getReference(Permission.class, permissionOid);
     }
 
     public List<Permission> loadBySiteId(final long siteId){
         Query query=currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID);
         query.setParameter("siteId",siteId);
         return query.getResultList();
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 }

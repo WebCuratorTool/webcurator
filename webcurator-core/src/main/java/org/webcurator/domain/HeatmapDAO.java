@@ -6,10 +6,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -18,16 +17,17 @@ import org.webcurator.domain.model.core.HeatmapConfig;
 import jakarta.transaction.Transactional;
 
 @Transactional
-public class HeatmapDAO extends HibernateDaoSupport {
+public class HeatmapDAO {
 
 	private Log log = LogFactory.getLog(HeatmapDAO.class);
 	private TransactionTemplate txTemplate = null;
 
+	private SessionFactory sessionFactory;
+
 	public Map<String, HeatmapConfig> getHeatmapConfigurations() {
-		Map<String, HeatmapConfig> result = new HashMap<String, HeatmapConfig>();
-		List<HeatmapConfig> configurations = getHibernateTemplate().execute(session ->
-				session.getNamedQuery(HeatmapConfig.QUERY_ALL)
-					.list());
+		Map<String, HeatmapConfig> result = new HashMap<>();
+		List<HeatmapConfig> configurations = currentSession().createNamedQuery(HeatmapConfig.QUERY_ALL, HeatmapConfig.class)
+					.list();
 		for (HeatmapConfig config : configurations) {
 			result.put(config.getName(), config);
 		}
@@ -59,16 +59,18 @@ public class HeatmapDAO extends HibernateDaoSupport {
 		this.txTemplate = txTemplate;
 	}
 
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	private Session currentSession() {
+		return sessionFactory.getCurrentSession();
+	}
+
 	public HeatmapConfig getConfigByOid(final Long oid) {
-		return (HeatmapConfig) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
-						Query query = session
-								.getNamedQuery(HeatmapConfig.QRY_GET_CONFIG_BY_OID);
-						query.setParameter(1, oid, Long.class);
-						return query.uniqueResult();
-					}
-				});
+		Query<HeatmapConfig> query = currentSession().createNamedQuery(HeatmapConfig.QRY_GET_CONFIG_BY_OID, HeatmapConfig.class);
+		query.setParameter(1, oid, Long.class);
+		return query.uniqueResult();
 	}
 
 }

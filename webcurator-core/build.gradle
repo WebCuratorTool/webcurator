@@ -42,7 +42,7 @@ dependencies {
     implementation 'oro:oro:2.0.8'
     implementation 'org.quartz-scheduler:quartz:2.5.2'
     implementation 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
-    implementation 'org.springframework:spring-context-support:5.2.20.RELEASE'
+    implementation 'org.springframework:spring-context-support'
     implementation 'org.springframework.security:spring-security-ldap'
     implementation 'org.springframework.retry:spring-retry:1.2.4.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-web'

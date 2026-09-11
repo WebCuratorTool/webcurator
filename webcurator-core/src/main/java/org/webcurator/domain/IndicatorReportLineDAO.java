@@ -19,11 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -32,11 +31,13 @@ import org.webcurator.domain.model.core.IndicatorReportLine;
 /**
  * The object for accessing <code>IndicatorReportLine</code>s from the persistent store.
  */
-public class IndicatorReportLineDAO extends HibernateDaoSupport {
+public class IndicatorReportLineDAO {
     
     private Log log = LogFactory.getLog(IndicatorReportLineDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -44,7 +45,7 @@ public class IndicatorReportLineDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            currentSession().saveOrUpdate(aObject);
+                            currentSession().persist(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -63,7 +64,7 @@ public class IndicatorReportLineDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Deletes Object");
                         }
                         catch (DataAccessException e) {
@@ -78,28 +79,30 @@ public class IndicatorReportLineDAO extends HibernateDaoSupport {
     }
 
     public IndicatorReportLine getIndicatorReportLineByOid(final Long indicatorReportLineOid) {
-        return (IndicatorReportLine)getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        Query query = session.getNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINE_BY_OID);
-                        query.setParameter(0,indicatorReportLineOid, Long.class);
-                        return query.uniqueResult();
-                    }
-                }
-            );
-          
+        Query<IndicatorReportLine> query = currentSession()
+                .createNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINE_BY_OID, IndicatorReportLine.class);
+        query.setParameter(0, indicatorReportLineOid, Long.class);
+        return query.uniqueResult();
+
     }
 
     public List<IndicatorReportLine> getIndicatorReportLinesByIndicatorOid(Long indicatorOid) {
-        List<IndicatorReportLine> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID)
-                    .setParameter(1, indicatorOid)
-                    .list());
-        return results;
+        return currentSession()
+                .createNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID, IndicatorReportLine.class)
+                .setParameter(1, indicatorOid)
+                .list();
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
     }
 
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
+    }
 }
+

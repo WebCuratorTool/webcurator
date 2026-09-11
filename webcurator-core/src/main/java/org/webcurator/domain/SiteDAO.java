@@ -20,9 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -43,17 +42,23 @@ import java.util.Set;
  * @author bbeaumont
  */
 @Transactional
-public class SiteDAO extends HibernateDaoSupport {
+public class SiteDAO {
 	private Log log = LogFactory.getLog(SiteDAO.class);
 	
 	private TransactionTemplate txTemplate = null;
+
+	private SessionFactory sessionFactory;
 	
 	/**
 	 * @param txTemplate The txTemplate to set.
 	 */
 	public void setTxTemplate(TransactionTemplate txTemplate) {
 		this.txTemplate = txTemplate;
-	}	
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 	
 	public void saveOrUpdate(final Site aSite) {
 		txTemplate.execute(
@@ -89,10 +94,10 @@ public class SiteDAO extends HibernateDaoSupport {
 	
 	public Site load(final long siteOid, boolean fullyInitialise) {
 		if( !fullyInitialise) {
-			return (Site) getHibernateTemplate().load(Site.class, siteOid);
+			return (Site) currentSession().getReference(Site.class, siteOid);
 		}
 		else {
-			Site site = (Site) getHibernateTemplate().load(Site.class, siteOid);
+			Site site = (Site) currentSession().getReference(Site.class, siteOid);
 			
 			// Initialise some more items that we'll need. This is used
 			// to prevent lazy load exceptions, since we're doing things
@@ -115,7 +120,7 @@ public class SiteDAO extends HibernateDaoSupport {
 	 * @return The authorising agent.
 	 */
 	public AuthorisingAgent loadAuthorisingAgent(final long authAgentOid) {
-		return (AuthorisingAgent) getHibernateTemplate().load(AuthorisingAgent.class, authAgentOid);
+		return (AuthorisingAgent) currentSession().getReference(AuthorisingAgent.class, authAgentOid);
 	}	
 
 	@SuppressWarnings("unchecked")
@@ -139,17 +144,12 @@ public class SiteDAO extends HibernateDaoSupport {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<Site> listSitesByTitle(final String aTitle) {		
-		Object o = getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(final Session session) {
-				Query query = session.createQuery("from Site s where lower(s.title) = :siteTitle");
-				query.setParameter("siteTitle", aTitle, String.class);
-				
-				return query.list();
-			}
-		});
-		
-		return (List<Site>) o;
+	public List<Site> listSitesByTitle(final String aTitle) {
+		Query<Site> query = currentSession().createQuery("from Site s where lower(s.title) = :siteTitle", Site.class);
+		query.setParameter("siteTitle", aTitle, String.class);
+
+		return query.list();
+
 	}
 	
 	/**
@@ -160,219 +160,197 @@ public class SiteDAO extends HibernateDaoSupport {
 	 * @return A List of Permissions.
 	 */
 	public Pagination findPermissionsBySiteTitle(final Long anAgencyOid, final String aSiteTitle, final int aPageNumber) {
-		return (Pagination) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Permission> query = cb.createQuery(Permission.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Permission> root = query.from(Permission.class);
-                        Root<Permission> cntRoot = cntQuery.from(Permission.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<Permission> query = cb.createQuery(Permission.class);
+		CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+		Root<Permission> root = query.from(Permission.class);
+		Root<Permission> cntRoot = cntQuery.from(Permission.class);
+		query.select(root);
+		cntQuery.select(cb.count(cntRoot));
 
-                        Predicate datePredicate = cb.or(cb.isNull(root.get("endDate")),
-                                cb.greaterThanOrEqualTo(root.get("endDate"), new Date()));
-                        Predicate cntDatePredicate = cb.or(cb.isNull(cntRoot.get("endDate")),
-                                cb.greaterThanOrEqualTo(cntRoot.get("endDate"), new Date()));
+		Predicate datePredicate = cb.or(cb.isNull(root.get("endDate")),
+				cb.greaterThanOrEqualTo(root.get("endDate"), new Date()));
+		Predicate cntDatePredicate = cb.or(cb.isNull(cntRoot.get("endDate")),
+				cb.greaterThanOrEqualTo(cntRoot.get("endDate"), new Date()));
 
-                        Predicate owningAgencyPredicate = cb.equal(root.get("owningAgency").get("oid"), anAgencyOid);
-                        Predicate cntOwningAgencyPredicate = cb.equal(cntRoot.get("owningAgency").get("oid"), anAgencyOid);
+		Predicate owningAgencyPredicate = cb.equal(root.get("owningAgency").get("oid"), anAgencyOid);
+		Predicate cntOwningAgencyPredicate = cb.equal(cntRoot.get("owningAgency").get("oid"), anAgencyOid);
 
-                        Join<Permission, Site> siteJoin = root.join("site");
-                        Predicate sitePredicate = cb.and(cb.like(siteJoin.get("title"), aSiteTitle + "%"),
-                                cb.equal(siteJoin.get("active"), true));
-                        Join<Permission, Site> cntSiteJoin = root.join("site");
-                        Predicate cntSitePredicate = cb.and(cb.like(cntSiteJoin.get("title"), aSiteTitle + "%"),
-                                cb.equal(cntSiteJoin.get("active"), true));
+		Join<Permission, Site> siteJoin = root.join("site");
+		Predicate sitePredicate = cb.and(cb.like(siteJoin.get("title"), aSiteTitle + "%"),
+				cb.equal(siteJoin.get("active"), true));
+		Join<Permission, Site> cntSiteJoin = root.join("site");
+		Predicate cntSitePredicate = cb.and(cb.like(cntSiteJoin.get("title"), aSiteTitle + "%"),
+				cb.equal(cntSiteJoin.get("active"), true));
 
-                        Predicate whereClause = cb.and(datePredicate, owningAgencyPredicate, sitePredicate);
-                        Predicate cntWhereClause = cb.and(cntDatePredicate, cntOwningAgencyPredicate, cntSitePredicate);
+		Predicate whereClause = cb.and(datePredicate, owningAgencyPredicate, sitePredicate);
+		Predicate cntWhereClause = cb.and(cntDatePredicate, cntOwningAgencyPredicate, cntSitePredicate);
 
-                        query.orderBy(cb.asc(siteJoin.get("title")));
+		query.orderBy(cb.asc(siteJoin.get("title")));
 
-						return new Pagination(session.createQuery(cntQuery), session.createQuery(query), aPageNumber, Constants.GBL_PAGE_SIZE);
-					}
-				}
-			);			
+		return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), aPageNumber, Constants.GBL_PAGE_SIZE);
 	}
 
 	
 	public Pagination search(final SiteCriteria aCriteria, final int page, final int pageSize) {
-		return (Pagination) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Site> query = cb.createQuery(Site.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<Site> root = query.from(Site.class);
-                        Root<Site> cntRoot = cntQuery.from(Site.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
-                        query.distinct(true);
-                        cntQuery.distinct(true);
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<Site> query = cb.createQuery(Site.class);
+		CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+		Root<Site> root = query.from(Site.class);
+		Root<Site> cntRoot = cntQuery.from(Site.class);
+		query.select(root);
+		cntQuery.select(cb.count(cntRoot));
+		query.distinct(true);
+		cntQuery.distinct(true);
 
-					    Predicate siteTitle = cb.and();
-                        Predicate cntSiteTitle = cb.and();
-                        if(aCriteria != null && aCriteria.getTitle() != null && !"".equals(aCriteria.getTitle().trim())) {
-                            siteTitle = cb.like(root.get("site").get("title"), aCriteria.getTitle().trim() + "%");
-                            cntSiteTitle = cb.like(cntRoot.get("site").get("title"), aCriteria.getTitle().trim() + "%");
-						}
+		Predicate siteTitle = cb.and();
+		Predicate cntSiteTitle = cb.and();
+		if (aCriteria != null && aCriteria.getTitle() != null && !"".equals(aCriteria.getTitle().trim())) {
+			siteTitle = cb.like(root.get("site").get("title"), aCriteria.getTitle().trim() + "%");
+			cntSiteTitle = cb.like(cntRoot.get("site").get("title"), aCriteria.getTitle().trim() + "%");
+		}
 
-                        Predicate orderNoPredicate = cb.and();
-                        Predicate cntOrderNoPredicate = cb.and();
-						if(aCriteria != null && aCriteria.getOrderNo() != null && !"".equals(aCriteria.getOrderNo().trim())) {
-                            orderNoPredicate = cb.like(root.get("libraryOrderNo"), aCriteria.getOrderNo().trim() + "%");
-                            cntOrderNoPredicate = cb.like(cntRoot.get("libraryOrderNo"), aCriteria.getOrderNo().trim() + "%");
-						}
+		Predicate orderNoPredicate = cb.and();
+		Predicate cntOrderNoPredicate = cb.and();
+		if (aCriteria != null && aCriteria.getOrderNo() != null && !"".equals(aCriteria.getOrderNo().trim())) {
+			orderNoPredicate = cb.like(root.get("libraryOrderNo"), aCriteria.getOrderNo().trim() + "%");
+			cntOrderNoPredicate = cb.like(cntRoot.get("libraryOrderNo"), aCriteria.getOrderNo().trim() + "%");
+		}
 
-                        Predicate agentNamePredicate = cb.and();
-                        Predicate cntAgentNamePredicate = cb.and();
-						if(aCriteria != null && aCriteria.getAgentName() != null && !"".equals(aCriteria.getAgentName().trim())) {
-                            Join<Site, AuthorisingAgent> authorisingAgentJoin = root.join("authorisingAgents");
-                            agentNamePredicate = cb.like(authorisingAgentJoin.get("name"), aCriteria.getAgentName().trim() + "%");
-                            Join<Site, AuthorisingAgent> cntAuthorisingAgentJoin = cntRoot.join("authorisingAgents");
-                            cntAgentNamePredicate = cb.like(cntAuthorisingAgentJoin.get("name"), aCriteria.getAgentName().trim() + "%");
-						}
+		Predicate agentNamePredicate = cb.and();
+		Predicate cntAgentNamePredicate = cb.and();
+		if (aCriteria != null && aCriteria.getAgentName() != null && !"".equals(aCriteria.getAgentName().trim())) {
+			Join<Site, AuthorisingAgent> authorisingAgentJoin = root.join("authorisingAgents");
+			agentNamePredicate = cb.like(authorisingAgentJoin.get("name"), aCriteria.getAgentName().trim() + "%");
+			Join<Site, AuthorisingAgent> cntAuthorisingAgentJoin = cntRoot.join("authorisingAgents");
+			cntAgentNamePredicate = cb.like(cntAuthorisingAgentJoin.get("name"), aCriteria.getAgentName().trim() + "%");
+		}
 
-                        Predicate activePredicate = cb.and();
-                        Predicate cntActivePredicate = cb.and();
-						if(aCriteria != null) {
-							if (!aCriteria.isShowDisabled()) {
-                                activePredicate = cb.equal(root.get("active"), true);
-                                cntActivePredicate = cb.equal(cntRoot.get("active"), true);
-							}
-						}
+		Predicate activePredicate = cb.and();
+		Predicate cntActivePredicate = cb.and();
+		if (aCriteria != null) {
+			if (!aCriteria.isShowDisabled()) {
+				activePredicate = cb.equal(root.get("active"), true);
+				cntActivePredicate = cb.equal(cntRoot.get("active"), true);
+			}
+		}
 
-						// Owning Agency criteria.
-                        Predicate owningAgencyPredicate = cb.and();
-                        Predicate cntOwningAgencyPredicate = cb.and();
-						if(aCriteria != null && aCriteria.getAgency() != null && !"".equals(aCriteria.getAgency().trim())) {
-                            owningAgencyPredicate = cb.like(root.get("owningAgency").get("name"), aCriteria.getAgency().trim() + "%");
-                            cntOwningAgencyPredicate = cb.like(cntRoot.get("owningAgency").get("name"), aCriteria.getAgency().trim() + "%");
-						}
+		// Owning Agency criteria.
+		Predicate owningAgencyPredicate = cb.and();
+		Predicate cntOwningAgencyPredicate = cb.and();
+		if (aCriteria != null && aCriteria.getAgency() != null && !"".equals(aCriteria.getAgency().trim())) {
+			owningAgencyPredicate = cb.like(root.get("owningAgency").get("name"), aCriteria.getAgency().trim() + "%");
+			cntOwningAgencyPredicate = cb.like(cntRoot.get("owningAgency").get("name"), aCriteria.getAgency().trim() + "%");
+		}
 
-                        Predicate oidPredicate = cb.and();
-                        Predicate cntOidPredicate = cb.and();
-						if(aCriteria != null && aCriteria.getSearchOid() != null) {
-                            oidPredicate = cb.equal(root.get("oid"), aCriteria.getSearchOid());
-                            cntOidPredicate = cb.equal(cntRoot.get("oid"), aCriteria.getSearchOid());
-						}
+		Predicate oidPredicate = cb.and();
+		Predicate cntOidPredicate = cb.and();
+		if (aCriteria != null && aCriteria.getSearchOid() != null) {
+			oidPredicate = cb.equal(root.get("oid"), aCriteria.getSearchOid());
+			cntOidPredicate = cb.equal(cntRoot.get("oid"), aCriteria.getSearchOid());
+		}
 
-						// URL Pattern's URL pattern criteria.
-                        Predicate urlPatternPredicate = cb.and();
-                        Predicate cntUrlPatternPredicate = cb.and();
-						if(aCriteria != null && aCriteria.getUrlPattern() != null && !"".equals(aCriteria.getUrlPattern().trim())) {
-                            urlPatternPredicate = cb.like(root.get("urlPatterns").get("pattern"), aCriteria.getUrlPattern().trim() + "%");
-						}
-						
-						// Permission's File Reference criteria.
-                        Predicate fileReferencePredicate = cb.and();
-                        Predicate cntFileReferencePredicate = cb.and();
-                        Join<Site, Permission> permissionJoin = null;
-                        Join<Site, Permission> cntPermissionJoin = null;
-						if(aCriteria != null && aCriteria.getPermsFileRef() != null && !"".equals(aCriteria.getPermsFileRef().trim())) {
-                            permissionJoin = root.join("permissions");
-                            cntPermissionJoin = cntRoot.join("permissions");
-                            fileReferencePredicate = cb.like(permissionJoin.get("fileReference"), aCriteria.getPermsFileRef().trim() + "%");
-                            cntFileReferencePredicate = cb.like(cntPermissionJoin.get("fileReference"), aCriteria.getPermsFileRef().trim() + "%");
-						}
+		// URL Pattern's URL pattern criteria.
+		Predicate urlPatternPredicate = cb.and();
+		Predicate cntUrlPatternPredicate = cb.and();
+		if (aCriteria != null && aCriteria.getUrlPattern() != null && !"".equals(aCriteria.getUrlPattern().trim())) {
+			urlPatternPredicate = cb.like(root.get("urlPatterns").get("pattern"), aCriteria.getUrlPattern().trim() + "%");
+		}
 
-						// Permission's status flags criteria.
-                        Predicate statesPredicate = cb.and();
-                        Predicate cntStatesPredicate = cb.and();
-						Set<Integer> states = null;
-						if(aCriteria != null) { states = aCriteria.getStates(); }
-						if(aCriteria != null && states != null && states.size() > 0) {
-                            if (permissionJoin == null) {
-                                permissionJoin = root.join("permissions");
-                                cntPermissionJoin = cntRoot.join("permissions");
-                            }
+		// Permission's File Reference criteria.
+		Predicate fileReferencePredicate = cb.and();
+		Predicate cntFileReferencePredicate = cb.and();
+		Join<Site, Permission> permissionJoin = null;
+		Join<Site, Permission> cntPermissionJoin = null;
+		if (aCriteria != null && aCriteria.getPermsFileRef() != null && !"".equals(aCriteria.getPermsFileRef().trim())) {
+			permissionJoin = root.join("permissions");
+			cntPermissionJoin = cntRoot.join("permissions");
+			fileReferencePredicate = cb.like(permissionJoin.get("fileReference"), aCriteria.getPermsFileRef().trim() + "%");
+			cntFileReferencePredicate = cb.like(cntPermissionJoin.get("fileReference"), aCriteria.getPermsFileRef().trim() + "%");
+		}
 
-                            List<Predicate> disjunction = new ArrayList<>();
-                            List<Predicate> cntDisjunction = new ArrayList<>();
-							for(Integer i: states) {
-                                disjunction.add(cb.equal(permissionJoin.get("status"), i));
-                                cntDisjunction.add(cb.equal(cntPermissionJoin.get("status"), i));
-							}
-                            statesPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
-                            cntStatesPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
-						}
+		// Permission's status flags criteria.
+		Predicate statesPredicate = cb.and();
+		Predicate cntStatesPredicate = cb.and();
+		Set<Integer> states = null;
+		if (aCriteria != null) {
+			states = aCriteria.getStates();
+		}
+		if (aCriteria != null && states != null && states.size() > 0) {
+			if (permissionJoin == null) {
+				permissionJoin = root.join("permissions");
+				cntPermissionJoin = cntRoot.join("permissions");
+			}
 
-                        Predicate whereClause = cb.and(siteTitle, orderNoPredicate, agentNamePredicate, activePredicate,
-                                owningAgencyPredicate, oidPredicate, urlPatternPredicate, fileReferencePredicate,
-                                statesPredicate);
-                        Predicate cntWhereClause = cb.and(cntSiteTitle, cntOrderNoPredicate, cntAgentNamePredicate, cntActivePredicate,
-                                cntOwningAgencyPredicate, cntOidPredicate, cntUrlPatternPredicate, cntFileReferencePredicate,
-                                cntStatesPredicate);
-                        query.where(whereClause);
-                        cntQuery.where(cntWhereClause);
+			List<Predicate> disjunction = new ArrayList<>();
+			List<Predicate> cntDisjunction = new ArrayList<>();
+			for (Integer i : states) {
+				disjunction.add(cb.equal(permissionJoin.get("status"), i));
+				cntDisjunction.add(cb.equal(cntPermissionJoin.get("status"), i));
+			}
+			statesPredicate = cb.or(disjunction.toArray(new Predicate[disjunction.size()]));
+			cntStatesPredicate = cb.or(cntDisjunction.toArray(new Predicate[cntDisjunction.size()]));
+		}
 
-						if( aCriteria.getSortorder() == null || 
-							aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC)) {
-                            query.orderBy(cb.asc(root.get("title")));
-						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_DESC)) {
-                            query.orderBy(cb.desc(root.get("title")));
-						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_ASC)) {
-                            query.orderBy(cb.asc(root.get("creationDate")));
-						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_DESC)) {
-                            query.orderBy(cb.desc(root.get("creationDate")));
-						}
-						
-						return new Pagination(session.createQuery(cntQuery), session.createQuery(query), page, pageSize);
-					}
-				}
-			);	
+		Predicate whereClause = cb.and(siteTitle, orderNoPredicate, agentNamePredicate, activePredicate,
+				owningAgencyPredicate, oidPredicate, urlPatternPredicate, fileReferencePredicate,
+				statesPredicate);
+		Predicate cntWhereClause = cb.and(cntSiteTitle, cntOrderNoPredicate, cntAgentNamePredicate, cntActivePredicate,
+				cntOwningAgencyPredicate, cntOidPredicate, cntUrlPatternPredicate, cntFileReferencePredicate,
+				cntStatesPredicate);
+		query.where(whereClause);
+		cntQuery.where(cntWhereClause);
+
+		if (aCriteria.getSortorder() == null ||
+				aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC)) {
+			query.orderBy(cb.asc(root.get("title")));
+		} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_DESC)) {
+			query.orderBy(cb.desc(root.get("title")));
+		} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_ASC)) {
+			query.orderBy(cb.asc(root.get("creationDate")));
+		} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_DESC)) {
+			query.orderBy(cb.desc(root.get("creationDate")));
+		}
+
+		return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), page, pageSize);
 	}
 
 	
 	public Pagination searchAuthAgents(final String name, final int page) {
-		return (Pagination) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<AuthorisingAgent> query = cb.createQuery(AuthorisingAgent.class);
-                        CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
-                        Root<AuthorisingAgent> root = query.from(AuthorisingAgent.class);
-                        Root<AuthorisingAgent> cntRoot = cntQuery.from(AuthorisingAgent.class);
-                        query.select(root);
-                        cntQuery.select(cb.count(cntRoot));
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<AuthorisingAgent> query = cb.createQuery(AuthorisingAgent.class);
+		CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
+		Root<AuthorisingAgent> root = query.from(AuthorisingAgent.class);
+		Root<AuthorisingAgent> cntRoot = cntQuery.from(AuthorisingAgent.class);
+		query.select(root);
+		cntQuery.select(cb.count(cntRoot));
 
-						if(name != null) {
-                            query.where(cb.like(root.get("name"), name + "%"));
-                            cntQuery.where(cb.like(cntRoot.get("name"), name + "%"));
-						}
+		if (name != null) {
+			query.where(cb.like(root.get("name"), name + "%"));
+			cntQuery.where(cb.like(cntRoot.get("name"), name + "%"));
+		}
 
-                        query.orderBy(cb.asc(root.get("name")));
+		query.orderBy(cb.asc(root.get("name")));
 
-						return new Pagination(session.createQuery(cntQuery), session.createQuery(query), page, Constants.GBL_PAGE_SIZE);
-					}
-				}
-			);	
+		return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), page, Constants.GBL_PAGE_SIZE);
 	}
 	
 	
 	
 	public long countSites() {
-		return (Long) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                        Root<Site> root = query.from(Site.class);
-                        query.select(cb.count(root));
-                        query.where(cb.equal(root.get("active"), true));
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<Long> query = cb.createQuery(Long.class);
+		Root<Site> root = query.from(Site.class);
+		query.select(cb.count(root));
+		query.where(cb.equal(root.get("active"), true));
 
-                        Long count = session.createQuery(query).uniqueResult();
+		Long count = currentSession().createQuery(query).uniqueResult();
 
-		                return count;
-					}
-				}
-			);	
+		return count;
 	}
 
 	@Transactional
@@ -388,19 +366,13 @@ public class SiteDAO extends HibernateDaoSupport {
 	 * @return The number of seeds linked to the permission
 	 */
 	public long countLinkedSeeds(final Long aPermissionOid) {
-		return (Long) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
 
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                        Root<Seed> root = query.from(Seed.class);
-                        query.select(cb.count(root));
-                        query.where(cb.equal(root.get("permissions").get("oid"), aPermissionOid));
-                        return session.createQuery(query).uniqueResult();
-					}
-				}
-			);			
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<Long> query = cb.createQuery(Long.class);
+		Root<Seed> root = query.from(Seed.class);
+		query.select(cb.count(root));
+		query.where(cb.equal(root.get("permissions").get("oid"), aPermissionOid));
+		return currentSession().createQuery(query).uniqueResult();
 	}
 
 	/**
@@ -410,31 +382,29 @@ public class SiteDAO extends HibernateDaoSupport {
 	 * @return True if unique; otherwise false.
 	 */
     public boolean isAuthAgencyNameUnique(final Long oid, final String name) {
-		long count = (Long) getHibernateTemplate().execute(
-				new HibernateCallback() {
-					public Object doInHibernate(Session session) {
-                        CriteriaBuilder cb = session.getCriteriaBuilder();
-                        CriteriaQuery<Long> query = cb.createQuery(Long.class);
-                        Root<AuthorisingAgent> root = query.from(AuthorisingAgent.class);
-                        query.select(cb.count(root));
+		CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+		CriteriaQuery<Long> query = cb.createQuery(Long.class);
+		Root<AuthorisingAgent> root = query.from(AuthorisingAgent.class);
+		query.select(cb.count(root));
 
-                        Predicate oidPredicate = cb.and();
-						if(oid != null) {
-                            oidPredicate = cb.notEqual(root.get("oid"), oid) ;
-						}
+		Predicate oidPredicate = cb.and();
+		if (oid != null) {
+			oidPredicate = cb.notEqual(root.get("oid"), oid);
+		}
 
-                        Predicate namePredicate = cb.like(root.get("name"), name + "%");
+		Predicate namePredicate = cb.like(root.get("name"), name + "%");
 
-                        Predicate whereClause = cb.and(oidPredicate, namePredicate);
-                        query.where(whereClause);
+		Predicate whereClause = cb.and(oidPredicate, namePredicate);
+		query.where(whereClause);
 
-                        return session.createQuery(query).uniqueResult();
-					}
-				}
-			);
-		
+		Long count = currentSession().createQuery(query).uniqueResult();
+
 		return count == 0L;
-    }	
-	
+
+    }
+
+	private Session currentSession() {
+		return sessionFactory.getCurrentSession();
+	}
 	
 }

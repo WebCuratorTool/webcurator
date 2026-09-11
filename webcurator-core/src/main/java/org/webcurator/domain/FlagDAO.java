@@ -19,11 +19,10 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -34,11 +33,13 @@ import org.webcurator.domain.model.core.Flag;
  * The object for accessing <code>Flag</code>s from the persistent store.
  */
 @Transactional
-public class FlagDAO extends HibernateDaoSupport {
+public class FlagDAO {
     
     private Log log = LogFactory.getLog(FlagDAO.class);
     
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -65,7 +66,7 @@ public class FlagDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Delete of Object");
-                            getHibernateTemplate().delete(aObject);
+                            currentSession().remove(aObject);
                             log.debug("After Deletes Object");
                         }
                         catch (DataAccessException e) {
@@ -80,34 +81,32 @@ public class FlagDAO extends HibernateDaoSupport {
     }
 
     public Flag getFlagByOid(final Long FlagOid) {
-        return (Flag)getHibernateTemplate().execute(
-                new HibernateCallback() {
-                    public Object doInHibernate(Session session) {
-                        Query query = session.getNamedQuery(Flag.QRY_GET_FLAG_BY_OID);
-                        query.setParameter(1,FlagOid);
-                        return query.uniqueResult();
-                    }
-                }
-            );
-          
+        Query<Flag> query = currentSession().createNamedQuery(Flag.QRY_GET_FLAG_BY_OID, Flag.class);
+        query.setParameter(1, FlagOid);
+        return query.uniqueResult();
     }
     
     public List<Flag> getFlags() {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Flag.QRY_GET_FLAGS)
-                    .list());
+        return currentSession().createNamedQuery(Flag.QRY_GET_FLAGS, Flag.class)
+                    .list();
     }
 
     public List<Flag> getFlagsByAgencyOid(Long agencyOid) {
-        List<Flag> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY)
+        return currentSession().createNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY, Flag.class)
                     .setParameter(1, agencyOid)
-                    .list());
-        return results;
+                    .list();
+    }
+
+    private Session currentSession() {
+        return sessionFactory.getCurrentSession();
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
 }
