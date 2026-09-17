@@ -21,8 +21,9 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -41,11 +42,14 @@ import java.util.Set;
  *
  */
 @Transactional
-public class HierPermMappingDAO extends HibernateDaoSupport {
+public class HierPermMappingDAO {
     /**
      * The logger for this class
      */
     private final static Log log = LogFactory.getLog(HierPermMappingDAO.class);
+
+
+    SessionFactory sessionFactory;
 
     /**
      * The transaction template to use.
@@ -64,7 +68,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             //log.debug("Before Saving of Target");
-                            currentSession().saveOrUpdate(aMapping);
+                            sessionFactory.getCurrentSession().saveOrUpdate(aMapping);
                             //log.debug("After Saving Target");
                         } catch (Exception ex) {
                             log.debug("Setting Rollback Only", ex);
@@ -94,7 +98,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
 
-                            Query q = currentSession().getNamedQuery(Mapping.DELETE);
+                            Query q = sessionFactory.getCurrentSession().getNamedQuery(Mapping.DELETE);
                             q.setParameter("urlPatternId", urlPatternId);
                             q.setParameter("permissionId", permissionId);
 
@@ -118,7 +122,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
     }
 
     public void deleteMappings(final Site site) {
-        Query query=currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID,Permission.class);
+        Query query = sessionFactory.getCurrentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID,Permission.class);
         query.setParameter("siteId",site.getOid());
         List<Permission> permissions=query.getResultList();
         permissions.forEach(permission->{
@@ -137,7 +141,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
 
-                            Query q = currentSession().getNamedQuery(Mapping.DELETE_BY_PERMISSION);
+                            Query q = sessionFactory.getCurrentSession().getNamedQuery(Mapping.DELETE_BY_PERMISSION);
                             q.setParameter("permissionId", permission.getOid());
 
                             //log.debug("Before Deleting Mappings");
@@ -157,26 +161,23 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
 
     @SuppressWarnings("unchecked")
     public List<Mapping> getMapping(Long mappingOid) {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Mapping.QUERY_BY_OID)
-                        .setParameter(1, mappingOid)
-                        .list());
+        return sessionFactory.getCurrentSession().getNamedQuery(Mapping.QUERY_BY_OID)
+                .setParameter(1, mappingOid)
+                .list();
     }
 
     @SuppressWarnings("unchecked")
     public List<Mapping> getMappings(String domain) {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Mapping.QUERY_BY_DOMAIN)
-                        .setParameter(1, domain)
-                        .list());
+        return sessionFactory.getCurrentSession().getNamedQuery(Mapping.QUERY_BY_DOMAIN)
+                .setParameter(1, domain)
+                .list();
     }
 
     @SuppressWarnings("unchecked")
     public List<MappingView> getMappingsView(String domain) {
-        return getHibernateTemplate().execute(session ->
-                session.getNamedQuery(MappingView.QUERY_BY_DOMAIN)
-                        .setParameter(1, domain)
-                        .list());
+        return sessionFactory.getCurrentSession().getNamedQuery(MappingView.QUERY_BY_DOMAIN)
+                .setParameter(1, domain)
+                .list();
     }
 
     public void updateMappings(final Site aSite, final Set<Mapping> newMappings) {
@@ -188,7 +189,8 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
 
-                            CriteriaBuilder cb = currentSession().getCriteriaBuilder();
+                            Session session = sessionFactory.getCurrentSession();
+                            CriteriaBuilder cb = session.getCriteriaBuilder();
                             CriteriaQuery<Mapping> query = cb.createQuery(Mapping.class);
                             Root<Mapping> root = query.from(Mapping.class);
                             query.select(root);
@@ -196,12 +198,12 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                             Predicate whereClause = cb.equal(root.get("permission").get("site").get("oid"), aSite.getOid());
                             query.where(whereClause);
 
-                            List<Mapping> mappings = currentSession().createQuery(query).list();
+                            List<Mapping> mappings = session.createQuery(query).list();
 
                             for (Mapping m : mappings) {
                                 if (!newMappings.contains(m)) {
                                     log.debug("Deleting: " + m.getOid());
-                                    currentSession().delete(m);
+                                    session.remove(m);
                                 } else {
                                     log.debug("Keeping: " + m.getOid());
                                     newMappings.remove(m);
@@ -209,7 +211,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                             }
 
                             for (Mapping m : newMappings) {
-                                currentSession().save(m);
+                                session.save(m);
                             }
                         } catch (Exception ex) {
                             log.debug("Setting Rollback Only", ex);
@@ -234,7 +236,7 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                         try {
 
                             for (Mapping m : mappings) {
-                                currentSession().saveOrUpdate(m);
+                                sessionFactory.getCurrentSession().saveOrUpdate(m);
                             }
                         } catch (Exception ex) {
                             log.debug("Setting Rollback Only", ex);
@@ -258,6 +260,10 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
      */
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
 }

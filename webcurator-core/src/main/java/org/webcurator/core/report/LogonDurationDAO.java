@@ -20,8 +20,9 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.dao.DataAccessException;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -32,11 +33,13 @@ import org.webcurator.domain.model.report.LogonDuration;
  *
  * @author MDubos
  */
-public class LogonDurationDAO extends HibernateDaoSupport {
+public class LogonDurationDAO {
 
     private static Log log = LogFactory.getLog(LogonDurationDAO.class);
 
     private TransactionTemplate txTemplate = null;
+
+    private SessionFactory sessionFactory;
 
     /**
      * User has logged in
@@ -64,7 +67,7 @@ public class LogonDurationDAO extends HibernateDaoSupport {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before saving of the LogonDuration");
-                            getHibernateTemplate().saveOrUpdate(ld);
+                            sessionFactory.getCurrentSession().persist(ld);
                             log.debug("After saving of the LogonDuration");
                         } catch (DataAccessException ex) {
                             log.warn("Setting Rollback Only", ex);
@@ -86,11 +89,11 @@ public class LogonDurationDAO extends HibernateDaoSupport {
      */
     public void setLoggedOut(String sessionId, Date loggedOutTime) {
 
+        Session session = sessionFactory.getCurrentSession();
         // Find associated login record
-        List results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION)
-                        .setParameter(1, sessionId)
-                        .list());
+        List results = session.createNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION, LogonDuration.class)
+                .setParameter(1, sessionId)
+                .list();
 
         log.info("setLoggedOut sId=" + sessionId + " found " + (results == null ? "null" : results.size()));
 
@@ -106,7 +109,7 @@ public class LogonDurationDAO extends HibernateDaoSupport {
                         public Object doInTransaction(TransactionStatus ts) {
                             try {
                                 log.debug("Before saving of the LogonDuration");
-                                getHibernateTemplate().saveOrUpdate(ld);
+                                session.persist(ld);
                                 log.debug("After saving of the LogonDuration");
                             } catch (DataAccessException ex) {
                                 log.warn("Setting Rollback Only", ex);
@@ -131,11 +134,12 @@ public class LogonDurationDAO extends HibernateDaoSupport {
      */
     @SuppressWarnings("unchecked")
     public void setProperLoggedoutForCurrentUser(Long currentUserOid, String currentUserSessionId) {
-        List<LogonDuration> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER)
-                        .setParameter(1, currentUserOid.longValue())
-                        .setParameter(2, currentUserSessionId)
-                        .list());
+        Session session = sessionFactory.getCurrentSession();
+        List<LogonDuration> results = session
+                .createNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER, LogonDuration.class)
+                .setParameter(1, currentUserOid.longValue())
+                .setParameter(2, currentUserSessionId)
+                .list();
 
         for (LogonDuration ld : results) {
             log.warn("closing logonDuration: " + ld.getOid().longValue() + " (session: " + ld.getSessionId() + ")...");
@@ -147,7 +151,7 @@ public class LogonDurationDAO extends HibernateDaoSupport {
                     new TransactionCallback() {
                         public Object doInTransaction(TransactionStatus ts) {
                             try {
-                                getHibernateTemplate().saveOrUpdate(finalLd);
+                                session.persist(finalLd);
                             } catch (DataAccessException ex) {
                                 log.warn("Setting Rollback Only", ex);
                                 ts.setRollbackOnly();
@@ -163,6 +167,10 @@ public class LogonDurationDAO extends HibernateDaoSupport {
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
 }

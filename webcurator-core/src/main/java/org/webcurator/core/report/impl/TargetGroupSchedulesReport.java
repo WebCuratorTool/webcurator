@@ -23,8 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.springframework.orm.hibernate5.HibernateCallback;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.SessionFactory;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -45,9 +44,11 @@ import java.util.List;
  * @author oakleigh_sk
  *
  */
-public class TargetGroupSchedulesReport extends HibernateDaoSupport implements ReportGenerator {
+public class TargetGroupSchedulesReport implements ReportGenerator {
 
     private Log log = LogFactory.getLog(TargetGroupSchedulesReport.class);
+
+	private SessionFactory sessionFactory;
 
 	/**
 	 * Generate report's data
@@ -81,142 +82,129 @@ public class TargetGroupSchedulesReport extends HibernateDaoSupport implements R
 										final String userName,
 										final String targetType){
 
-		List results = (List) getHibernateTemplate().execute(new HibernateCallback() {
+		Session session = sessionFactory.getCurrentSession();
 
-			@SuppressWarnings("unchecked")
-			public Object doInHibernate(Session session) throws HibernateException {
+		CriteriaBuilder cb = session.getCriteriaBuilder();
+		CriteriaQuery<AbstractTargetScheduleView> query = cb.createQuery(AbstractTargetScheduleView.class);
+		Root<AbstractTargetScheduleView> root = query.from(AbstractTargetScheduleView.class);
+		query.select(root);
 
-                CriteriaBuilder cb = session.getCriteriaBuilder();
-                CriteriaQuery<AbstractTargetScheduleView> query = cb.createQuery(AbstractTargetScheduleView.class);
-                Root<AbstractTargetScheduleView> root = query.from(AbstractTargetScheduleView.class);
-                query.select(root);
+		Predicate statePredicate = root.get("state").in(Target.STATE_APPROVED, TargetGroup.STATE_ACTIVE);
 
-                Predicate statePredicate = root.get("state").in(Target.STATE_APPROVED, TargetGroup.STATE_ACTIVE);
-				
-                Predicate objectTypeDescPredicate = cb.and();
-				if(!targetType.equals("All target types")) {
-					if (targetType.equals("Target")) {
-                        objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Target");
-					}
-					else {
-                        objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Group");
-					}
-				}
-
-                Predicate userNamePredicate = cb.and();
-				if(!userName.equals("All users")) {
-                    userNamePredicate = cb.equal(root.get("ownerName"), userName);
-				}
-
-                Predicate agencyNamePredicate = cb.and();
-				if(!agencyName.equals("All agencies")) {
-                    agencyNamePredicate = cb.equal(root.get("agencyName"), agencyName);
-				}
-
-                Predicate whereClause = cb.and(statePredicate, objectTypeDescPredicate, userNamePredicate, agencyNamePredicate);
-                query.where(whereClause);
-
-                query.orderBy(cb.asc(root.get("name")));
-				
-				List results = session.createQuery(query).list();
-				
-				List realResults = new ArrayList<TargetGroupSchedulesReportResultSet>(results.size());
-				
-		    	for(Iterator it = results.iterator(); it.hasNext(); ){
-					
-		    		AbstractTargetScheduleView rec = (AbstractTargetScheduleView)it.next();
-		    		
-					// parse Cron pattern
-					String elements[]  = rec.getScheduleCronPattern().split(" ");
-					// ignore seconds in elements[0];
-					String mins        = elements[1];
-					String hours       = elements[2];
-					String daysOfMonth = elements[3];
-					String months      = elements[4];
-					String daysOfWeek  = elements[5];
-
-					DecimalFormat df = new DecimalFormat("00");
-
-					String time = df.format(Integer.parseInt(hours)) + ":" + df.format(Integer.parseInt(mins));;
-					String dayOfWeek = "-";
-					String dayOfMonth = "-";
-					String month = "-";
-					
-
-					String scheduleType = "";
-					int sType = rec.getScheduleType();
-					if (sType == 1) {
-						scheduleType = "Mondays at 9:00pm";
-						dayOfWeek = daysOfWeek;
-					}
-					else if (sType == Schedule.CUSTOM_SCHEDULE) {
-						scheduleType = "Custom";
-						dayOfWeek = daysOfWeek;
-						dayOfMonth = daysOfMonth;
-						month = DecodeMonths(months);
-					}
-					else if (sType == Schedule.TYPE_ANNUALLY) {
-						scheduleType = "Annually";
-						dayOfMonth = daysOfMonth;
-						month = DecodeMonths(months);
-					}
-					else if (sType == Schedule.TYPE_BI_MONTHLY) {
-						scheduleType = "Bi-Monthly";
-						dayOfMonth = daysOfMonth;
-						month = DecodeMonths(months);
-					}
-					else if (sType == Schedule.TYPE_DAILY) {
-						scheduleType = "Daily";
-					}
-					else if (sType == Schedule.TYPE_HALF_YEARLY) {
-						scheduleType = "Half Yearly";
-						dayOfMonth = daysOfMonth;
-						month = DecodeMonths(months);
-					}
-					else if (sType == Schedule.TYPE_MONTHLY) {
-						scheduleType = "Monthly";
-						dayOfMonth = daysOfMonth;
-					}
-					else if (sType == Schedule.TYPE_QUARTERLY) {
-						scheduleType = "Quarterly";
-						dayOfMonth = daysOfMonth;
-						month = DecodeMonths(months);
-					}
-					else if (sType == Schedule.TYPE_WEEKLY) {
-						scheduleType = "Weekly";
-						dayOfWeek = daysOfWeek;
-					}
-					else {
-						scheduleType = "UNKNOWN";
-					}
-
-					try {
-						String[] keys = rec.getTheKey().split(",");
-						realResults.add(
-								new TargetGroupSchedulesReportResultSet(
-										Long.parseLong(keys[0]),
-										rec.getObjectTypeDesc(),
-										rec.getName(), 
-										rec.getAgencyName(),
-										rec.getOwnerName(),
-										rec.getScheduleStartDate(),
-										rec.getScheduleEndDate(),
-										scheduleType,
-										time,
-										dayOfWeek,
-										dayOfMonth,
-										month));
-					}
-					catch (Exception e) {
-						log.debug(e.getMessage());
-					}
-				}
-				return realResults;
+		Predicate objectTypeDescPredicate = cb.and();
+		if (!targetType.equals("All target types")) {
+			if (targetType.equals("Target")) {
+				objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Target");
+			} else {
+				objectTypeDescPredicate = cb.equal(root.get("objectTypeDesc"), "Group");
 			}
-		});
-		
-    	return results;
-    }
+		}
+
+		Predicate userNamePredicate = cb.and();
+		if (!userName.equals("All users")) {
+			userNamePredicate = cb.equal(root.get("ownerName"), userName);
+		}
+
+		Predicate agencyNamePredicate = cb.and();
+		if (!agencyName.equals("All agencies")) {
+			agencyNamePredicate = cb.equal(root.get("agencyName"), agencyName);
+		}
+
+		Predicate whereClause = cb.and(statePredicate, objectTypeDescPredicate, userNamePredicate, agencyNamePredicate);
+		query.where(whereClause);
+
+		query.orderBy(cb.asc(root.get("name")));
+
+		List results = session.createQuery(query).list();
+
+		List realResults = new ArrayList<TargetGroupSchedulesReportResultSet>(results.size());
+
+		for (Iterator it = results.iterator(); it.hasNext(); ) {
+
+			AbstractTargetScheduleView rec = (AbstractTargetScheduleView) it.next();
+
+			// parse Cron pattern
+			String elements[] = rec.getScheduleCronPattern().split(" ");
+			// ignore seconds in elements[0];
+			String mins = elements[1];
+			String hours = elements[2];
+			String daysOfMonth = elements[3];
+			String months = elements[4];
+			String daysOfWeek = elements[5];
+
+			DecimalFormat df = new DecimalFormat("00");
+
+			String time = df.format(Integer.parseInt(hours)) + ":" + df.format(Integer.parseInt(mins));
+			;
+			String dayOfWeek = "-";
+			String dayOfMonth = "-";
+			String month = "-";
+
+
+			String scheduleType = "";
+			int sType = rec.getScheduleType();
+			if (sType == 1) {
+				scheduleType = "Mondays at 9:00pm";
+				dayOfWeek = daysOfWeek;
+			} else if (sType == Schedule.CUSTOM_SCHEDULE) {
+				scheduleType = "Custom";
+				dayOfWeek = daysOfWeek;
+				dayOfMonth = daysOfMonth;
+				month = DecodeMonths(months);
+			} else if (sType == Schedule.TYPE_ANNUALLY) {
+				scheduleType = "Annually";
+				dayOfMonth = daysOfMonth;
+				month = DecodeMonths(months);
+			} else if (sType == Schedule.TYPE_BI_MONTHLY) {
+				scheduleType = "Bi-Monthly";
+				dayOfMonth = daysOfMonth;
+				month = DecodeMonths(months);
+			} else if (sType == Schedule.TYPE_DAILY) {
+				scheduleType = "Daily";
+			} else if (sType == Schedule.TYPE_HALF_YEARLY) {
+				scheduleType = "Half Yearly";
+				dayOfMonth = daysOfMonth;
+				month = DecodeMonths(months);
+			} else if (sType == Schedule.TYPE_MONTHLY) {
+				scheduleType = "Monthly";
+				dayOfMonth = daysOfMonth;
+			} else if (sType == Schedule.TYPE_QUARTERLY) {
+				scheduleType = "Quarterly";
+				dayOfMonth = daysOfMonth;
+				month = DecodeMonths(months);
+			} else if (sType == Schedule.TYPE_WEEKLY) {
+				scheduleType = "Weekly";
+				dayOfWeek = daysOfWeek;
+			} else {
+				scheduleType = "UNKNOWN";
+			}
+
+			try {
+				String[] keys = rec.getTheKey().split(",");
+				realResults.add(
+						new TargetGroupSchedulesReportResultSet(
+								Long.parseLong(keys[0]),
+								rec.getObjectTypeDesc(),
+								rec.getName(),
+								rec.getAgencyName(),
+								rec.getOwnerName(),
+								rec.getScheduleStartDate(),
+								rec.getScheduleEndDate(),
+								scheduleType,
+								time,
+								dayOfWeek,
+								dayOfMonth,
+								month));
+			} catch (Exception e) {
+				log.debug(e.getMessage());
+			}
+		}
+		return realResults;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 
 	private String DecodeMonths(String encodedMonths) {
 		

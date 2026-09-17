@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.SessionFactory;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -39,10 +39,11 @@ import org.webcurator.domain.model.report.LogonDuration;
  * 
  * @author MDubos
  */
-public class SystemUsageReportGenerator extends HibernateDaoSupport
-	implements ReportGenerator {
+public class SystemUsageReportGenerator implements ReportGenerator {
 	
 	private Log log = LogFactory.getLog(SystemUsageReportGenerator.class);
+
+	private SessionFactory sessionFactory;
 	
 	/**
 	 * Generate report's data
@@ -81,8 +82,7 @@ public class SystemUsageReportGenerator extends HibernateDaoSupport
 		Calendar now = Calendar.getInstance();
 
 		// Get all logged users
-		List results = getHibernateTemplate().execute(session ->
-				session.getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
+		List results = sessionFactory.getCurrentSession().getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
 						.setParameter(1, startDate)
 						.setParameter(2, endDate)
 						.setParameter(3, now.getTime())
@@ -91,7 +91,7 @@ public class SystemUsageReportGenerator extends HibernateDaoSupport
 						.setParameter(6, agencyName)
 						.setParameter(7, agencyName)
 						.setParameter(8, agencyName)
-						.list());
+						.list();
 
 		log.debug("results=" + results.size());
 		
@@ -114,6 +114,9 @@ public class SystemUsageReportGenerator extends HibernateDaoSupport
 		
 		return resultSets;
 	}
-	
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 
 }

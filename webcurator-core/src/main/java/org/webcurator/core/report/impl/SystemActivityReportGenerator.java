@@ -23,7 +23,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.SessionFactory;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -37,11 +37,11 @@ import org.webcurator.domain.model.audit.Audit;
  * 
  * @author MDubos
  */
-public class SystemActivityReportGenerator extends HibernateDaoSupport
-	implements ReportGenerator {
+public class SystemActivityReportGenerator implements ReportGenerator {
 	
     private Log log = LogFactory.getLog(SystemActivityReportGenerator.class);
-    
+
+	private SessionFactory sessionFactory;
 	
 	/**
 	 * Generate report's data
@@ -83,17 +83,16 @@ public class SystemActivityReportGenerator extends HibernateDaoSupport
 	 * @return A <code>List</code> of <code>SystemActivityReportResultSet</code>
 	 */
 	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName, String username) {
-        List results = getHibernateTemplate().execute(session ->
-				session.getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
-					.setParameter(1, startDate)
-					.setParameter(2, endDate)
-					.setParameter(3, agencyName)
-					.setParameter(4, agencyName)
-					.setParameter(5, agencyName)
-					.setParameter(6, username)
-					.setParameter(7, username)
-					.setParameter(8, username)
-					.list());
+		List results = sessionFactory.getCurrentSession().getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
+				.setParameter(1, startDate)
+				.setParameter(2, endDate)
+				.setParameter(3, agencyName)
+				.setParameter(4, agencyName)
+				.setParameter(5, agencyName)
+				.setParameter(6, username)
+				.setParameter(7, username)
+				.setParameter(8, username)
+				.list();
 
     	log.debug("results=" + results.size() );
     	
@@ -107,7 +106,10 @@ public class SystemActivityReportGenerator extends HibernateDaoSupport
     	
     	return resultSets;
     }
-	
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 	
 
 }

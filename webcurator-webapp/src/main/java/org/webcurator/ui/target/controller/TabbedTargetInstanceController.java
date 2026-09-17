@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -122,7 +122,7 @@ public class TabbedTargetInstanceController extends TabbedController {
 				wctCoordinator.updateProfileOverrides(ti);
 			}
 		}
-        catch (HibernateOptimisticLockingFailureException e) {
+        catch (OptimisticLockingFailureException e) {
         	if (log.isErrorEnabled()) {
         		log.error("Failed to save target instance. " + e.getMessage(), e);
         	}

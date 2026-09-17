@@ -28,7 +28,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -173,7 +173,7 @@ public class HarvestNowController {
                     HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
                     wctCoordinator.patchHarvest(ti, hr, has);
                 }
-            } catch (HibernateOptimisticLockingFailureException e) {
+            } catch (OptimisticLockingFailureException e) {
                 ti = targetInstanceDAO.load(ti.getOid());
                 if (ti.getState().equals(TargetInstance.STATE_RUNNING)
                         || ti.getState().equals(TargetInstance.STATE_STOPPING)) {

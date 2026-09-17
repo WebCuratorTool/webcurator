@@ -25,6 +25,7 @@ import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.orm.ObjectRetrievalFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -703,7 +704,7 @@ public class QueueController {
                     }
                 }
             }
-        } catch (org.springframework.orm.hibernate5.HibernateObjectRetrievalFailureException e) {
+        } catch (ObjectRetrievalFailureException e) {
             e.printStackTrace();
             throw e;
         }

@@ -23,7 +23,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.hibernate.SessionFactory;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -36,11 +36,13 @@ import org.webcurator.domain.model.report.AbstractTargetScheduleView;
  * @author oakleigh_sk
  *
  */
-public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements ReportGenerator {
+public class SummaryTargetSchedulesReport implements ReportGenerator {
 
 	private static String[] schedules = {"Mondays at 9:00pm", "Custom", "Daily", "Weekly", "Monthly", "Bi-Monthly", "Quarterly", "Half-Yearly", "Annually" };
 
     private Log log = LogFactory.getLog(SummaryTargetSchedulesReport.class);
+
+	private SessionFactory sessionFactory;
 
 	/**
 	 * Generate report's data
@@ -67,12 +69,11 @@ public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements
 	@SuppressWarnings("unchecked")
 	protected List<ResultSet> runReport(final String agencyName) {
 		// Get the results
-		List results = getHibernateTemplate().execute(session ->
-				session.getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
-					.setParameter(1, agencyName)
-					.setParameter(2, agencyName)
-					.setParameter(3, agencyName)
-					.list());
+		List results = sessionFactory.getCurrentSession().getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
+				.setParameter(1, agencyName)
+				.setParameter(2, agencyName)
+				.setParameter(3, agencyName)
+				.list();
 
 		// Iterate over results identifying the number of distinct 
 		// agencies. Store them in agencies list.
@@ -124,7 +125,11 @@ public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements
 
 		return realResults;
 		
-    }    
+    }
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
 	
 	private void populateCounts(String[] displayableFields, List<String> agencies, List results) {
 		
@@ -143,4 +148,5 @@ public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements
     	}
 		
 	}
+
 }

@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -107,7 +107,7 @@ public class ProfileListController extends ProfileListViewController {
         // Save to the database
         try {
             profileManager.saveOrUpdate(profile);
-        } catch (HibernateOptimisticLockingFailureException e) {
+        } catch (OptimisticLockingFailureException e) {
             Object[] vals = new Object[]{profile.getName(), profile.getOwningAgency().getName()};
             bindingResult.reject("profile.modified", vals, "profile has been modified by another user.");
             ModelAndView mav = getView(profileImportCommand);

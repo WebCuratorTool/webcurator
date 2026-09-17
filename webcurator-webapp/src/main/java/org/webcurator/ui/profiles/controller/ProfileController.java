@@ -31,7 +31,7 @@ import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -127,11 +127,11 @@ public class ProfileController extends TabbedController {
 			try {
 				profileManager.saveOrUpdate(profile);
 			}
-			catch (HibernateOptimisticLockingFailureException e) {
+			catch (OptimisticLockingFailureException e) {
 				Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
 				bindingResult.reject("profile.modified", vals, "profile has been modified by another user.");
 
-			} catch (WCTInvalidStateRuntimeException e1) {
+			} catch (WCTInvalidStateRuntimeException e) {
 				Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
 				bindingResult.reject("profile.inuse", vals, "inuse profile cannot be de-activated.");
 
