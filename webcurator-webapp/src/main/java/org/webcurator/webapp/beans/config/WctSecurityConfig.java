@@ -147,7 +147,7 @@ public class WctSecurityConfig {
                         .requestMatchers("/spa/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults()).formLogin(httpSecurityFormLoginConfigurer ->
-                        httpSecurityFormLoginConfigurer.loginPage("logon.jsp").permitAll()
+                        httpSecurityFormLoginConfigurer.loginPage("/logon.jsp").permitAll()
                                 .loginProcessingUrl("/login")
                                 .successHandler(wctAuthenticationSuccessHandler())
                                 .failureHandler(wctAuthenticationFailureHandler()));

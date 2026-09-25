@@ -440,9 +440,9 @@ public class BaseConfig {
         return new NetworkMapClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false)
     public QaRecommendationService qaRecommendationService() {
         QaRecommendationService bean = new QaRecommendationService();
         // The state that will be used to denote a failure within the Rules Engine (eg: an unexpected exception).
@@ -476,6 +476,7 @@ public class BaseConfig {
 
         bean.setRulesFileName("rules.drl");
         bean.setTargetInstanceManager(targetInstanceManager());
+        bean.setHarvestCoordinator(wctCoordinator());
 
         return bean;
     }
@@ -676,6 +677,7 @@ public class BaseConfig {
         bean.setAutoQAUrl(autoQAUrl);
         bean.setEnableQaModule(enableQaModule);
         bean.setAutoPrunedNote(autoPrunedNote);
+        //bean.setQaRecommendationService(qaRecommendationService());
 
         return bean;
     }

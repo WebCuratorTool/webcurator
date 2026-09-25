@@ -40,7 +40,6 @@ public class QaRecommendationService {
 	/**
 	 * The interface for retrieving log files from the server or digital asset store
 	 */
-    @Autowired
 	private WctCoordinator wctCoordinator = null;
 	
 	/**

@@ -105,7 +105,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     implementation 'org.apache.directory.server:apacheds-server-jndi:1.5.5'
 
-    compileOnly 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
+    implementation 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:3.1.1'
 
 //    implementation 'org.archive.heritrix:heritrix-engine:3.4.0-SNAPSHOT'
 

@@ -42,7 +42,6 @@ public class HarvestQaManager {
      * The component that will provide an <code>Indicator</code> based QA
      * recommendation
      **/
-    @Autowired
     private QaRecommendationService qaRecommendationService;
 
     public void autoPrune(TargetInstance ti) throws DigitalAssetStoreException {
