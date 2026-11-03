@@ -19,6 +19,7 @@ repositories {
 dependencies {
     implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
         exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
+        exclude group: 'org.eclipse.jdt', module: 'core'
     }
     implementation('org.archive:heritrix:1.14.2-webcuratortool-2.0.2') {
         exclude group: 'javax.servlet', module: 'servlet-api'

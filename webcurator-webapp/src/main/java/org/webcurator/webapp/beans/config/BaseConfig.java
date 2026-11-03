@@ -1,5 +1,6 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -17,12 +18,16 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.jdbc.support.JdbcTransactionManager;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.RollbackOn;
+import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
@@ -56,9 +61,9 @@ import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.report.LogonDurationDAO;
 import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.ScheduleJob;
+import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.screenshot.ScreenshotClient;
 import org.webcurator.core.screenshot.ScreenshotClientRemote;
-import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -321,7 +326,6 @@ public class BaseConfig {
     @Autowired
     private ListsConfig listsConfig;
 
-
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationDirectoryManager visualizationManager() {
@@ -346,21 +350,14 @@ public class BaseConfig {
                 .build();
     }
 
+
     @Bean
-    public LocalSessionFactoryBean sessionFactory() {
-        LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
-        bean.setDataSource(dataSource());
-        // TODO NOTE it would be better if this was a wildcard
-//        Resource jarResource = new ClassPathResource("org/webcurator/**");
-//        Resource jarResource = new FileSystemResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-
-        //Resource jarResource = new ClassPathResource("classpath:/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-        //bean.setMappingJarLocations(jarResource);
-
-        //bean.setMappingJarLocations(getHibernateConfigurationResources());
-//        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model","org.webcurator.domain"});
-        bean.setPackagesToScan("org.webcurator.domain.model");
-
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+        LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
+        localContainerEntityManagerFactoryBean.setDataSource(dataSource());
+        localContainerEntityManagerFactoryBean.setPackagesToScan("org.webcurator.domain.model");
+        JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        localContainerEntityManagerFactoryBean.setJpaVendorAdapter(vendorAdapter);
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
@@ -370,11 +367,52 @@ public class BaseConfig {
         }
         hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
         hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans", "true");
-
-        bean.setHibernateProperties(hibernateProperties);
-
-        return bean;
+        localContainerEntityManagerFactoryBean.setJpaProperties(hibernateProperties);
+        return localContainerEntityManagerFactoryBean;
     }
+
+
+//    @Bean(name = "entityManagerFactory")
+//    public SessionFactory sessionFactory() {
+//        StandardServiceRegistry registry =
+//                new StandardServiceRegistryBuilder()
+//                        .applySetting("hibernate.dialect", hibernateDialect)
+//                        .applySetting("hibernate.show_sql", hibernateShowSql)
+//                        .applySetting("hibernate.default_schema", hibernateDefaultSchema) // FIXME doesn't work for MySQL
+//                        .applySetting("hibernate.enable_lazy_load_no_trans", true)
+//                        .applySetting("hibernate.connection.datasource", dataSource())
+//                        .build();
+//
+//        Metadata metadata =
+//                new MetadataSources(registry).buildMetadata();
+//
+//        return metadata.buildSessionFactory();
+//    }
+
+
+
+//    @Bean(name = "entityManagerFactory")
+//    public SessionFactory sessionFactory() {
+//        org.hibernate.cfg.Configuration configuration = new org.hibernate.cfg.Configuration();
+//        configuration.addPackage("org.webcurator.domain.model");
+//        Properties hibernateProperties = new Properties();
+//        hibernateProperties.setProperty(AvailableSettings.JAKARTA_JDBC_URL, datasourceUrl);
+//        hibernateProperties.setProperty(AvailableSettings.JAKARTA_JDBC_USER, datasourceUsername);
+//        hibernateProperties.setProperty(AvailableSettings.JAKARTA_JDBC_PASSWORD, datasourcePassword);
+//        hibernateProperties.setProperty(AvailableSettings.JAKARTA_JDBC_DRIVER, datasourceDriverClassName);
+//        hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
+//        hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
+//        // Include setting of default schema, unless the database type is mysql
+//        if (!hibernateDialect.toLowerCase().contains("mysql")) {
+//            hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
+//        }
+//        hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
+//        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans", "true");
+//        configuration.addProperties(hibernateProperties);
+//        LocalSessionFactoryBean sessionFactoryBean = new LocalSessionFactoryBean();
+//        return configuration.buildSessionFactory();
+//    }
+
 
     public Resource[] getHibernateConfigurationResources() {
         Resource[] resources = null;
@@ -387,12 +425,6 @@ public class BaseConfig {
         return resources;
     }
 
-    @Bean
-    public HibernateTransactionManager transactionManager() {
-        HibernateTransactionManager hibernateTransactionManager = new HibernateTransactionManager(sessionFactory().getObject());
-//        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
-        return hibernateTransactionManager;
-    }
 
 //    @Bean
 //    @Autowired
@@ -404,7 +436,7 @@ public class BaseConfig {
 
     @Bean
     public TransactionTemplate transactionTemplate() {
-        return new TransactionTemplate(transactionManager());
+        return new TransactionTemplate(new JdbcTransactionManager(dataSource()));
     }
 
     @Bean
@@ -484,7 +516,6 @@ public class BaseConfig {
     @Bean
     public TargetInstanceDAO targetInstanceDao() {
         TargetInstanceDAO bean = new TargetInstanceDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
         bean.setAuditor(audit());
 
@@ -494,7 +525,6 @@ public class BaseConfig {
     @Bean
     public UserRoleDAO userRoleDAO() {
         UserRoleDAO bean = new UserRoleDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         //bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -503,7 +533,6 @@ public class BaseConfig {
     @Bean
     public RejReasonDAO rejReasonDAO() {
         RejReasonDAO bean = new RejReasonDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -512,7 +541,6 @@ public class BaseConfig {
     @Bean
     public IndicatorDAO indicatorDAO() {
         IndicatorDAO bean = new IndicatorDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -521,7 +549,6 @@ public class BaseConfig {
     @Bean
     public IndicatorCriteriaDAO indicatorCriteriaDAO() {
         IndicatorCriteriaDAO bean = new IndicatorCriteriaDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -530,7 +557,6 @@ public class BaseConfig {
     @Bean
     public IndicatorReportLineDAO indicatorReportLineDAO() {
         IndicatorReportLineDAO bean = new IndicatorReportLineDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -539,7 +565,6 @@ public class BaseConfig {
     @Bean
     public FlagDAO flagDAO() {
         FlagDAO bean = new FlagDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -548,7 +573,6 @@ public class BaseConfig {
     @Bean
     public TargetDAO targetDao() {
         TargetDAO bean = new TargetDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -557,7 +581,6 @@ public class BaseConfig {
     @Bean
     public SiteDAO siteDao() {
         SiteDAO bean = new SiteDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -566,14 +589,12 @@ public class BaseConfig {
     @Bean
     public PermissionDAO permissionDAO() {
         PermissionDAO bean = new PermissionDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         return bean;
     }
 
     @Bean
     public ProfileDAO profileDao() {
         ProfileDAO bean = new ProfileDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -582,7 +603,6 @@ public class BaseConfig {
     @Bean
     public InTrayDAO inTrayDao() {
         InTrayDAO bean = new InTrayDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -591,7 +611,6 @@ public class BaseConfig {
     @Bean
     public HeatmapDAO heatmapConfigDao() {
         HeatmapDAO bean = new HeatmapDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -600,7 +619,6 @@ public class BaseConfig {
     @Bean
     public PermissionTemplateDAO permissionTemplateDao() {
         PermissionTemplateDAO bean = new PermissionTemplateDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -787,7 +805,6 @@ public class BaseConfig {
     @Bean
     public AuditDAOUtil audit() {
         AuditDAOUtil bean = new AuditDAOUtil();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -796,7 +813,6 @@ public class BaseConfig {
     @Bean
     public LogonDurationDAO logonDuration() {
         LogonDurationDAO bean = new LogonDurationDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -855,7 +871,6 @@ public class BaseConfig {
     @Bean
     public HierPermMappingDAO permMappingDao() {
         HierPermMappingDAO bean = new HierPermMappingDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;
@@ -943,7 +958,6 @@ public class BaseConfig {
     @Lazy(false)
     public AnnotationDAO annotationDao() {
         AnnotationDAO bean = new AnnotationDAO();
-        bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
         return bean;

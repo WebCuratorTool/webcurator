@@ -15,6 +15,7 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,6 +23,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -47,8 +49,9 @@ public class SiteDAO {
 	
 	private TransactionTemplate txTemplate = null;
 
-	private SessionFactory sessionFactory;
-	
+	@Autowired
+	private EntityManager entityManager;
+
 	/**
 	 * @param txTemplate The txTemplate to set.
 	 */
@@ -56,10 +59,6 @@ public class SiteDAO {
 		this.txTemplate = txTemplate;
 	}
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-	
 	public void saveOrUpdate(final Site aSite) {
 		txTemplate.execute(
 				new TransactionCallback() {
@@ -404,7 +403,7 @@ public class SiteDAO {
     }
 
 	private Session currentSession() {
-		return sessionFactory.getCurrentSession();
+		return entityManager.unwrap(Session.class);
 	}
 	
 }

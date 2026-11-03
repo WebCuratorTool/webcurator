@@ -17,11 +17,13 @@ package org.webcurator.domain;
 
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,13 +34,15 @@ import org.webcurator.domain.model.core.Indicator;
 /**
  * The object for accessing <code>Indicator</code>s from the persistent store.
  */
+@Transactional
 public class IndicatorDAO {
     
     private Log log = LogFactory.getLog(IndicatorDAO.class);
     
     private TransactionTemplate txTemplate = null;
 
-    private SessionFactory sessionFactory;
+    @Autowired
+    private EntityManager entityManager;
 
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
@@ -98,12 +102,8 @@ public class IndicatorDAO {
         this.txTemplate = txTemplate;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 
 }

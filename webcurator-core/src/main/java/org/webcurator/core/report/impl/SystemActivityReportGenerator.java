@@ -21,9 +21,13 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -37,12 +41,15 @@ import org.webcurator.domain.model.audit.Audit;
  * 
  * @author MDubos
  */
+@Transactional
 public class SystemActivityReportGenerator implements ReportGenerator {
 	
     private Log log = LogFactory.getLog(SystemActivityReportGenerator.class);
 
-	private SessionFactory sessionFactory;
-	
+	@Autowired
+	private EntityManager entityManager;
+
+
 	/**
 	 * Generate report's data
 	 * @param operationalReport An OperationReport
@@ -83,7 +90,7 @@ public class SystemActivityReportGenerator implements ReportGenerator {
 	 * @return A <code>List</code> of <code>SystemActivityReportResultSet</code>
 	 */
 	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName, String username) {
-		List results = sessionFactory.getCurrentSession().getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
+		List results = currentSession().getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
 				.setParameter(1, startDate)
 				.setParameter(2, endDate)
 				.setParameter(3, agencyName)
@@ -107,9 +114,9 @@ public class SystemActivityReportGenerator implements ReportGenerator {
     	return resultSets;
     }
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+
+	private Session currentSession() {
+		return entityManager.unwrap(Session.class);
 	}
-	
 
 }

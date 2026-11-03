@@ -17,11 +17,14 @@ package org.webcurator.core.util;
 
 import java.util.Date;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.audit.Audit;
@@ -32,14 +35,17 @@ import org.webcurator.domain.model.auth.User;
  * system.
  * @author bprice
  */
+@Transactional
 public class AuditDAOUtil implements Auditor {
 	/** the logger. */
     private static Log log = LogFactory.getLog(AuditDAOUtil.class); 
     /** the transaction template to use. */
     private TransactionTemplate txTemplate = null;
 
-    private SessionFactory sessionFactory;
-    
+    @Autowired
+    private EntityManager entityManager;
+
+
     /**
      * Create an audit entry with the specified data.
      * @param subjectType the class name of the entity the audit belongs to
@@ -165,11 +171,7 @@ public class AuditDAOUtil implements Auditor {
         this.txTemplate = txTemplate;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 }

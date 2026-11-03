@@ -15,11 +15,13 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -41,8 +43,9 @@ public class AnnotationDAO {
     /** The transaction template object to use. */
     private TransactionTemplate txTemplate = null;
 
-	private SessionFactory sessionFactory;
-    
+	@Autowired
+	private EntityManager entityManager;
+
 	public List<Annotation> loadAnnotations(final String aType, final Long aOid) {
 		if (log.isDebugEnabled()) {
 			log.debug("Load annotations for " + aType + " " + aOid);
@@ -109,14 +112,11 @@ public class AnnotationDAO {
 	}
 
 	private Session currentSession() {
-		return sessionFactory.getCurrentSession();
+		return entityManager.unwrap(Session.class);
 	}
 	
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
     }
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
 }

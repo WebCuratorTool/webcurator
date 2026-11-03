@@ -15,6 +15,7 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -22,10 +23,10 @@ import jakarta.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,8 +58,9 @@ public class InTrayDAO {
     
     private TransactionTemplate txTemplate = null;
 
-    private SessionFactory sessionFactory;
-    
+    @Autowired
+    private EntityManager entityManager;
+
     public InTrayDAO() {
 
     }
@@ -67,10 +69,6 @@ public class InTrayDAO {
         this.txTemplate = txTemplate;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-    
     public void saveOrUpdate(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -94,7 +92,7 @@ public class InTrayDAO {
         Map <String,Long>params = new HashMap<String,Long>();
         params.put("recipientOid", userOid);
 
-        return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true, sessionFactory);
+        return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true);
     }
 
     public long countNotifications(final Long userOid) {
@@ -369,6 +367,6 @@ public class InTrayDAO {
 	}
 
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 }

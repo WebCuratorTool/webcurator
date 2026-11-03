@@ -1,16 +1,15 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
-import org.webcurator.ui.tools.controller.BrowseController;
 import org.webcurator.ui.tools.controller.BrowseHelper;
 import org.webcurator.ui.tools.controller.RegexReplacer;
 import org.webcurator.ui.tools.controller.StringReplacer;
@@ -39,7 +38,7 @@ public class BrowseServletConfig {
     @Lazy(false)
     public OpenSessionInViewInterceptor openSessionInViewInterceptorBrowse() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
+        bean.setSessionFactory((SessionFactory) baseConfig.entityManagerFactory().getObject());
 
         return bean;
     }

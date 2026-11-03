@@ -20,10 +20,14 @@ import java.util.Iterator;
 import java.util.List;
 
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -36,13 +40,16 @@ import org.webcurator.domain.model.report.AbstractTargetScheduleView;
  * @author oakleigh_sk
  *
  */
+@Transactional
 public class SummaryTargetSchedulesReport implements ReportGenerator {
 
 	private static String[] schedules = {"Mondays at 9:00pm", "Custom", "Daily", "Weekly", "Monthly", "Bi-Monthly", "Quarterly", "Half-Yearly", "Annually" };
 
     private Log log = LogFactory.getLog(SummaryTargetSchedulesReport.class);
 
-	private SessionFactory sessionFactory;
+	@Autowired
+	private EntityManager entityManager;
+
 
 	/**
 	 * Generate report's data
@@ -69,7 +76,7 @@ public class SummaryTargetSchedulesReport implements ReportGenerator {
 	@SuppressWarnings("unchecked")
 	protected List<ResultSet> runReport(final String agencyName) {
 		// Get the results
-		List results = sessionFactory.getCurrentSession().getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
+		List results = currentSession().getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
 				.setParameter(1, agencyName)
 				.setParameter(2, agencyName)
 				.setParameter(3, agencyName)
@@ -127,10 +134,6 @@ public class SummaryTargetSchedulesReport implements ReportGenerator {
 		
     }
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-	
 	private void populateCounts(String[] displayableFields, List<String> agencies, List results) {
 		
 		// Iterate over results 'rows' and populate elements in displayableFields..
@@ -147,6 +150,10 @@ public class SummaryTargetSchedulesReport implements ReportGenerator {
     		}
     	}
 		
+	}
+
+	private Session currentSession() {
+		return entityManager.unwrap(Session.class);
 	}
 
 }

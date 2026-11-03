@@ -15,6 +15,7 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.Parameter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,6 +23,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -46,7 +49,8 @@ public class Pagination {
 	/** The logger. */
 	private static Log log = LogFactory.getLog(Pagination.class);
 
-	private SessionFactory sessionFactory;
+	@Autowired
+	private EntityManager entityManager;
 
 	/** The default constructor. */
 	public Pagination() {
@@ -132,10 +136,8 @@ public class Pagination {
 	 * @param aPage the page number to return.
 	 * @param aPageSize the size of the page to return
 	 * @param isNamedQuery true if the query is a named query
-	 * @param aSessionFactory the session factory to use with the pagination object
 	 */
-	public Pagination(final String cntQuery, final String aQuery, final Map aParams, final int aPage, final int aPageSize, final boolean isNamedQuery, SessionFactory aSessionFactory) {
-		setSessionFactory(aSessionFactory);
+	public Pagination(final String cntQuery, final String aQuery, final Map aParams, final int aPage, final int aPageSize, final boolean isNamedQuery) {
 		page = aPage;
 		pageSize = aPageSize;
 		Session session = currentSession();
@@ -259,12 +261,8 @@ public class Pagination {
 		return (total - 1) / pageSize;
 	}
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-
 	private Session currentSession() {
-		return sessionFactory.getCurrentSession();
+		return entityManager.unwrap(Session.class);
 	}
 
 }

@@ -22,9 +22,13 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -39,12 +43,15 @@ import org.webcurator.domain.model.report.LogonDuration;
  * 
  * @author MDubos
  */
+@Transactional
 public class SystemUsageReportGenerator implements ReportGenerator {
 	
 	private Log log = LogFactory.getLog(SystemUsageReportGenerator.class);
 
-	private SessionFactory sessionFactory;
-	
+	@Autowired
+	private EntityManager entityManager;
+
+
 	/**
 	 * Generate report's data
 	 * @param operationalReport An OperationReport
@@ -82,7 +89,7 @@ public class SystemUsageReportGenerator implements ReportGenerator {
 		Calendar now = Calendar.getInstance();
 
 		// Get all logged users
-		List results = sessionFactory.getCurrentSession().getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
+		List results = currentSession().getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
 						.setParameter(1, startDate)
 						.setParameter(2, endDate)
 						.setParameter(3, now.getTime())
@@ -115,8 +122,9 @@ public class SystemUsageReportGenerator implements ReportGenerator {
 		return resultSets;
 	}
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+
+	private Session currentSession() {
+		return entityManager.unwrap(Session.class);
 	}
 
 }

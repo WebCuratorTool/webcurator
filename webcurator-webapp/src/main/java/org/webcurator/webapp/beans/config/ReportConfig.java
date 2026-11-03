@@ -1,5 +1,6 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,6 @@ public class ReportConfig {
     @Bean
     public SystemUsageReportGenerator systemUsageReportGenerator() {
         SystemUsageReportGenerator bean = new SystemUsageReportGenerator();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
     }
@@ -91,7 +91,6 @@ public class ReportConfig {
     @Bean
     public SystemActivityReportGenerator systemActivityReportGeneratorImpl() {
         SystemActivityReportGenerator bean = new SystemActivityReportGenerator();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
     }
@@ -119,7 +118,6 @@ public class ReportConfig {
     @Bean
     public CrawlerActivityReport crawlerReportGenerator() {
         CrawlerActivityReport bean = new CrawlerActivityReport();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
     }
@@ -151,7 +149,6 @@ public class ReportConfig {
     @Bean
     public TargetGroupSchedulesReport targetGroupReportGenerator() {
         TargetGroupSchedulesReport bean = new TargetGroupSchedulesReport();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
     }
@@ -176,8 +173,6 @@ public class ReportConfig {
     @Bean
     public SummaryTargetSchedulesReport summaryTargetSchedulesReportGenerator() {
         SummaryTargetSchedulesReport bean = new SummaryTargetSchedulesReport();
-
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
     }

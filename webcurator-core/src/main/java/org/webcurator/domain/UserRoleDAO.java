@@ -15,10 +15,13 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.auth.Agency;
@@ -40,43 +43,43 @@ public class UserRoleDAO {
     
     private Log log = LogFactory.getLog(UserRoleDAO.class);
 
-
-    SessionFactory sessionFactory;
+    @Autowired
+    private EntityManager entityManager;
 
     public List getUserDTOs(Long agencyOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY);
         q.setParameter(1, agencyOid);
         return q.getResultList();
     }
 
     public List getUserDTOs() {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS);
         return q.getResultList();
     }
 
     public UserDTO getUserDTOByOid(final Long userOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTO_BY_OID);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTO_BY_OID);
         q.setParameter(1, userOid);
         return (UserDTO)q.uniqueResult();
     }
 
     public List getRoles() {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ROLES);
+        Query q = currentSession().createNamedQuery(Role.QRY_GET_ROLES);
         return q.getResultList();
     }
 
     public List getRoles(Long agencyOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY);
+        Query q = currentSession().createNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY);
         q.setParameter(1, agencyOid);
         return q.getResultList();
     }
 
     public User getUserByOid(Long oid) {
-        return sessionFactory.getCurrentSession().get(User.class, oid);
+        return currentSession().get(User.class, oid);
     }
 
     public User getUserByName(String username) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_BY_NAME);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USER_BY_NAME);
         q.setParameter(1, username);
         List results = q.getResultList();
 
@@ -89,63 +92,63 @@ public class UserRoleDAO {
     }
 
     public Agency getAgencyByOid(Long oid) {
-        return (Agency)sessionFactory.getCurrentSession().get(Agency.class, oid);
+        return (Agency)currentSession().get(Agency.class, oid);
     }
     
     public List getUserPrivileges(String username) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES);
+        Query q = currentSession().createNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES);
         q.setParameter(1, username);
         return q.getResultList();
     }
 
     public void saveOrUpdate(final Object aObject) {
-        sessionFactory.getCurrentSession().saveOrUpdate(aObject);
+        currentSession().saveOrUpdate(aObject);
     }
     
 
     public void delete(final Object aObject) {
-        sessionFactory.getCurrentSession().delete(aObject);
+        currentSession().delete(aObject);
     }
     
     public List getUsers() {
-        Query q = sessionFactory.getCurrentSession().createQuery("Select u from " + User.class.getCanonicalName()
+        Query q = currentSession().createQuery("Select u from " + User.class.getCanonicalName()
                                                                     + " u order by u.username");
         return q.getResultList();
     }
     
     public List getUsers(Long agencyOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY);
         q.setParameter(1, agencyOid);
         return q.getResultList();
     }
 
 
     public List getAgencies() {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
+        Query q = currentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
         return q.getResultList();
     }
 
     public List getAssociatedRolesForUser(Long userOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER);
+        Query q = currentSession().createNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER);
         q.setParameter(1, userOid);
         return q.getResultList();
     }
 
     public Role getRoleByOid(Long oid) {
-        return sessionFactory.getCurrentSession().get(Role.class, oid);
+        return currentSession().get(Role.class, oid);
     }
 
 
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE);
         q.setParameter(1, privilege);
         return q.getResultList();
     }
 
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY);
         q.setParameter(1, privilege);
         q.setParameter(2, agencyOid);
         return q.getResultList();
@@ -153,16 +156,12 @@ public class UserRoleDAO {
     
     @SuppressWarnings("unchecked")
 	public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
-        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION);
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION);
         q.setParameter(1, permissionOid);
         return q.getResultList();
     }
 
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+    private Session currentSession() {
+        return entityManager.unwrap(Session.class);
     }
 }

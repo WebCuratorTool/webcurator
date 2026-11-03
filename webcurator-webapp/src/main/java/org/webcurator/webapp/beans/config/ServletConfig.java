@@ -1,5 +1,6 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -523,7 +524,7 @@ public class ServletConfig {
     @Lazy(false)
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
-        bean.setSessionFactory(baseConfig.sessionFactory().getObject());
+        bean.setSessionFactory((SessionFactory) baseConfig.entityManagerFactory().getObject());
 
         return bean;
     }

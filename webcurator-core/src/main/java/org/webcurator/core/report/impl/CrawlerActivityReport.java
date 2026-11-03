@@ -15,11 +15,14 @@
  */
 package org.webcurator.core.report.impl;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -39,11 +42,13 @@ import java.util.List;
  * @author beaumontb
  *
  */
+@Transactional
 public class CrawlerActivityReport implements ReportGenerator {
 
 	private Log log = LogFactory.getLog(CrawlerActivityReport.class);
 
-	private SessionFactory sessionFactory;
+	@Autowired
+	private EntityManager entityManager;
 
 	/**
 	 * Generate report's data
@@ -79,7 +84,7 @@ public class CrawlerActivityReport implements ReportGenerator {
 	@SuppressWarnings("unchecked")
 	protected List<ResultSet> runReport(final Date startDate, final Date endDate, final String agencyName, final String userName){
 
-		Session session = sessionFactory.getCurrentSession();
+		Session session = currentSession();
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
 		Root<TargetInstance> root = query.from(TargetInstance.class);
@@ -135,8 +140,8 @@ public class CrawlerActivityReport implements ReportGenerator {
     }
 
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+	private Session currentSession() {
+		return entityManager.unwrap(Session.class);
 	}
 
 }

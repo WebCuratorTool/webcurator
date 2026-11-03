@@ -15,14 +15,15 @@
  */
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
@@ -63,8 +64,10 @@ public class TargetInstanceDAO {
 
     private Auditor auditor;
 
-    private SessionFactory sessionFactory;
+    @Autowired
+    private EntityManager entityManager;
 
+    @Transactional
     public void save(final Object aObj) {
 
         TargetInstanceDTO originalTI = null;
@@ -120,6 +123,7 @@ public class TargetInstanceDAO {
         }
     }
 
+    @Transactional
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -221,6 +225,7 @@ public class TargetInstanceDAO {
     }
 
 
+    @Transactional
     public TargetInstance load(final long targetInstanceOid) {
         return (TargetInstance) currentSession().getReference(TargetInstance.class, targetInstanceOid);
     }
@@ -230,6 +235,7 @@ public class TargetInstanceDAO {
         return getHarvestResult(harvestResultOid, true);
     }
 
+    @Transactional
     public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
         HarvestResult hr = currentSession().load(HarvestResult.class, harvestResultOid);
 
@@ -242,12 +248,14 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
         Query q = currentSession().createQuery("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", HarvestResult.class);
         q.setParameter(0, targetInstanceId);
         return q.list();
     }
 
+    @Transactional
     public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
@@ -470,6 +478,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List findTargetInstances(final TargetInstanceCriteria aCriteria) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
@@ -538,6 +547,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<TargetInstance> findPurgeableTargetInstances(final Date aPurgeDate) {
         Query query = currentSession().getNamedQuery(TargetInstance.QRY_GET_PURGEABLE_TIS);
         query.setParameter(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate, Date.class);
@@ -547,6 +557,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<TargetInstance> findPurgeableAbortedTargetInstances(final Date aPurgeDate) {
         Query query = currentSession().getNamedQuery(TargetInstance.QRY_GET_PURGEABLE_ABORTED_TIS);
         query.setParameter(TargetInstance.QRY_PARAM_PURGE_TIME, aPurgeDate, Date.class);
@@ -556,6 +567,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<QueuedTargetInstanceDTO> getQueue() {
         final TargetInstanceCriteria criteria = new TargetInstanceCriteria();
         Set<String> states = new HashSet<String>();
@@ -579,6 +591,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<QueuedTargetInstanceDTO> getUpcomingJobs(final long futureMs) {
 
         StringBuffer q = new StringBuffer();
@@ -595,6 +608,7 @@ public class TargetInstanceDAO {
     }
 
     @SuppressWarnings("unchecked")
+    @Transactional
     public List<QueuedTargetInstanceDTO> getQueueForTarget(final Long targetOid) {
         final TargetInstanceCriteria criteria = new TargetInstanceCriteria();
         Set<String> states = new HashSet<String>();
@@ -617,6 +631,7 @@ public class TargetInstanceDAO {
         return query.list();
     }
 
+    @Transactional
     public Long countQueueLengthForTarget(final Long targetOid) {
         final TargetInstanceCriteria criteria = new TargetInstanceCriteria();
         Set<String> states = new HashSet<String>();
@@ -639,6 +654,7 @@ public class TargetInstanceDAO {
     }
 
 
+    @Transactional
     public TargetInstance populate(final TargetInstance aTargetInstance) {
         TargetInstance ati = (TargetInstance) currentSession().load(TargetInstance.class, aTargetInstance.getOid());
         if (ati != null) {
@@ -689,11 +705,6 @@ public class TargetInstanceDAO {
         this.txTemplate = txTemplate;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
-
     @Transactional
     public void deleteScheduledInstances(final Schedule aSchedule) {
         txTemplate.execute(
@@ -729,6 +740,7 @@ public class TargetInstanceDAO {
      * Detect and update TargetGroups that must be made inactive due to their
      * end date having been passed.
      */
+    @Transactional
     public void endDateGroups() {
         Date startTime = new Date();
         log.info("Starting Job to check end dates on groups");
@@ -751,7 +763,7 @@ public class TargetInstanceDAO {
     }
 
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 
 
@@ -816,7 +828,6 @@ public class TargetInstanceDAO {
                 if (!(candidateGroup instanceof TargetGroup)) {
                     TargetDAO targetDAO = new TargetDAO();
                     targetDAO.setTxTemplate(txTemplate);
-                    targetDAO.setSessionFactory(sessionFactory);
                     candidateGroup = targetDAO.loadGroup(candidateGroup.getOid());
                 }
 
@@ -826,6 +837,7 @@ public class TargetInstanceDAO {
             }
         }
 
+        @Transactional
         public Object doInTransaction(TransactionStatus tx) {
             try {
                 collectSchedules(target);
@@ -870,6 +882,7 @@ public class TargetInstanceDAO {
         );
     }
 
+    @Transactional
     public long countTargetInstances(final String aUsername, final ArrayList<String> aStates) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
@@ -894,6 +907,7 @@ public class TargetInstanceDAO {
         return count;
     }
 
+    @Transactional
     public long countActiveTIsForTarget(final Long targetOid) {
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
@@ -919,6 +933,7 @@ public class TargetInstanceDAO {
         return count;
     }
 
+    @Transactional
     public long countTargetInstancesByTarget(final Long targetOid) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
@@ -941,6 +956,7 @@ public class TargetInstanceDAO {
      * @param aOid the oid of the target instance DTO to return
      * @return the target instance DTO
      */
+    @Transactional
     public TargetInstanceDTO getTargetInstanceDTO(final Long aOid) {
         if (log.isDebugEnabled()) {
             log.debug("Get DTO for target instance: " + aOid);
@@ -965,6 +981,7 @@ public class TargetInstanceDAO {
         this.auditor = auditor;
     }
 
+    @Transactional
     public List<HarvestHistoryDTO> getHarvestHistory(final Long targetOid) {
         return currentSession().getNamedQuery(TargetInstance.QRY_GET_HARVEST_HISTORY)
                 .setParameter(1, targetOid)

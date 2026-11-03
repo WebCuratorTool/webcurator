@@ -15,6 +15,7 @@
  */
 package org.webcurator.core.report.impl;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -24,6 +25,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
@@ -44,11 +47,13 @@ import java.util.List;
  * @author oakleigh_sk
  *
  */
+@Transactional
 public class TargetGroupSchedulesReport implements ReportGenerator {
 
     private Log log = LogFactory.getLog(TargetGroupSchedulesReport.class);
 
-	private SessionFactory sessionFactory;
+	@Autowired
+	private EntityManager entityManager;
 
 	/**
 	 * Generate report's data
@@ -82,7 +87,7 @@ public class TargetGroupSchedulesReport implements ReportGenerator {
 										final String userName,
 										final String targetType){
 
-		Session session = sessionFactory.getCurrentSession();
+		Session session = entityManager.unwrap(Session.class);
 
 		CriteriaBuilder cb = session.getCriteriaBuilder();
 		CriteriaQuery<AbstractTargetScheduleView> query = cb.createQuery(AbstractTargetScheduleView.class);
@@ -200,10 +205,6 @@ public class TargetGroupSchedulesReport implements ReportGenerator {
 			}
 		}
 		return realResults;
-	}
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
 	}
 
 	private String DecodeMonths(String encodedMonths) {

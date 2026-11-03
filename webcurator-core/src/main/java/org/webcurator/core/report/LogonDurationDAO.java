@@ -18,10 +18,12 @@ package org.webcurator.core.report;
 import java.util.Date;
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -39,7 +41,9 @@ public class LogonDurationDAO {
 
     private TransactionTemplate txTemplate = null;
 
-    private SessionFactory sessionFactory;
+    @Autowired
+    private EntityManager entityManager;
+
 
     /**
      * User has logged in
@@ -67,7 +71,7 @@ public class LogonDurationDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before saving of the LogonDuration");
-                            sessionFactory.getCurrentSession().persist(ld);
+                            currentSession().persist(ld);
                             log.debug("After saving of the LogonDuration");
                         } catch (DataAccessException ex) {
                             log.warn("Setting Rollback Only", ex);
@@ -89,7 +93,7 @@ public class LogonDurationDAO {
      */
     public void setLoggedOut(String sessionId, Date loggedOutTime) {
 
-        Session session = sessionFactory.getCurrentSession();
+        Session session = currentSession();
         // Find associated login record
         List results = session.createNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION, LogonDuration.class)
                 .setParameter(1, sessionId)
@@ -134,7 +138,7 @@ public class LogonDurationDAO {
      */
     @SuppressWarnings("unchecked")
     public void setProperLoggedoutForCurrentUser(Long currentUserOid, String currentUserSessionId) {
-        Session session = sessionFactory.getCurrentSession();
+        Session session = currentSession();
         List<LogonDuration> results = session
                 .createNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER, LogonDuration.class)
                 .setParameter(1, currentUserOid.longValue())
@@ -169,8 +173,8 @@ public class LogonDurationDAO {
         this.txTemplate = txTemplate;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
+    private Session currentSession() {
+        return entityManager.unwrap(Session.class);
     }
 
 }

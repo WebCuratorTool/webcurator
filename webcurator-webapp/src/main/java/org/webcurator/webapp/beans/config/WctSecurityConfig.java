@@ -7,11 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,14 +21,12 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.ldap.EmbeddedLdapServerContextSourceFactoryBean;
-import org.springframework.security.config.ldap.LdapBindAuthenticationManagerFactory;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.userdetails.PersonContextMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.webcurator.auth.TransitionalPasswordEncoder;
 import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
@@ -38,6 +35,7 @@ import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.domain.model.auth.User;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -132,19 +130,20 @@ public class WctSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        PathPatternRequestMatcher.Builder request = PathPatternRequestMatcher.withDefaults();
         http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                 authorizationManagerRequestMatcherRegistry
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/curator/**").hasRole("LOGIN")
-                        .requestMatchers("/jsp/**").hasRole("LOGIN")
-                        .requestMatchers("/replay/**").hasRole("LOGIN")
-                        .requestMatchers("/help/**").hasRole("LOGIN")
-                        .requestMatchers("/styles/**").permitAll()
-                        .requestMatchers("/images/**").permitAll()
-                        .requestMatchers("/scripts/**").permitAll()
-                        .requestMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
-                        .requestMatchers("**/digital-asset-store/**").permitAll()
-                        .requestMatchers("/spa/**").permitAll()
+                        .requestMatchers(request.matcher("/admin/**")).hasRole("ADMIN")
+                        .requestMatchers(request.matcher("/curator/**")).hasRole("LOGIN")
+                        .requestMatchers(request.matcher("/jsp/**")).hasRole("LOGIN")
+                        .requestMatchers(request.matcher("/replay/**")).hasRole("LOGIN")
+                        .requestMatchers(request.matcher("/help/**")).hasRole("LOGIN")
+                        .requestMatchers(request.matcher("/styles/**")).permitAll()
+                        .requestMatchers(request.matcher("/images/**")).permitAll()
+                        .requestMatchers(request.matcher("/scripts/**")).permitAll()
+                        .requestMatchers(request.matcher(WctCoordinatorPaths.ROOT_PATH + "/**")).permitAll()
+                        //.requestMatchers(request.matcher("/**/digital-asset-store/**")).permitAll()
+                        .requestMatchers(request.matcher("/spa/**")).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults()).formLogin(httpSecurityFormLoginConfigurer ->
                         httpSecurityFormLoginConfigurer.loginPage("/logon.jsp").permitAll()

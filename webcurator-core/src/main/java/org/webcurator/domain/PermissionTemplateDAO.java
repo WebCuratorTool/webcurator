@@ -17,13 +17,16 @@ package org.webcurator.domain;
 
 import java.util.List;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Permission;
@@ -33,14 +36,16 @@ import org.webcurator.domain.model.core.PermissionTemplate;
  * Persistance Interface for the managing the Permission Template Request object
  * @author BPrice
  */
+@Transactional
 public class PermissionTemplateDAO {
 
     private Log log = LogFactory.getLog(PermissionTemplateDAO.class);
     
     private TransactionTemplate txTemplate;
 
-    private SessionFactory sessionFactory;
-    
+    @Autowired
+    private EntityManager entityManager;
+
     public PermissionTemplateDAO() {
 
     }
@@ -62,10 +67,6 @@ public class PermissionTemplateDAO {
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
-    }
-
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
     }
 
     public void saveOrUpdate(final Object aObject) {
@@ -114,7 +115,7 @@ public class PermissionTemplateDAO {
     }
 
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 
 }

@@ -16,8 +16,10 @@
 
 package org.webcurator.domain;
 
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.core.Permission;
 
@@ -31,7 +33,8 @@ import java.util.List;
 @Transactional
 public class PermissionDAO {
 
-    private SessionFactory sessionFactory;
+    @Autowired
+    private EntityManager entityManager;
 
     public Permission load(long permissionOid) {
         return (Permission) currentSession().getReference(Permission.class, permissionOid);
@@ -43,11 +46,7 @@ public class PermissionDAO {
         return query.getResultList();
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
-
     private Session currentSession() {
-        return sessionFactory.getCurrentSession();
+        return entityManager.unwrap(Session.class);
     }
 }

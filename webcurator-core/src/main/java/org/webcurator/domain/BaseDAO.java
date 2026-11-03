@@ -17,12 +17,15 @@ package org.webcurator.domain;
 
 import java.util.Collection;
 
+import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -34,16 +37,15 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
  * 
  * @author bbeaumont
  */
+@Transactional
 public class BaseDAO {
 	private Log log = LogFactory.getLog(BaseDAO.class);
 	
 	protected TransactionTemplate txTemplate;
 
-	private SessionFactory sessionFactory;
+	@Autowired
+	private EntityManager entityManager;
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
 
 	public void setTxTemplate(TransactionTemplate txTemplate) {
 		this.txTemplate = txTemplate;
@@ -54,7 +56,7 @@ public class BaseDAO {
 	}
 
 	public Session currentSession() {
-		return sessionFactory.getCurrentSession();
+		return entityManager.unwrap(Session.class);
 	}
 	
 	/**
