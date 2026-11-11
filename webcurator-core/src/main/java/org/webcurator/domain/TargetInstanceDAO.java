@@ -262,7 +262,7 @@ public class TargetInstanceDAO {
         CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
         CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
         Root<TargetInstance> root = query.from(TargetInstance.class);
-        Root<TargetInstance> cntRoot = query.from(TargetInstance.class);
+        Root<TargetInstance> cntRoot = cntQuery.from(TargetInstance.class);
         query.select(root);
         cntQuery.select(cb.count(cntRoot));
 
@@ -372,7 +372,7 @@ public class TargetInstanceDAO {
         if (aCriteria.getTargetSearchOid() != null) {
             if (targetJoin == null) {
                 targetJoin = root.join("target");
-                cntTargetJoin = root.join("target");
+                cntTargetJoin = cntRoot.join("target");
             }
             targetSearchOidPredicate = cb.equal(targetJoin.get("oid"), aCriteria.getTargetSearchOid());
             cntTargetSearchOidPredicate = cb.equal(cntTargetJoin.get("oid"), aCriteria.getTargetSearchOid());
@@ -406,7 +406,7 @@ public class TargetInstanceDAO {
                 cntOwnerPredicate, cntAgencyPredicate, cntNamePredicate, cntSeachOidPredicate, cntTargetSearchOidPredicate,
                 cntFlaggedPredicate, cntFlagPredicate, cntNondisplayonlyPredicate);
         query.where(whereClause);
-        cntQuery.where((cntWhereClause));
+        cntQuery.where(cntWhereClause);
 
         List<Order> orderBy = new ArrayList<>();
         if (aCriteria.getSortorder() == null ||

@@ -1,6 +1,5 @@
 package org.webcurator.webapp.beans.config;
 
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -8,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
@@ -131,7 +130,7 @@ public class ServletConfig {
     @Lazy(false)
     public SimpleUrlHandlerMapping simpleUrlMapping() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
-        bean.setInterceptors(new Object[] { openSessionInViewInterceptor() });
+        bean.setInterceptors(new Object[] { openEntityManagerInViewInterceptor() });
 
         // Make sure this overrides Spring's default handler
         bean.setOrder(0);
@@ -519,15 +518,13 @@ public class ServletConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
-        OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
-        bean.setSessionFactory((SessionFactory) baseConfig.entityManagerFactory().getObject());
 
-        return bean;
+    @Bean
+    @Lazy(false)
+    public OpenEntityManagerInViewInterceptor openEntityManagerInViewInterceptor() {
+        return new OpenEntityManagerInViewInterceptor();
     }
+
 
     @Bean
     public OverrideGetter targetOverrideGetter() {

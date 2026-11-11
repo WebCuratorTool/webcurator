@@ -1,6 +1,5 @@
 package org.webcurator.webapp.beans.config;
 
-import org.hibernate.SessionFactory;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -18,16 +17,15 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.RollbackOn;
-import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
@@ -435,8 +433,13 @@ public class BaseConfig {
 //    }
 
     @Bean
+    public PlatformTransactionManager transactionManager() {
+        return new JpaTransactionManager();
+    }
+
+    @Bean
     public TransactionTemplate transactionTemplate() {
-        return new TransactionTemplate(new JdbcTransactionManager(dataSource()));
+        return new TransactionTemplate(transactionManager());
     }
 
     @Bean

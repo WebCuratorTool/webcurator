@@ -26,6 +26,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.report.LogonDuration;
@@ -137,6 +138,7 @@ public class LogonDurationDAO {
      * all closed even if Tomcat has been shut down e.g.
      */
     @SuppressWarnings("unchecked")
+    @Transactional
     public void setProperLoggedoutForCurrentUser(Long currentUserOid, String currentUserSessionId) {
         Session session = currentSession();
         List<LogonDuration> results = session
@@ -148,14 +150,13 @@ public class LogonDurationDAO {
         for (LogonDuration ld : results) {
             log.warn("closing logonDuration: " + ld.getOid().longValue() + " (session: " + ld.getSessionId() + ")...");
 
-            final LogonDuration finalLd = ld.clone();
-            finalLd.computeAndSetDuration(true);
+            ld.computeAndSetDuration(true);
 
             txTemplate.execute(
                     new TransactionCallback() {
                         public Object doInTransaction(TransactionStatus ts) {
                             try {
-                                session.persist(finalLd);
+                                session.persist(ld);
                             } catch (DataAccessException ex) {
                                 log.warn("Setting Rollback Only", ex);
                                 ts.setRollbackOnly();

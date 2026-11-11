@@ -1,6 +1,5 @@
 package org.webcurator.webapp.beans.config;
 
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -8,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
-import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewInterceptor;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.webcurator.ui.tools.controller.BrowseHelper;
 import org.webcurator.ui.tools.controller.RegexReplacer;
@@ -33,22 +32,16 @@ public class BrowseServletConfig {
     @Autowired
     private BaseConfig baseConfig;
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public OpenSessionInViewInterceptor openSessionInViewInterceptorBrowse() {
-        OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
-        bean.setSessionFactory((SessionFactory) baseConfig.entityManagerFactory().getObject());
+    @Autowired
+    OpenEntityManagerInViewInterceptor openEntityManagerInViewInterceptor;
 
-        return bean;
-    }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public SimpleUrlHandlerMapping simpleUrlMappingBrowse() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
-        bean.setInterceptors(new Object[]{openSessionInViewInterceptorBrowse()});
+        bean.setInterceptors(new Object[]{openEntityManagerInViewInterceptor});
 
         Properties properties = new Properties();
         properties.setProperty("**", "browseController");
