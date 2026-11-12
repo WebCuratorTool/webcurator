@@ -1,18 +1,13 @@
 plugins {
     id 'org.springframework.boot' version '3.5.16'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'java-library'
+    id 'java'
     id 'maven-publish'
-    id 'war'
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
-
-//    maven {
-//        url = 'https://builds.archive.org/maven2'
-//    }
 
     maven {
         url = 'https://repo.maven.apache.org/maven2'
@@ -25,27 +20,34 @@ repositories {
     }
 }
 
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
 
+configurations {
+    publishableArtifacts
+}
+
+
 dependencies {
-    implementation 'commons-httpclient:commons-httpclient:3.1'
-    //implementation 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
-    implementation 'it.unimi.dsi:mg4j:2.0.1'
-    implementation 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
-    implementation 'jaxen:jaxen:1.2.0'
+    // implementation 'commons-httpclient:commons-httpclient:3.1'
+    // implementation 'it.unimi.dsi:mg4j:2.0.1'
+    // implementation 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
+    // implementation 'jaxen:jaxen:1.2.0'    
+    // implementation 'joda-time:joda-time:2.10.5'
+    implementation 'net.sf.ehcache:ehcache:2.10.6'
+    implementation 'org.springframework:spring-context-support'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
     implementation('org.webcurator:webcurator-core:3.2.5-SNAPSHOT') {
         exclude group: 'org.archive', module: 'heritrix'
+        exclude group: 'org.glassfish.jaxb', module: 'jaxb-core'
     }
-    implementation 'net.sf.ehcache:ehcache:2.10.6'
-    //    compile 'wsdl4j:wsdl4j:1.6.1'
     implementation 'org.webcurator:webcurator-submit-to-rosetta:3.2.5-SNAPSHOT'
-    implementation 'joda-time:joda-time:2.10.5'
-    // implementation 'jakarta.mail:jakarta.mail-api'
-    // implementation 'jakarta.validation:jakarta.validation-api'
-
-    testImplementation 'junit:junit:4.12'
-    testImplementation 'org.mockito:mockito-core:3.2.4'
-    testImplementation 'org.powermock:powermock-module-junit4:1.5.1'
+    
     // Screenshot dependencies
     // https://mvnrepository.com/artifact/org.seleniumhq.webdriver/webdriver-selenium
     implementation group: 'org.seleniumhq.webdriver', name: 'webdriver-selenium', version: '0.9.7376'
@@ -57,6 +59,10 @@ dependencies {
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '3.141.59'
     // https://mvnrepository.com/artifact/ru.yandex.qatools.ashot/ashot
     implementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:3.2.4'
+    testImplementation 'org.powermock:powermock-module-junit4:1.5.1'
 }
 
 group = 'org.webcurator'
@@ -74,7 +80,7 @@ task sourcesJar(type: Jar) {
 }
 
 // just an alias
-task install(dependsOn: ['bootWar'])
+task install(dependsOn: ['bootWar', 'publishToMavenLocal'])
 
 publishing {
     publications {
