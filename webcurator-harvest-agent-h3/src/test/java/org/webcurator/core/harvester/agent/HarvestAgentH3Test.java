@@ -9,11 +9,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.util.ApplicationContextFactory;
@@ -23,11 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * HarvestAgentH3 test class.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class HarvestAgentH3Test {
 
     @Mock
@@ -42,10 +38,11 @@ public class HarvestAgentH3Test {
 
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
         log.debug("Setting up HarvestAgentH3Test.");
         hah3 = new HarvestAgentH3();
 
-//        when(context.getBean("environment")).thenReturn(mockEnvironment);
+        // when(context.getBean("environment")).thenReturn(mockEnvironment);
         ApplicationContextFactory.setApplicationContext(context);
 
         // We mock the previous behaviour before the bean existed.

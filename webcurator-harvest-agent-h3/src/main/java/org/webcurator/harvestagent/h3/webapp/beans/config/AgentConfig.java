@@ -30,20 +30,19 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-
 /**
  * Contains configuration that used to be found in {@code wct-agent.xml}. This
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
-@SuppressWarnings({"all"})
+@SuppressWarnings({ "all" })
 @Configuration
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
@@ -124,7 +123,6 @@ public class AgentConfig {
     @Value("${harvestAgent.allowedAgencies}")
     private String allowedAgencies;
 
-
     // The base service url of the digital asset store.
     @Value("${digitalAssetStore.baseUrl}")
     private String digitalAssetStoreBaseUrl;
@@ -157,19 +155,23 @@ public class AgentConfig {
     @Value("${harvestCompleteConfig.waitOnCompleteSeconds}")
     private int harvestCompleteConfigWaitOnCompleteSeconds;
 
-    // The amount of memory in KB that can be used before a warning notification is sent.
+    // The amount of memory in KB that can be used before a warning notification is
+    // sent.
     @Value("${memoryChecker.warnThreshold}")
     private int memoryCheckerWarnThreshold;
 
-    // The amount of memory in KB that can be used before an error notification is sent.
+    // The amount of memory in KB that can be used before an error notification is
+    // sent.
     @Value("${memoryChecker.errorThreshold}")
     private int memoryCheckerErrorThreshold;
 
-    // The minimum percentage of processor available before a warning notification is sent.
+    // The minimum percentage of processor available before a warning notification
+    // is sent.
     @Value("${processorCheck.warnThreshold}")
     private int processorCheckWarnThreshold;
 
-    // The minimum percentage of processor available before an error notification is sent.
+    // The minimum percentage of processor available before an error notification is
+    // sent.
     @Value("${processorCheck.errorThreshold}")
     private int processorCheckErrorThreshold;
 
@@ -205,8 +207,8 @@ public class AgentConfig {
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
         bean.setBaseUrl(harvestAgentBaseUrl);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
-//        bean.setService(harvestAgentService);
-//        bean.setLogReaderService(harvestAgentLogReaderService);
+        // bean.setService(harvestAgentService);
+        // bean.setLogReaderService(harvestAgentLogReaderService);
         bean.setName(harvestAgentName);
         bean.setProvenanceNote(harvestAgentProvenanceNote);
         bean.setAlertThreshold(harvestAgentAlertThreshold);
@@ -217,7 +219,7 @@ public class AgentConfig {
             bean.setAllowedAgencies(new ArrayList<String>(splitAgencies));
         }
         bean.setDigitalAssetStore(digitalAssetStore());
-        //bean.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
+        // bean.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
 
         return bean;
     }
@@ -230,7 +232,8 @@ public class AgentConfig {
         bean.setScheme(h3WrapperScheme);
         bean.setHost(h3WrapperHost);
         bean.setPort(h3WrapperPort);
-        if (h3WrapperKeyStoreFile == null || h3WrapperKeyStoreFile.getName().trim().length() == 0 || h3WrapperKeyStoreFile.getName().equals("''")) {
+        if (h3WrapperKeyStoreFile == null || h3WrapperKeyStoreFile.getName().trim().length() == 0
+                || h3WrapperKeyStoreFile.getName().equals("''")) {
             bean.setKeyStoreFile(null);
         } else {
             bean.setKeyStoreFile(h3WrapperKeyStoreFile);
@@ -246,8 +249,9 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
-        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierBaseUrl, restTemplateBuilder);
-        //bean.setAgent(harvestAgent());
+        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierBaseUrl,
+                restTemplateBuilder);
+        // bean.setAgent(harvestAgent());
         bean.setAttemptRecovery(harvestAgentAttemptHarvestRecovery);
 
         return bean;
@@ -287,7 +291,8 @@ public class AgentConfig {
         Trigger bean = newTrigger()
                 .withIdentity("HeartBeatTrigger", "HeartBeatTriggerGroup")
                 .startAt(startTime)
-                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
+                .withSchedule(
+                        simpleSchedule().repeatForever().withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
                 .forJob(heartbeatJob())
                 .build();
 
@@ -336,11 +341,15 @@ public class AgentConfig {
         return bean;
     }
 
-    // The following memory checker replaces the one above where Harvest Agents are to stop processing new harvests
-    // when memory exceeds the warning level, and restart processing new harvests when memory drops below the
+    // The following memory checker replaces the one above where Harvest Agents are
+    // to stop processing new harvests
+    // when memory exceeds the warning level, and restart processing new harvests
+    // when memory drops below the
     // warning level.
-    // TODO CONFIGURATION This bean was commented out in wct-agent.xml, which means it could be switched by changing configuration.
-    // Note that in the configuration this is the same bean name "memoryChecker". So it might be better to have a
+    // TODO CONFIGURATION This bean was commented out in wct-agent.xml, which means
+    // it could be switched by changing configuration.
+    // Note that in the configuration this is the same bean name "memoryChecker". So
+    // it might be better to have a
     // properties setting that switches them back and forth.
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -364,8 +373,10 @@ public class AgentConfig {
         ProcessorCheck bean = new ProcessorCheck();
 
         // TODO CONFIGURATION This must be runtime configurable
-        // The pattern and command properties can be set the default setup is for linux sar -u
-        // For a solaris box use this pattern to get the processor data for linux remove this line.
+        // The pattern and command properties can be set the default setup is for linux
+        // sar -u
+        // For a solaris box use this pattern to get the processor data for linux remove
+        // this line.
         bean.setPattern("(?m)\\w+:\\w+:\\w+\\s+\\S+\\s+\\S+\\s+\\S+\\s+(\\S+)$");
 
         bean.setWarnThreshold(processorCheckWarnThreshold);
@@ -403,7 +414,7 @@ public class AgentConfig {
 
         List<Checker> checksList = new ArrayList<>();
         checksList.add(memoryChecker());
-        //checksList.add(diskSpaceChecker());
+        // checksList.add(diskSpaceChecker());
         bean.setChecks(checksList);
 
         return bean;
@@ -426,7 +437,8 @@ public class AgentConfig {
         Trigger bean = newTrigger()
                 .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
                 .startAt(startTime)
-                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .withSchedule(simpleSchedule().repeatForever()
+                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
                 .forJob(checkProcessorJob().getObject())
                 .build();
 
