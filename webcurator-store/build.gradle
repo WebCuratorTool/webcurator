@@ -1,7 +1,8 @@
 plugins {
-    id 'java'
-    id 'maven-publish'
     id 'org.springframework.boot' version '3.5.16'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java-library'
+    id 'maven-publish'
     id 'war'
 }
 
@@ -39,6 +40,9 @@ dependencies {
     //    compile 'wsdl4j:wsdl4j:1.6.1'
     implementation 'org.webcurator:webcurator-submit-to-rosetta:3.2.5-SNAPSHOT'
     implementation 'joda-time:joda-time:2.10.5'
+    // implementation 'jakarta.mail:jakarta.mail-api'
+    // implementation 'jakarta.validation:jakarta.validation-api'
+
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:3.2.4'
     testImplementation 'org.powermock:powermock-module-junit4:1.5.1'
