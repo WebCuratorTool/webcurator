@@ -1,7 +1,7 @@
 package org.webcurator.core.store.arc;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import java.util.*;
 
 // This is a version of the MutableHttpServletRequest class detailed in http://wilddiary.com/adding-custom-headers-java-httpservletrequest/
@@ -13,13 +13,15 @@ final class MutableHttpServletRequest extends HttpServletRequestWrapper {
 
     public MutableHttpServletRequest(HttpServletRequest req) {
         super(req);
-        this.headers = new HashMap<String,String>();
+        this.headers = new HashMap<String, String>();
     }
 
     public String getHeader(String name) {
-        if (this.headers.get(name) != null) return this.headers.get(name);
+        if (this.headers.get(name) != null)
+            return this.headers.get(name);
         // If null, return object from wrapper
-        else return ((HttpServletRequest) getRequest()).getHeader(name);
+        else
+            return ((HttpServletRequest) getRequest()).getHeader(name);
     }
 
     public Enumeration<String> getHeaderNames() {

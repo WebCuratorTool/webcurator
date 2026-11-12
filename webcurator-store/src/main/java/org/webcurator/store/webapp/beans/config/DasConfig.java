@@ -42,7 +42,7 @@ import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -347,7 +347,7 @@ public class DasConfig implements WebMvcConfigurer {
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {
-        //https://publicsuffix.org/list/public_suffix_list.dat
+        // https://publicsuffix.org/list/public_suffix_list.dat
 
         NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
         Resource resource = new ClassPathResource("public_suffix_list.dat");
@@ -372,7 +372,8 @@ public class DasConfig implements WebMvcConfigurer {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationDirectoryManager visualizationManager() {
-        return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, Constants.DIR_LOGS, Constants.DIR_REPORTS);
+        return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, Constants.DIR_LOGS,
+                Constants.DIR_REPORTS);
     }
 
     @Bean
@@ -385,7 +386,8 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl,
+                new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setIndexer(indexer());
         bean.setDasFileMover(createDasFileMover());
@@ -493,8 +495,10 @@ public class DasConfig implements WebMvcConfigurer {
             List<RunnableIndex> list = (List<RunnableIndex>) (List<?>) runnableIndexers.getObject();
             bean.setIndexers(list);
         } catch (Exception e) {
-            // This is to avoid an 'throws Exception' in the method signature, which would percolate to all related
-            // beans. If the bean cannot be instantiated/populated properly, the application should not be able to start.
+            // This is to avoid an 'throws Exception' in the method signature, which would
+            // percolate to all related
+            // beans. If the bean cannot be instantiated/populated properly, the application
+            // should not be able to start.
             LOGGER.error("indexer unable to setIndexers with: " + runnableIndexers, e);
             throw new RuntimeException(e);
         }
@@ -586,14 +590,16 @@ public class DasConfig implements WebMvcConfigurer {
         return bean;
     }
 
-    // A File Mover that uses InputStreams to copy files in chunks. Will work successfully
+    // A File Mover that uses InputStreams to copy files in chunks. Will work
+    // successfully
     // across different filesystems.
     @Bean
     public InputStreamDasFileMover inputStreamDasFileMover() {
         return new InputStreamDasFileMover();
     }
 
-    // A File Mover that simply renames the file. This will be fast but is NOT guaranteed to
+    // A File Mover that simply renames the file. This will be fast but is NOT
+    // guaranteed to
     // move files between file systems.
     @Bean
     public RenameDasFileMover renameDasFileMover() {
@@ -640,7 +646,8 @@ public class DasConfig implements WebMvcConfigurer {
         return bean;
     }
 
-    // Configuration parameters for the Submit-To-Rosetta module which submits a harvest into Ex Libris Rosetta System
+    // Configuration parameters for the Submit-To-Rosetta module which submits a
+    // harvest into Ex Libris Rosetta System
     // (a.k.a. DPS, the Digital Preservation System).
     private DPSArchive createDpsArchive() {
         DPSArchive bean = new DPSArchive();
@@ -649,12 +656,17 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setFtpUserName(dpsArchiveFtpUserName);
         bean.setFtpPassword(dpsArchiveFtpPassword);
 
-        // TODO Note wct-das.xml does not have this element commented out, so this comment may no longer apply.
-        // "ftpDirectory" is an optional parameter. If not provided, the harvest files will be FTPed to the home directory
-        // of the FTP user. If this parameter is provided, the files will be FTPed to this directory instead. However,
-        // it is your responsibility to ensure that the FTP user has the write permission to this directory.
+        // TODO Note wct-das.xml does not have this element commented out, so this
+        // comment may no longer apply.
+        // "ftpDirectory" is an optional parameter. If not provided, the harvest files
+        // will be FTPed to the home directory
+        // of the FTP user. If this parameter is provided, the files will be FTPed to
+        // this directory instead. However,
+        // it is your responsibility to ensure that the FTP user has the write
+        // permission to this directory.
         //
-        // Uncomment the XML element below if this parameter needs to be used in your installation.
+        // Uncomment the XML element below if this parameter needs to be used in your
+        // installation.
         bean.setFtpDirectory(dpsArchiveFtpDirectory);
 
         bean.setDpsUserInstitution(dpsArchiveDpsUserInstitution);
@@ -689,18 +701,19 @@ public class DasConfig implements WebMvcConfigurer {
         return bean;
     }
 
-//    @Bean
-//    public CustomDepositField customDepositField() {
-//        CustomDepositField bean = new CustomDepositField();
-//        // The label given to the field on the form
-//        bean.setFormFieldLabel("customDepositForm_bibliographicCitation");
-//        // A reference used when passing this value from WCT-Store to WCT-SubmitToRosetta
-//        bean.setFieldReference("DctermsBibliographicCitation");
-//        // The DC/DCTerms label used in the mets.xml
-//        bean.setDcFieldLabel("bibliographicCitation");
-//
-//        return bean;
-//    }
+    // @Bean
+    // public CustomDepositField customDepositField() {
+    // CustomDepositField bean = new CustomDepositField();
+    // // The label given to the field on the form
+    // bean.setFormFieldLabel("customDepositForm_bibliographicCitation");
+    // // A reference used when passing this value from WCT-Store to
+    // WCT-SubmitToRosetta
+    // bean.setFieldReference("DctermsBibliographicCitation");
+    // // The DC/DCTerms label used in the mets.xml
+    // bean.setDcFieldLabel("bibliographicCitation");
+    //
+    // return bean;
+    // }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -712,7 +725,9 @@ public class DasConfig implements WebMvcConfigurer {
         List<CustomDepositField> rosettaList = new ArrayList<>();
         rosettaList.add(depositFieldDctermsBibliographicCitation());
         rosettaList.add(depositFieldDctermsAvailable());
-        customDepositFormFieldMaps.put("http://localhost:" + wctStorePort + "/customDepositForms/rosetta_custom_deposit_form.jsp", rosettaList);
+        customDepositFormFieldMaps.put(
+                "http://localhost:" + wctStorePort + "/customDepositForms/rosetta_custom_deposit_form.jsp",
+                rosettaList);
 
         List<CustomDepositField> almaList = new ArrayList<>();
         almaList.add(depositFieldVolume());
@@ -721,7 +736,9 @@ public class DasConfig implements WebMvcConfigurer {
         almaList.add(depositFieldYear());
         almaList.add(depositFieldMonth());
         almaList.add(depositFieldDay());
-        customDepositFormFieldMaps.put("http://localhost:" + wctStorePort + "/customDepositForms/rosetta_alma_custom_deposit_form.jsp", almaList);
+        customDepositFormFieldMaps.put(
+                "http://localhost:" + wctStorePort + "/customDepositForms/rosetta_alma_custom_deposit_form.jsp",
+                almaList);
 
         bean.setCustomDepositFormFieldMaps(customDepositFormFieldMaps);
 
