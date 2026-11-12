@@ -23,22 +23,27 @@ repositories {
 }
 
 
-bootJar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+// bootJar {
+//     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+// }
 
 dependencies {  
     api 'net.sourceforge.jexcelapi:jxl:2.6.12'
     api 'com.exlibris:dps-sdk:7.1.0'
     api 'com.exlibris:dps-sdk-deposit-api:7.1.0'
-    api 'org.webcurator:webcurator-core:3.2.5-SNAPSHOT'
+    api ('org.webcurator:webcurator-core:3.2.5-SNAPSHOT'){
+        exclude group: 'org.springframework'
+        exclude group: 'org.glassfish.jaxb', module: 'jaxb-runtime'
+    }
     api 'dom4j:dom4j:1.6.1'
     api 'com.google.code.guice:guice:1.0'
     api 'commons-logging:commons-logging:1.2'
     api 'log4j:log4j:1.2.17'
     api 'javax.xml.ws:jaxws-api:2.3.1'
-    api 'com.sun.xml.ws:jaxws-ri:2.3.7'
-    api 'com.jcraft:jsch:0.1.55'   
+    api ('com.sun.xml.ws:jaxws-rt:4.0.5'){
+        exclude group: 'com.sun.xml.bind', module: 'jaxb-core'
+    }
+    api 'com.jcraft:jsch:0.1.55'
 
     testImplementation 'org.jmock:jmock:2.4.0'
     testImplementation 'junit:junit:4.12'
