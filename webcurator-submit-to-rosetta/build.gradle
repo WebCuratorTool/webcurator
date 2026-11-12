@@ -27,25 +27,19 @@ bootJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-dependencies {
-    implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
-        exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
-    }
-    implementation 'net.sourceforge.jexcelapi:jxl:2.6.12'
-    implementation 'com.exlibris:dps-sdk:7.1.0'
-    implementation 'com.exlibris:dps-sdk-deposit-api:7.1.0'
-    implementation 'org.webcurator:webcurator-core:3.2.5-SNAPSHOT'
-    implementation 'dom4j:dom4j:1.6.1'
-    implementation 'com.google.code.guice:guice:1.0'
-    implementation 'org.apache.xmlbeans:xmlbeans:2.3.0'
-    implementation 'commons-logging:commons-logging:1.2'
-    implementation 'commons-lang:commons-lang:2.3'
-    // implementation 'org.netpreserve.commons:webarchive-commons:1.1.8'
-    implementation 'commons-net:commons-net:1.4.1'
-    implementation 'log4j:log4j:1.2.17'
-    implementation 'javax.xml.ws:jaxws-api:2.3.1'
-    implementation 'com.sun.xml.ws:jaxws-ri:2.3.7'
-    implementation 'com.jcraft:jsch:0.1.55'   
+dependencies {  
+    api 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    api 'com.exlibris:dps-sdk:7.1.0'
+    api 'com.exlibris:dps-sdk-deposit-api:7.1.0'
+    api 'org.webcurator:webcurator-core:3.2.5-SNAPSHOT'
+    api 'dom4j:dom4j:1.6.1'
+    api 'com.google.code.guice:guice:1.0'
+    api 'commons-logging:commons-logging:1.2'
+    api 'log4j:log4j:1.2.17'
+    api 'javax.xml.ws:jaxws-api:2.3.1'
+    api 'com.sun.xml.ws:jaxws-ri:2.3.7'
+    api 'com.jcraft:jsch:0.1.55'   
+
     testImplementation 'org.jmock:jmock:2.4.0'
     testImplementation 'junit:junit:4.12'
     testImplementation 'jmock:jmock-cglib:1.2.0'
