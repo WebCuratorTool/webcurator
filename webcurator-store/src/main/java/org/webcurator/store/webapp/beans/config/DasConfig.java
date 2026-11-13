@@ -329,17 +329,9 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${chromeClashDirectory}")
     private String chromeClashDirectory;
 
-    @Autowired
-    private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
-
     @PostConstruct
     public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
-
-        arcDigitalAssetStoreService.setDasFileMover(createDasFileMover());
-        arcDigitalAssetStoreService.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
-        arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
-        arcDigitalAssetStoreService.setFileArchive(createFileArchive());
 
         NetworkMapNodeUrlDTO.setTopDomainParse(networkMapDomainSuffix());
 
@@ -384,6 +376,8 @@ public class DasConfig implements WebMvcConfigurer {
                 maxConcurrencyModThreads);
     }
 
+    @Bean("arcDigitalAssetStoreService")
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
         ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl,
@@ -394,6 +388,11 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         bean.setFileArchive(createFileArchive());
+        bean.setDasFileMover(createDasFileMover());
+        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+        bean.setFileArchive(createFileArchive());
+
         return bean;
     }
 
@@ -611,7 +610,7 @@ public class DasConfig implements WebMvcConfigurer {
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public LogReaderImpl logReader() {
         LogReaderImpl bean = new LogReaderImpl();
-        bean.setLogProvider(arcDigitalAssetStoreService);
+        bean.setLogProvider(arcDigitalAssetStoreService());
 
         return bean;
     }

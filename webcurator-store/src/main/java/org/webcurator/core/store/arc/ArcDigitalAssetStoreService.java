@@ -41,10 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.archive.Archive;
@@ -81,8 +78,6 @@ import org.webcurator.domain.model.core.*;
  * @author bbeaumont
  */
 @SuppressWarnings("all")
-@Component("arcDigitalAssetStoreService")
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
