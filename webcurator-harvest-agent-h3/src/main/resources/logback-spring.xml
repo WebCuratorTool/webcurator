@@ -9,12 +9,10 @@
          logback can use. -->
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <!-- Note that log4j.xml had a ConversionPattern of value="%d %-5p [%t] %C{2} (%F:%L) - %m%n" -->
-            <Pattern>
-                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable
-            </Pattern>
-        </layout>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- %C{1.} is invalid in recent Logback; use %C{1} for one right-most class segment. -->
+            <pattern>%black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1}): %msg%n%throwable</pattern>
+        </encoder>
     </appender>
 
     <appender name="GeneralLog"
