@@ -193,9 +193,7 @@ public class AgentConfig {
 
     @PostConstruct
     public void postConstruct() {
-        // Avoid circular bean dependencies
-        harvestCoordinatorNotifier().setAgent(harvestAgent());
-        harvestAgent().setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
+        // Keep ApplicationContextFactory initialization out of bean construction paths.
         ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
@@ -219,7 +217,7 @@ public class AgentConfig {
             bean.setAllowedAgencies(new ArrayList<String>(splitAgencies));
         }
         bean.setDigitalAssetStore(digitalAssetStore());
-        // bean.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
+        bean.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
 
         return bean;
     }
@@ -251,9 +249,8 @@ public class AgentConfig {
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
         HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierBaseUrl,
                 restTemplateBuilder);
-        // bean.setAgent(harvestAgent());
         bean.setAttemptRecovery(harvestAgentAttemptHarvestRecovery);
-
+        bean.setSubjectPrefix(harvestAgentName);
         return bean;
     }
 
