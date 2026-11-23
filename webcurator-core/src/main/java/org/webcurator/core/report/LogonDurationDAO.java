@@ -112,7 +112,8 @@ public class LogonDurationDAO {
                         public Object doInTransaction(TransactionStatus ts) {
                             try {
                                 log.debug("Before saving of the LogonDuration");
-                                session.persist(ld);
+                                // session.persist(ld);
+                                session.merge(ld);
                                 log.debug("After saving of the LogonDuration");
                             } catch (DataAccessException ex) {
                                 log.warn("Setting Rollback Only", ex);
@@ -152,7 +153,7 @@ public class LogonDurationDAO {
                     new TransactionCallback() {
                         public Object doInTransaction(TransactionStatus ts) {
                             try {
-                                session.persist(finalLd);
+                                session.merge(finalLd);
                             } catch (DataAccessException ex) {
                                 log.warn("Setting Rollback Only", ex);
                                 ts.setRollbackOnly();
