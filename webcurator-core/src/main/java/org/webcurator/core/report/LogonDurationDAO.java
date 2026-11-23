@@ -31,7 +31,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.report.LogonDuration;
 
 /**
- * Interface for marking a User's login / logout, storing his/her associated session
+ * Interface for marking a User's login / logout, storing his/her associated
+ * session
  *
  * @author MDubos
  */
@@ -44,7 +45,6 @@ public class LogonDurationDAO {
     @Autowired
     private EntityManager entityManager;
 
-
     /**
      * User has logged in
      *
@@ -55,9 +55,10 @@ public class LogonDurationDAO {
      * @param userRealName User real name
      */
     public void setLoggedIn(String sessionId, Date loggedInTime, Long userId,
-                            String username, String userRealName) {
+            String username, String userRealName) {
 
-        log.info("setLoggedIn: sID=" + sessionId + " in=" + loggedInTime + " uId=" + userId + " un=" + username + " uRN=" + userRealName);
+        log.info("setLoggedIn: sID=" + sessionId + " in=" + loggedInTime + " uId=" + userId + " un=" + username
+                + " uRN=" + userRealName);
 
         final LogonDuration ld = new LogonDuration();
         ld.setSessionId(sessionId);
@@ -79,11 +80,9 @@ public class LogonDurationDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
 
     }
-
 
     /**
      * User has logged out
@@ -96,7 +95,7 @@ public class LogonDurationDAO {
         Session session = currentSession();
         // Find associated login record
         List results = session.createNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION, LogonDuration.class)
-                .setParameter(1, sessionId)
+                .setParameter("sessionId", sessionId)
                 .list();
 
         log.info("setLoggedOut sId=" + sessionId + " found " + (results == null ? "null" : results.size()));
@@ -121,15 +120,13 @@ public class LogonDurationDAO {
                             }
                             return null;
                         }
-                    }
-            );
+                    });
 
         } else {
             log.warn("No login associated found for session: " + sessionId);
         }
 
     }
-
 
     /**
      * Make sure that all durations of previous logins are
@@ -141,8 +138,8 @@ public class LogonDurationDAO {
         Session session = currentSession();
         List<LogonDuration> results = session
                 .createNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER, LogonDuration.class)
-                .setParameter(1, currentUserOid.longValue())
-                .setParameter(2, currentUserSessionId)
+                .setParameter("currentUserOid", currentUserOid.longValue())
+                .setParameter("currentUserSessionId", currentUserSessionId)
                 .list();
 
         for (LogonDuration ld : results) {
@@ -162,8 +159,7 @@ public class LogonDurationDAO {
                             }
                             return null;
                         }
-                    }
-            );
+                    });
 
         }
 

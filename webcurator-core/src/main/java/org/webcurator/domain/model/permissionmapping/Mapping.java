@@ -23,7 +23,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 
-
 /**
  * The Mapping class records mappings between UrlPatterns and
  * Permissions based on effective base domains. The goal is to
@@ -35,14 +34,10 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "URL_PERMISSION_MAPPING")
 @NamedQueries({
-        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.LIST",
-                query = "from Mapping where domain=?1"),
-        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.FETCH",
-                query = "from Mapping where oid=?1"),
-        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.DELETE",
-                query = "delete from Mapping m where m.urlPatternId = :urlPatternId and m.permissionId = :permissionId"),
-        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.DELETE_BY_PERMISSION",
-                query = "delete from Mapping m where m.permissionId = :permissionId")
+        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.LIST", query = "from Mapping where domain=:domain"),
+        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.FETCH", query = "from Mapping where oid=:mappingOid"),
+        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.DELETE", query = "delete from Mapping m where m.urlPatternId = :urlPatternId and m.permissionId = :permissionId"),
+        @NamedQuery(name = "org.webcurator.domain.model.permissionmapping.Mapping.DELETE_BY_PERMISSION", query = "delete from Mapping m where m.permissionId = :permissionId")
 })
 public class Mapping {
     /**
@@ -71,12 +66,10 @@ public class Mapping {
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
-    @TableGenerator(name = "SharedTableIdGenerator",
-            table = "ID_GENERATOR",
-            pkColumnName = "IG_TYPE",
-            valueColumnName = "IG_VALUE",
-            pkColumnValue = "General",
-            allocationSize = 1) // 50 is the default
+    @TableGenerator(name = "SharedTableIdGenerator", table = "ID_GENERATOR", pkColumnName = "IG_TYPE", valueColumnName = "IG_VALUE", pkColumnValue = "General", allocationSize = 1) // 50
+                                                                                                                                                                                    // is
+                                                                                                                                                                                    // the
+                                                                                                                                                                                    // default
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
 
@@ -86,23 +79,23 @@ public class Mapping {
     @Column(name = "UPM_URL_PATTERN_ID")
     private Long urlPatternId;
 
-//    /**
-//     * The UrlPattern
-//     */
-//    @ManyToOne(cascade = CascadeType.PERSIST)
-//    @JoinColumn(name = "UPM_URL_PATTERN_ID")
-//    private UrlPattern urlPattern;
-//    /**
-//     * The Permission
-//     */
-//    @ManyToOne(cascade = CascadeType.PERSIST)
-//    @JoinColumn(name = "UPM_PERMISSION_ID")
-//    private Permission permission;
+    // /**
+    // * The UrlPattern
+    // */
+    // @ManyToOne(cascade = CascadeType.PERSIST)
+    // @JoinColumn(name = "UPM_URL_PATTERN_ID")
+    // private UrlPattern urlPattern;
+    // /**
+    // * The Permission
+    // */
+    // @ManyToOne(cascade = CascadeType.PERSIST)
+    // @JoinColumn(name = "UPM_PERMISSION_ID")
+    // private Permission permission;
 
     /**
      * The calculate base domain
      */
-    @Size(max=1024)
+    @Size(max = 1024)
     @Column(name = "UPM_DOMAIN")
     private String domain;
 
@@ -120,14 +113,14 @@ public class Mapping {
      */
     public Mapping(UrlPattern urlPattern, Permission permission) {
         if (urlPattern != null) {
-//            this.urlPattern = urlPattern;
+            // this.urlPattern = urlPattern;
             this.urlPatternId = urlPattern.getOid();
             this.domain = HierarchicalPermissionMappingStrategy.calculateDomain(urlPattern.getPattern());
         }
 
         if (permission != null) {
             this.permissionId = permission.getOid();
-//            this.permission = permission;
+            // this.permission = permission;
         }
     }
 
@@ -149,62 +142,61 @@ public class Mapping {
         this.oid = aOid;
     }
 
+    // /**
+    // * Returns the permission.
+    // *
+    // * @return Returns the permission.
+    // */
+    // public Permission getPermission() {
+    // return permission;
+    // }
+    //
+    // /**
+    // * Sets the permission. Private as this should only
+    // * be called from Hibernate.
+    // *
+    // * @param permission The permission to set.
+    // */
+    // @SuppressWarnings("unused")
+    // private void setPermission(Permission permission) {
+    // this.permission = permission;
+    // }
+    //
+    // /**
+    // * Returns the UrlPattern
+    // *
+    // * @return Returns the urlPattern.
+    // */
+    // public UrlPattern getUrlPattern() {
+    // return urlPattern;
+    // }
+    //
+    // /**
+    // * Sets the UrlPattern. Private as this should only be called
+    // * from Hibernate.
+    // *
+    // * @param urlPattern The urlPattern to set.
+    // */
+    // @SuppressWarnings("unused")
+    // private void setUrlPattern(UrlPattern urlPattern) {
+    // this.urlPattern = urlPattern;
+    // }
 
-//    /**
-//     * Returns the permission.
-//     *
-//     * @return Returns the permission.
-//     */
-//    public Permission getPermission() {
-//        return permission;
-//    }
-//
-//    /**
-//     * Sets the permission. Private as this should only
-//     * be called from Hibernate.
-//     *
-//     * @param permission The permission to set.
-//     */
-//    @SuppressWarnings("unused")
-//    private void setPermission(Permission permission) {
-//        this.permission = permission;
-//    }
-//
-//    /**
-//     * Returns the UrlPattern
-//     *
-//     * @return Returns the urlPattern.
-//     */
-//    public UrlPattern getUrlPattern() {
-//        return urlPattern;
-//    }
-//
-//    /**
-//     * Sets the UrlPattern. Private as this should only be called
-//     * from Hibernate.
-//     *
-//     * @param urlPattern The urlPattern to set.
-//     */
-//    @SuppressWarnings("unused")
-//    private void setUrlPattern(UrlPattern urlPattern) {
-//        this.urlPattern = urlPattern;
-//    }
+    public Long getPermissionId() {
+        return permissionId;
+    }
 
-	public Long getPermissionId() {
-		return permissionId;
-	}
+    public void setPermissionId(Long permissionId) {
+        this.permissionId = permissionId;
+    }
 
-	public void setPermissionId(Long permissionId) {
-		this.permissionId = permissionId;
-	}
+    public Long getUrlPatternId() {
+        return urlPatternId;
+    }
 
-	public Long getUrlPatternId() {
-		return urlPatternId;
-	}
-
-	public void setUrlPatternId(Long urlPatternId) {
-		this.urlPatternId = urlPatternId;
-	}
+    public void setUrlPatternId(Long urlPatternId) {
+        this.urlPatternId = urlPatternId;
+    }
 
     /**
      * Gets the effective base domain.
@@ -226,40 +218,46 @@ public class Mapping {
         this.domain = domain;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {
         final int PRIME = 31;
         int result = 1;
-//        result = PRIME * result + ((permission == null) ? 0 : permission.getOid().hashCode());
-//        result = PRIME * result + ((urlPattern == null) ? 0 : urlPattern.getOid().hashCode());
+        // result = PRIME * result + ((permission == null) ? 0 :
+        // permission.getOid().hashCode());
+        // result = PRIME * result + ((urlPattern == null) ? 0 :
+        // urlPattern.getOid().hashCode());
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object obj) {
-//        if (this == obj)
-//            return true;
-//        if (obj == null)
-//            return false;
-//        if (getClass() != obj.getClass())
-//            return false;
-//        final Mapping other = (Mapping) obj;
-//        if (permission == null) {
-//            if (other.permission != null)
-//                return false;
-//        } else if (!permission.getOid().equals(other.permission.getOid()))
-//            return false;
-//        if (urlPattern == null) {
-//            if (other.urlPattern != null)
-//                return false;
-//        } else if (!urlPattern.getOid().equals(other.urlPattern.getOid()))
-//            return false;
+        // if (this == obj)
+        // return true;
+        // if (obj == null)
+        // return false;
+        // if (getClass() != obj.getClass())
+        // return false;
+        // final Mapping other = (Mapping) obj;
+        // if (permission == null) {
+        // if (other.permission != null)
+        // return false;
+        // } else if (!permission.getOid().equals(other.permission.getOid()))
+        // return false;
+        // if (urlPattern == null) {
+        // if (other.urlPattern != null)
+        // return false;
+        // } else if (!urlPattern.getOid().equals(other.urlPattern.getOid()))
+        // return false;
         return true;
     }
 }

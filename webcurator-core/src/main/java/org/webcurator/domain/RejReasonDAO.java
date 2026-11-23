@@ -33,14 +33,15 @@ import org.webcurator.domain.model.core.RejReason;
 
 /**
  * The Rejection Reason DAO provides access to rejection reason
- * data from the persistent data store. 
+ * data from the persistent data store.
+ * 
  * @author oakleigh_sk
  */
 @Transactional
 public class RejReasonDAO {
-    
+
     private Log log = LogFactory.getLog(RejReasonDAO.class);
-    
+
     private TransactionTemplate txTemplate = null;
 
     @Autowired
@@ -50,21 +51,19 @@ public class RejReasonDAO {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
                             log.debug("Before Saving of Object");
                             currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
-                        }
-                        catch(Exception ex) {
-                            log.warn("Setting Rollback Only",ex);
+                        } catch (Exception ex) {
+                            log.warn("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
-    
+
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -73,24 +72,22 @@ public class RejReasonDAO {
                             log.debug("Before Delete of Object");
                             currentSession().remove(aObject);
                             log.debug("After Deletes Object");
-                        }
-                        catch (DataAccessException e) {
-                            log.warn("Setting Rollback Only",e);
+                        } catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only", e);
                             ts.setRollbackOnly();
                             throw e;
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
 
     public RejReason getRejReasonByOid(final Long reasonOid) {
         Query<RejReason> query = currentSession().createNamedQuery(RejReason.QRY_GET_REASON_BY_OID, RejReason.class);
-        query.setParameter(1, reasonOid);
+        query.setParameter("reasonOid", reasonOid);
         return query.uniqueResult();
     }
-    
+
     public List<RejReason> getRejReasons() {
         return currentSession().createNamedQuery(RejReason.QRY_GET_REASONS, RejReason.class)
                 .list();
@@ -99,7 +96,7 @@ public class RejReasonDAO {
     @Transactional
     public List getRejReasons(Long agencyOid) {
         return currentSession().createNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY, RejReason.class)
-                .setParameter(1, agencyOid)
+                .setParameter("agencyOid", agencyOid)
                 .list();
     }
 

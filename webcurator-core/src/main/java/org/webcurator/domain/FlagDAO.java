@@ -36,9 +36,9 @@ import org.webcurator.domain.model.core.Flag;
  */
 @Transactional
 public class FlagDAO {
-    
+
     private Log log = LogFactory.getLog(FlagDAO.class);
-    
+
     private TransactionTemplate txTemplate = null;
 
     @Autowired
@@ -48,21 +48,19 @@ public class FlagDAO {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
                             log.debug("Before Saving of Object");
                             currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
-                        }
-                        catch(Exception ex) {
-                            log.warn("Setting Rollback Only",ex);
+                        } catch (Exception ex) {
+                            log.warn("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
-    
+
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -71,33 +69,31 @@ public class FlagDAO {
                             log.debug("Before Delete of Object");
                             currentSession().remove(aObject);
                             log.debug("After Deletes Object");
-                        }
-                        catch (DataAccessException e) {
-                            log.warn("Setting Rollback Only",e);
+                        } catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only", e);
                             ts.setRollbackOnly();
                             throw e;
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
 
     public Flag getFlagByOid(final Long FlagOid) {
         Query<Flag> query = currentSession().createNamedQuery(Flag.QRY_GET_FLAG_BY_OID, Flag.class);
-        query.setParameter(1, FlagOid);
+        query.setParameter("FlagOid", FlagOid);
         return query.uniqueResult();
     }
-    
+
     public List<Flag> getFlags() {
         return currentSession().createNamedQuery(Flag.QRY_GET_FLAGS, Flag.class)
-                    .list();
+                .list();
     }
 
     public List<Flag> getFlagsByAgencyOid(Long agencyOid) {
         return currentSession().createNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY, Flag.class)
-                    .setParameter(1, agencyOid)
-                    .list();
+                .setParameter("agencyOid", agencyOid)
+                .list();
     }
 
     private Session currentSession() {

@@ -28,7 +28,7 @@ import java.io.Serializable;
  * users role.
  * 
  * A RolePrivilege is a mapping from Role to Privilege with an attached
- * scope that defines how widely the privilege can be used. 
+ * scope that defines how widely the privilege can be used.
  * 
  * All privilege strings are defined in the Privilege class.
  * 
@@ -39,11 +39,10 @@ import java.io.Serializable;
 // lazy="true"
 @Entity
 @Table(name = "ROLE_PRIVILEGE")
-@NamedQuery(name = "org.webcurator.domain.model.auth.RolePrivilege.getUserPrivileges",
-        query = "SELECT distinct rolpriv FROM RolePrivilege rolpriv JOIN rolpriv.role AS rolePrivRole JOIN rolePrivRole.users AS rolePrivRoleUsers WHERE rolePrivRoleUsers.username=?1")
+@NamedQuery(name = "org.webcurator.domain.model.auth.RolePrivilege.getUserPrivileges", query = "SELECT distinct rolpriv FROM RolePrivilege rolpriv JOIN rolpriv.role AS rolePrivRole JOIN rolePrivRole.users AS rolePrivRoleUsers WHERE rolePrivRoleUsers.username=:username")
 public class RolePrivilege implements Serializable {
 
-	/** Version ID for serialization */
+    /** Version ID for serialization */
     private static final long serialVersionUID = 8223039237243696910L;
 
     /** Query to get the privileges for a particular user */
@@ -52,20 +51,18 @@ public class RolePrivilege implements Serializable {
     /** The database OID for the Role Privilege. */
     @Id
     @NotNull
-    @Column(name="PRV_OID")
+    @Column(name = "PRV_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
-    @TableGenerator(name = "SharedTableIdGenerator",
-            table = "ID_GENERATOR",
-            pkColumnName = "IG_TYPE",
-            valueColumnName = "IG_VALUE",
-            pkColumnValue = "RolePriv",
-            allocationSize = 1) // 50 is the default
+    @TableGenerator(name = "SharedTableIdGenerator", table = "ID_GENERATOR", pkColumnName = "IG_TYPE", valueColumnName = "IG_VALUE", pkColumnValue = "RolePriv", allocationSize = 1) // 50
+                                                                                                                                                                                     // is
+                                                                                                                                                                                     // the
+                                                                                                                                                                                     // default
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The identifier of the privilege */
-    @Size(max=40)
+    @Size(max = 40)
     @NotNull
     @Column(name = "PRV_CODE")
     private String privilege;
@@ -77,57 +74,64 @@ public class RolePrivilege implements Serializable {
     @ManyToOne
     @JoinColumn(name = "PRV_ROLE_OID")
     private Role role;
-    
+
     /**
      * get the privilege name
+     * 
      * @return the name of the privilege
      */
     public String getPrivilege() {
         return privilege;
     }
-    
+
     /**
      * Set the name of the privilege.
+     * 
      * @param privilege The name of the privilege.
      */
     public void setPrivilege(String privilege) {
         this.privilege = privilege;
     }
-    
+
     /**
      * gets the Role that this privilege belongs to
+     * 
      * @return the Role object
      */
     public Role getRole() {
         return role;
     }
-    
+
     /**
      * Set the role the privilege belongs to.
+     * 
      * @param role The role the privilege belongs to.
      */
     public void setRole(Role role) {
         this.role = role;
     }
-    
+
     /**
      * gets the Scope of this privilege
+     * 
      * @return the scope
      */
     public int getPrivilegeScope() {
         return privilegeScope;
     }
-    
+
     /**
      * Set the scope of this privilege.
+     * 
      * @param privilegeScope The scope.
      */
     public void setPrivilegeScope(int privilegeScope) {
         this.privilegeScope = privilegeScope;
     }
-    
+
     /**
      * gets the Primary key for the Privilege
+     * 
      * @return the Oid
      */
     public Long getOid() {
@@ -136,13 +140,16 @@ public class RolePrivilege implements Serializable {
 
     /**
      * Hibernate method to set the OID of the RolePrivilege.
+     * 
      * @param oid The new database OID.
      */
     public void setOid(Long oid) {
         this.oid = oid;
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -150,22 +157,27 @@ public class RolePrivilege implements Serializable {
         RolePrivilege rolePriv = (RolePrivilege) obj;
         return this.toString().equals(rolePriv.toString());
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return this.getPrivilege()+":"+this.getPrivilegeScope();
+        return this.getPrivilege() + ":" + this.getPrivilegeScope();
     }
-    
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
-    @Override 
+    @Override
     public int hashCode() {
-    	//WARNING this doesn't consider the role property - likely a bug, but unsure how it's used so cannot
-    	//change this without possibly breaking other things
+        // WARNING this doesn't consider the role property - likely a bug, but unsure
+        // how it's used so cannot
+        // change this without possibly breaking other things
         return toString().hashCode();
     }
 }

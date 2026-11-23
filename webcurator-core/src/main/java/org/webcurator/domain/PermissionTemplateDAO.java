@@ -34,13 +34,14 @@ import org.webcurator.domain.model.core.PermissionTemplate;
 
 /**
  * Persistance Interface for the managing the Permission Template Request object
+ * 
  * @author BPrice
  */
 @Transactional
 public class PermissionTemplateDAO {
 
     private Log log = LogFactory.getLog(PermissionTemplateDAO.class);
-    
+
     private TransactionTemplate txTemplate;
 
     @Autowired
@@ -51,13 +52,14 @@ public class PermissionTemplateDAO {
     }
 
     public PermissionTemplate getTemplate(Long oid) {
-        return (PermissionTemplate)currentSession().getReference(PermissionTemplate.class,oid);
+        return (PermissionTemplate) currentSession().getReference(PermissionTemplate.class, oid);
     }
 
     public List<PermissionTemplate> getTemplates(Long agencyOid) {
-                return currentSession().createNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY, PermissionTemplate.class)
-                    .setParameter(1, agencyOid)
-                    .list();
+        return currentSession()
+                .createNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY, PermissionTemplate.class)
+                .setParameter("agencyOid", agencyOid)
+                .list();
     }
 
     public List<PermissionTemplate> getAllTemplates() {
@@ -73,24 +75,22 @@ public class PermissionTemplateDAO {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
                             log.debug("Before Saving of Object");
                             currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
-                        }
-                        catch(Exception ex) {
-                            log.warn("Setting Rollback Only",ex);
+                        } catch (Exception ex) {
+                            log.warn("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );    
-        
+                });
+
     }
 
     public Permission getPermission(Long oid) {
-        return (Permission)currentSession().getReference(Permission.class,oid);
+        return (Permission) currentSession().getReference(Permission.class, oid);
     }
 
     public void delete(final Object aObject) {
@@ -101,17 +101,15 @@ public class PermissionTemplateDAO {
                             log.debug("Before Delete of Object");
                             currentSession().remove(aObject);
                             log.debug("After Delete Object");
-                        }
-                        catch (DataAccessException e) {
-                            log.warn("Setting Rollback Only",e);
+                        } catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only", e);
                             ts.setRollbackOnly();
                             throw e;
                         }
                         return null;
                     }
-                }
-        );    
-        
+                });
+
     }
 
     private Session currentSession() {

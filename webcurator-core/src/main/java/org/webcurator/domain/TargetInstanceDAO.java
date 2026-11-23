@@ -177,8 +177,8 @@ public class TargetInstanceDAO {
                             log.debug("Before deleting harvest result resources");
                             currentSession()
                                     .createNativeQuery(
-                                            "DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=?1")
-                                    .setParameter(1, harvestResultId).executeUpdate();
+                                            "DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=:harvestResultId")
+                                    .setParameter("harvestResultId", harvestResultId).executeUpdate();
                             log.debug("After deleting harvest result resources");
                         } catch (Exception ex) {
                             log.warn("Problem occured deleting HarvestResource records", ex);
@@ -256,9 +256,9 @@ public class TargetInstanceDAO {
     @Transactional
     public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
         Query q = currentSession().createQuery(
-                "select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber",
+                "select hr from HarvestResult hr where hr.targetInstance.oid=:targetInstanceId order by hr.harvestNumber",
                 HarvestResult.class);
-        q.setParameter(0, targetInstanceId);
+        q.setParameter("targetInstanceId", targetInstanceId);
         return q.list();
     }
 
@@ -999,7 +999,7 @@ public class TargetInstanceDAO {
     @Transactional
     public List<HarvestHistoryDTO> getHarvestHistory(final Long targetOid) {
         return currentSession().getNamedQuery(TargetInstance.QRY_GET_HARVEST_HISTORY)
-                .setParameter(1, targetOid)
+                .setParameter("targetOid", targetOid)
                 .list();
     }
 }

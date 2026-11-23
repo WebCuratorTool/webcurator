@@ -43,77 +43,77 @@ import org.webcurator.domain.model.audit.Audit;
  */
 @Transactional
 public class SystemActivityReportGenerator implements ReportGenerator {
-	
-    private Log log = LogFactory.getLog(SystemActivityReportGenerator.class);
+
+	private Log log = LogFactory.getLog(SystemActivityReportGenerator.class);
 
 	@Autowired
 	private EntityManager entityManager;
 
-
 	/**
 	 * Generate report's data
+	 * 
 	 * @param operationalReport An OperationReport
 	 * @return Report's data as a <code>List</code> of <code>ResultSet</code>
 	 */
 	public List<ResultSet> generateData(OperationalReport operationalReport) {
-		
+
 		// Parameters
 		List<Parameter> parameters = operationalReport.getParameters();
-		DateParameter startDate =	(DateParameter) parameters.get(0);
-		DateParameter endDate =		(DateParameter) parameters.get(1);
-		StringParameter agency =	(StringParameter) parameters.get(2);
-		StringParameter user =		(StringParameter) parameters.get(3);
-		
+		DateParameter startDate = (DateParameter) parameters.get(0);
+		DateParameter endDate = (DateParameter) parameters.get(1);
+		StringParameter agency = (StringParameter) parameters.get(2);
+		StringParameter user = (StringParameter) parameters.get(3);
+
 		SimpleDateFormat sdf = startDate.getDateFormat();
 		log.debug(" startDate=" + sdf.format(startDate.getValue()));
 		log.debug(" endDate=" + sdf.format(endDate.getValue()));
-		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()) );
+		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()));
 		log.debug(" user=" + user);
-		
-		
+
 		List<ResultSet> res = getSystemActivityReport(
 				startDate.getValue(), endDate.getValue(),
 				agency.getValue(), user.getValue());
-		
-		log.debug("  data=" + (res == null ? "null" : Integer.toString(res.size())) );
+
+		log.debug("  data=" + (res == null ? "null" : Integer.toString(res.size())));
 		return res;
 	}
-
 
 	/**
 	 * Generate the System Activity Report's data
 	 * 
-	 * @param startDate Start date<br>Is inclusive and value is mandatory
-	 * @param endDate End date.<br> Is inclusive and value is mandatory
-	 * @param agencyName Name of Agency<br><code>null</code> value is accepted
-	 * @param username Username<br><code>null</code> value is accepted
+	 * @param startDate  Start date<br>
+	 *                   Is inclusive and value is mandatory
+	 * @param endDate    End date.<br>
+	 *                   Is inclusive and value is mandatory
+	 * @param agencyName Name of Agency<br>
+	 *                   <code>null</code> value is accepted
+	 * @param username   Username<br>
+	 *                   <code>null</code> value is accepted
 	 * @return A <code>List</code> of <code>SystemActivityReportResultSet</code>
 	 */
-	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName, String username) {
+	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName,
+			String username) {
 		List results = currentSession().getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
-				.setParameter(1, startDate)
-				.setParameter(2, endDate)
-				.setParameter(3, agencyName)
-				.setParameter(4, agencyName)
-				.setParameter(5, agencyName)
-				.setParameter(6, username)
-				.setParameter(7, username)
-				.setParameter(8, username)
+				.setParameter("startDate", startDate)
+				.setParameter("endDate", endDate)
+				.setParameter("allAgencies", agencyName)
+				.setParameter("agencyName", agencyName)
+				.setParameter("allUsers", username)
+				.setParameter("username", username)
 				.list();
 
-    	log.debug("results=" + results.size() );
-    	
-    	// Wrap into a SystemActivityResultSet
-    	ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();
-    	for(Iterator it = results.iterator(); it.hasNext(); ){
-    		Audit audit = (Audit) it.next();
-    		SystemActivityReportResultSet rs = new SystemActivityReportResultSet(audit);
-    		resultSets.add(rs);
-    	}
-    	
-    	return resultSets;
-    }
+		log.debug("results=" + results.size());
 
+		// Wrap into a SystemActivityResultSet
+		ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();
+		for (Iterator it = results.iterator(); it.hasNext();) {
+			Audit audit = (Audit) it.next();
+			SystemActivityReportResultSet rs = new SystemActivityReportResultSet(audit);
+			resultSets.add(rs);
+		}
+
+		return resultSets;
+	}
 
 	private Session currentSession() {
 		return entityManager.unwrap(Session.class);

@@ -27,10 +27,8 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "HEATMAP_CONFIG")
 @NamedQueries({
-		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.all",
-				query = "from org.webcurator.domain.model.core.HeatmapConfig hm order by hm.thresholdLowest"),
-		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid",
-				query = "SELECT hm FROM HeatmapConfig hm WHERE hm.oid=?1")
+		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.all", query = "from org.webcurator.domain.model.core.HeatmapConfig hm order by hm.thresholdLowest"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid", query = "SELECT hm FROM HeatmapConfig hm WHERE hm.oid=:oid")
 })
 public class HeatmapConfig {
 	public static final String QUERY_ALL = "org.webcurator.domain.model.core.HeatmapConfig.all";
@@ -41,21 +39,19 @@ public class HeatmapConfig {
 	 */
 	public static final String PARAM_END = "end";
 
-    public static final String QRY_GET_CONFIG_BY_OID = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid";
+	public static final String QRY_GET_CONFIG_BY_OID = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid";
 
 	/** The primary key. */
 	@Id
 	@NotNull
-	@Column(name="HM_OID")
+	@Column(name = "HM_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
-	@TableGenerator(name = "SharedTableIdGenerator",
-			table = "ID_GENERATOR",
-			pkColumnName = "IG_TYPE",
-			valueColumnName = "IG_VALUE",
-			pkColumnValue = "General",
-			allocationSize = 1) // 50 is the default
+	@TableGenerator(name = "SharedTableIdGenerator", table = "ID_GENERATOR", pkColumnName = "IG_TYPE", valueColumnName = "IG_VALUE", pkColumnValue = "General", allocationSize = 1) // 50
+																																													// is
+																																													// the
+																																													// default
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	@NotNull

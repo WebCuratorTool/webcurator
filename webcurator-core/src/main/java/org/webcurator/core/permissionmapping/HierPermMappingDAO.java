@@ -40,6 +40,7 @@ import java.util.Set;
 
 /**
  * DAO for the Hierarchical Permission Mapping Strategy.
+ * 
  * @author bbeaumont
  *
  */
@@ -52,7 +53,6 @@ public class HierPermMappingDAO {
 
     @Autowired
     private EntityManager entityManager;
-
 
     /**
      * The transaction template to use.
@@ -70,22 +70,22 @@ public class HierPermMappingDAO {
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
-                            //log.debug("Before Saving of Target");
+                            // log.debug("Before Saving of Target");
                             currentSession().saveOrUpdate(aMapping);
-                            //log.debug("After Saving Target");
+                            // log.debug("After Saving Target");
                         } catch (Exception ex) {
                             log.debug("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );
+                });
 
     }
 
     /**
      * Atomic delete according to permission and urlPattern
+     * 
      * @param permissionId
      * @param urlPatternId
      */
@@ -105,7 +105,7 @@ public class HierPermMappingDAO {
                             q.setParameter("urlPatternId", urlPatternId);
                             q.setParameter("permissionId", permissionId);
 
-                            //log.debug("Before Deleting Mappings");
+                            // log.debug("Before Deleting Mappings");
 
                             int rowsAffected = q.executeUpdate();
 
@@ -116,8 +116,7 @@ public class HierPermMappingDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     public void delete(final Mapping mapping) {
@@ -125,16 +124,16 @@ public class HierPermMappingDAO {
     }
 
     public void deleteMappings(final Site site) {
-        Query query = currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID,Permission.class);
-        query.setParameter("siteId",site.getOid());
-        List<Permission> permissions=query.getResultList();
-        permissions.forEach(permission->{
+        Query query = currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID, Permission.class);
+        query.setParameter("siteId", site.getOid());
+        List<Permission> permissions = query.getResultList();
+        permissions.forEach(permission -> {
             deleteMappings(permission);
         });
     }
 
-    public void deleteMappings(final Permission permission){
-        if(permission==null||permission.getOid()==null){
+    public void deleteMappings(final Permission permission) {
+        if (permission == null || permission.getOid() == null) {
             log.warn("Permission is not existing");
             return;
         }
@@ -147,7 +146,7 @@ public class HierPermMappingDAO {
                             Query q = currentSession().getNamedQuery(Mapping.DELETE_BY_PERMISSION);
                             q.setParameter("permissionId", permission.getOid());
 
-                            //log.debug("Before Deleting Mappings");
+                            // log.debug("Before Deleting Mappings");
 
                             int rowsAffected = q.executeUpdate();
 
@@ -158,28 +157,27 @@ public class HierPermMappingDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @SuppressWarnings("unchecked")
     public List<Mapping> getMapping(Long mappingOid) {
         return currentSession().getNamedQuery(Mapping.QUERY_BY_OID)
-                .setParameter(1, mappingOid)
+                .setParameter("mappingOid", mappingOid)
                 .list();
     }
 
     @SuppressWarnings("unchecked")
     public List<Mapping> getMappings(String domain) {
         return currentSession().getNamedQuery(Mapping.QUERY_BY_DOMAIN)
-                .setParameter(1, domain)
+                .setParameter("domain", domain)
                 .list();
     }
 
     @SuppressWarnings("unchecked")
     public List<MappingView> getMappingsView(String domain) {
         return currentSession().getNamedQuery(MappingView.QUERY_BY_DOMAIN)
-                .setParameter(1, domain)
+                .setParameter("domain", domain)
                 .list();
     }
 
@@ -198,7 +196,8 @@ public class HierPermMappingDAO {
                             Root<Mapping> root = query.from(Mapping.class);
                             query.select(root);
 
-                            Predicate whereClause = cb.equal(root.get("permission").get("site").get("oid"), aSite.getOid());
+                            Predicate whereClause = cb.equal(root.get("permission").get("site").get("oid"),
+                                    aSite.getOid());
                             query.where(whereClause);
 
                             List<Mapping> mappings = session.createQuery(query).list();
@@ -222,10 +221,8 @@ public class HierPermMappingDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
-
 
     /**
      * Save all of the mappings.
@@ -247,14 +244,12 @@ public class HierPermMappingDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
 
         // Clear the session to evict anything
         // that we don't want hanging around.
-//        currentSession().clear();
+        // currentSession().clear();
     }
-
 
     /**
      * Set the template.
@@ -264,7 +259,6 @@ public class HierPermMappingDAO {
     public void setTxTemplate(TransactionTemplate txTemplate) {
         this.txTemplate = txTemplate;
     }
-
 
     private Session currentSession() {
         return entityManager.unwrap(Session.class);

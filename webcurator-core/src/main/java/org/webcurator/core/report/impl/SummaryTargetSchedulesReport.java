@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 import jakarta.persistence.EntityManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,93 +36,94 @@ import org.webcurator.domain.model.report.AbstractTargetScheduleView;
 
 /**
  * Summary Report of Target/Group Schedules
+ * 
  * @author oakleigh_sk
  *
  */
 @Transactional
 public class SummaryTargetSchedulesReport implements ReportGenerator {
 
-	private static String[] schedules = {"Mondays at 9:00pm", "Custom", "Daily", "Weekly", "Monthly", "Bi-Monthly", "Quarterly", "Half-Yearly", "Annually" };
+	private static String[] schedules = { "Mondays at 9:00pm", "Custom", "Daily", "Weekly", "Monthly", "Bi-Monthly",
+			"Quarterly", "Half-Yearly", "Annually" };
 
-    private Log log = LogFactory.getLog(SummaryTargetSchedulesReport.class);
+	private Log log = LogFactory.getLog(SummaryTargetSchedulesReport.class);
 
 	@Autowired
 	private EntityManager entityManager;
 
-
 	/**
 	 * Generate report's data
+	 * 
 	 * @param operationalReport An OperationReport
 	 * @return Report's data as a <code>List</code> of <code>ResultSet</code>
 	 */
 	public List<ResultSet> generateData(OperationalReport operationalReport) {
-		
+
 		List<Parameter> parameters = operationalReport.getParameters();
-		StringParameter agency	   = (StringParameter) parameters.get(0);
-		
-		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()) );
-		
+		StringParameter agency = (StringParameter) parameters.get(0);
+
+		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()));
+
 		return runReport(agency.getValue());
 	}
-	
 
 	/**
 	 * Generate the Summary Target/Groups Schedules Report
 	 * 
-	 * @param agencyName Name of Agency<br><code>null</code> value is accepted
-	 * @return A <code>List</code> of <code>SummaryTargetSchedulesReportResultSet</code>
+	 * @param agencyName Name of Agency<br>
+	 *                   <code>null</code> value is accepted
+	 * @return A <code>List</code> of
+	 *         <code>SummaryTargetSchedulesReportResultSet</code>
 	 */
 	@SuppressWarnings("unchecked")
 	protected List<ResultSet> runReport(final String agencyName) {
 		// Get the results
 		List results = currentSession().getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
-				.setParameter(1, agencyName)
-				.setParameter(2, agencyName)
-				.setParameter(3, agencyName)
+				.setParameter("allAgencies", agencyName)
+				.setParameter("agencyName", agencyName)
 				.list();
 
-		// Iterate over results identifying the number of distinct 
+		// Iterate over results identifying the number of distinct
 		// agencies. Store them in agencies list.
 		List<String> agencies = new ArrayList<String>();
-    	for(Iterator it = results.iterator(); it.hasNext(); ){
-    		Object[] obj = (Object[])it.next();
-    		String agency   = (String)obj[0];
-    		if (!agencies.contains(agency)) {
-    			agencies.add(agency);
-    		}
-    	}
-    	
-    	// create columnNames
-    	String[] columnNames = new String[agencies.size()+1];
-    	columnNames[0] = "ScheduleType";
-    	for (Integer i = 1; i < (agencies.size()+1); i++) {
-    		columnNames[i] = "count"+i.toString();
-    	}
-    	
-    	// create columnHTMLNames
-    	String[] columnHTMLNames = new String[agencies.size()+1];
-    	columnHTMLNames[0] = "Schedule Type";
-    	Iterator it = agencies.iterator();
-    	for (Integer i = 1; i < (agencies.size()+1); i++) {
-    		
-    		columnHTMLNames[i] = (String) it.next();
-    	}
-    	
-		
-    	List realResults = new ArrayList<SummaryTargetSchedulesReportResultSet>();
-		
-		for (int i = 0; i < schedules.length; i++ ) {
-	    	
+		for (Iterator it = results.iterator(); it.hasNext();) {
+			Object[] obj = (Object[]) it.next();
+			String agency = (String) obj[0];
+			if (!agencies.contains(agency)) {
+				agencies.add(agency);
+			}
+		}
+
+		// create columnNames
+		String[] columnNames = new String[agencies.size() + 1];
+		columnNames[0] = "ScheduleType";
+		for (Integer i = 1; i < (agencies.size() + 1); i++) {
+			columnNames[i] = "count" + i.toString();
+		}
+
+		// create columnHTMLNames
+		String[] columnHTMLNames = new String[agencies.size() + 1];
+		columnHTMLNames[0] = "Schedule Type";
+		Iterator it = agencies.iterator();
+		for (Integer i = 1; i < (agencies.size() + 1); i++) {
+
+			columnHTMLNames[i] = (String) it.next();
+		}
+
+		List realResults = new ArrayList<SummaryTargetSchedulesReportResultSet>();
+
+		for (int i = 0; i < schedules.length; i++) {
+
 			// create displayableFields array
-	    	String[] displayableFields = new String[agencies.size()+1];
-	    	displayableFields[0] = schedules[i];
-	    	for (Integer j = 1; j < (agencies.size()+1); j++) {
-	    		
-	    		displayableFields[j] = "0";
-	    	}
-	    	populateCounts(displayableFields, agencies, results);
-			
-	    	realResults.add(
+			String[] displayableFields = new String[agencies.size() + 1];
+			displayableFields[0] = schedules[i];
+			for (Integer j = 1; j < (agencies.size() + 1); j++) {
+
+				displayableFields[j] = "0";
+			}
+			populateCounts(displayableFields, agencies, results);
+
+			realResults.add(
 					new SummaryTargetSchedulesReportResultSet(
 							columnNames,
 							columnHTMLNames,
@@ -131,25 +131,25 @@ public class SummaryTargetSchedulesReport implements ReportGenerator {
 		}
 
 		return realResults;
-		
-    }
+
+	}
 
 	private void populateCounts(String[] displayableFields, List<String> agencies, List results) {
-		
+
 		// Iterate over results 'rows' and populate elements in displayableFields..
-    	for(Iterator it = results.iterator(); it.hasNext(); ) {
-    		
-    		Object[] obj    = (Object[])it.next();
-    		String agency   = (String)obj[0];
-    		String schedule = (String)obj[1];
-    		Integer count   = (Integer)obj[2];
-    		
-    		if (schedule.equals(displayableFields[0])) {
-    			int col = agencies.indexOf(agency);
-    			displayableFields[col+1] = count.toString();
-    		}
-    	}
-		
+		for (Iterator it = results.iterator(); it.hasNext();) {
+
+			Object[] obj = (Object[]) it.next();
+			String agency = (String) obj[0];
+			String schedule = (String) obj[1];
+			Integer count = (Integer) obj[2];
+
+			if (schedule.equals(displayableFields[0])) {
+				int col = agencies.indexOf(agency);
+				displayableFields[col + 1] = count.toString();
+			}
+		}
+
 	}
 
 	private Session currentSession() {

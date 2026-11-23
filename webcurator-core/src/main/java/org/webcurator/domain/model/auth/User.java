@@ -32,22 +32,14 @@ import java.util.Set;
 @Entity
 @Table(name = "WCTUSER")
 @NamedQueries({
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserByName",
-                query = "SELECT usr FROM User usr WHERE usr.username=?1 "),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUsersByAgency",
-                query = "SELECT usr FROM User usr WHERE usr.agency.oid=?1 ORDER BY usr.username"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOs",
-                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr ORDER BY usr.agency.name, usr.username"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOsByAgency",
-                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.agency.oid=?1 ORDER BY usr.username"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivilege",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr INNER JOIN usr.roles AS usrRoles INNER JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege = ?1"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOByOid",
-                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.oid=?1"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivAgency",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr JOIN usr.roles AS usrRoles JOIN usr.agency AS usrAgency JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege=?1 AND usrAgency.oid=?2"),
-        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByTargetPermission",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr, Seed s JOIN s.permissions seedPermissions WHERE s.target.owner = usr AND seedPermissions.oid = ?1")
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserByName", query = "SELECT usr FROM User usr WHERE usr.username=:username "),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUsersByAgency", query = "SELECT usr FROM User usr WHERE usr.agency.oid=:agencyOid ORDER BY usr.username"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOs", query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr ORDER BY usr.agency.name, usr.username"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOsByAgency", query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.agency.oid=:agencyOid ORDER BY usr.username"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivilege", query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr INNER JOIN usr.roles AS usrRoles INNER JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege = :privilege"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOByOid", query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.oid=:userOid"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivAgency", query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr JOIN usr.roles AS usrRoles JOIN usr.agency AS usrAgency JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege=:privilege AND usrAgency.oid=:agencyOid"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByTargetPermission", query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr, Seed s JOIN s.permissions seedPermissions WHERE s.target.owner = usr AND seedPermissions.oid = :permissionOid")
 })
 public class User implements Serializable {
 
@@ -73,7 +65,8 @@ public class User implements Serializable {
      */
     public static final String QRY_GET_ALL_USER_DTOS_BY_AGENCY = "org.webcurator.domain.model.auth.User.getAllUserDTOsByAgency";
     /**
-     * Query key for retrieving all User DTO object for users with a specified Privilege
+     * Query key for retrieving all User DTO object for users with a specified
+     * Privilege
      */
     public static final String QRY_GET_USER_DTOS_BY_PRIVILEGE = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivilege";
     /**
@@ -81,11 +74,13 @@ public class User implements Serializable {
      */
     public static final String QRY_GET_USER_DTO_BY_OID = "org.webcurator.domain.model.auth.User.getUserDTOByOid";
     /**
-     * Query key for retrieving all User DTO objects for a given agency and privilege.
+     * Query key for retrieving all User DTO objects for a given agency and
+     * privilege.
      */
     public static final String QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivAgency";
     /**
-     * Query key for retrieving a distinct list of User DTO objects for users with targets associated to the given permission.
+     * Query key for retrieving a distinct list of User DTO objects for users with
+     * targets associated to the given permission.
      */
     public static final String QRY_GET_USER_DTOS_BY_TARGET_PERMISSION = "org.webcurator.domain.model.auth.User.getUserDTOsByTargetPermission";
 
@@ -99,25 +94,23 @@ public class User implements Serializable {
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
     // TODO no real correspondence to parameter: name = "max-lo", value = "16"
-    @TableGenerator(name = "SharedTableIdGenerator",
-            table = "ID_GENERATOR",
-            pkColumnName = "IG_TYPE",
-            valueColumnName = "IG_VALUE",
-            pkColumnValue = "User",
-            allocationSize = 1) // 50 is the default
+    @TableGenerator(name = "SharedTableIdGenerator", table = "ID_GENERATOR", pkColumnName = "IG_TYPE", valueColumnName = "IG_VALUE", pkColumnValue = "User", allocationSize = 1) // 50
+                                                                                                                                                                                 // is
+                                                                                                                                                                                 // the
+                                                                                                                                                                                 // default
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /**
      * The login username
      */
-    @Size(max=80)
+    @Size(max = 80)
     @NotNull
     @Column(name = "USR_USERNAME")
     private String username;
     /**
      * The contact email address
      */
-    @Size(max=100)
+    @Size(max = 100)
     @NotNull
     @Column(name = "USR_EMAIL")
     private String email;
@@ -136,20 +129,20 @@ public class User implements Serializable {
     /**
      * The title of the user: Mr., Mrs., etc
      */
-    @Size(max=10)
+    @Size(max = 10)
     @Column(name = "USR_TITLE")
     private String title;
     /**
      * The first name of the user
      */
-    @Size(max=50)
+    @Size(max = 50)
     @NotNull
     @Column(name = "USR_FIRSTNAME")
     private String firstname;
     /**
      * The last name of the user
      */
-    @Size(max=50)
+    @Size(max = 50)
     @NotNull
     @Column(name = "USR_LASTNAME")
     private String lastname;
@@ -166,7 +159,8 @@ public class User implements Serializable {
     @Column(name = "USR_FORCE_PWD_CHANGE")
     private boolean forcePasswordChange;
     /**
-     * True if the user authentication should use an external authentication source such as LDAP
+     * True if the user authentication should use an external authentication source
+     * such as LDAP
      */
     @NotNull
     @Column(name = "USR_EXTERNAL_AUTH")
@@ -174,29 +168,27 @@ public class User implements Serializable {
     /**
      * The user's password
      */
-    @Size(max=255)
+    @Size(max = 255)
     @Column(name = "USR_PASSWORD")
     private String password;
     /**
      * The user's phone number
      */
-    @Size(max=16)
+    @Size(max = 16)
     @Column(name = "USR_PHONE")
     private String phone;
     /**
      * The user's address
      */
-    @Size(max=200)
+    @Size(max = 200)
     @Column(name = "USR_ADDRESS")
     private String address;
     /**
      * The set of roles the user belongs to
      */
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
-    @JoinTable(name = "USER_ROLE",
-            joinColumns = {@JoinColumn(name = "URO_USR_OID")},
-            inverseJoinColumns = {@JoinColumn(name = "URO_ROL_OID")})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE })
+    @JoinTable(name = "USER_ROLE", joinColumns = { @JoinColumn(name = "URO_USR_OID") }, inverseJoinColumns = {
+            @JoinColumn(name = "URO_ROL_OID") })
     private Set<Role> roles;
     /**
      * The agency the user belongs to
@@ -282,7 +274,8 @@ public class User implements Serializable {
     /**
      * checks if the User is defined as being Authenticated Externally. A User that
      * is Authenticated externally must have their password credentials stored in an
-     * external repository, like a Directory server. Refer to the wct-security.xml for
+     * external repository, like a Directory server. Refer to the wct-security.xml
+     * for
      * configuration parameters for external authentication sources.
      *
      * @return true if this user is authenticated externally
@@ -423,7 +416,8 @@ public class User implements Serializable {
     }
 
     /**
-     * gets a users direct phone number, this may differ from the agency phone number
+     * gets a users direct phone number, this may differ from the agency phone
+     * number
      *
      * @return the users phone number
      */
@@ -459,14 +453,14 @@ public class User implements Serializable {
     }
 
     /**
-     * gets the username of the logged in user. This must be unique across the system
+     * gets the username of the logged in user. This must be unique across the
+     * system
      *
      * @return the username
      */
     public String getUsername() {
         return username;
     }
-
 
     /**
      * Set the user's login name.
@@ -530,7 +524,8 @@ public class User implements Serializable {
     }
 
     /**
-     * gets the Date the user was deactivated, this is null if the user is currently active
+     * gets the Date the user was deactivated, this is null if the user is currently
+     * active
      */
     public Date getDeactivateDate() {
         return deactivateDate;
@@ -598,7 +593,9 @@ public class User implements Serializable {
         return sb.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -609,7 +606,9 @@ public class User implements Serializable {
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -663,6 +662,5 @@ public class User implements Serializable {
     public void setNotifyOnHarvestWarnings(boolean notifyOnHarvestWarnings) {
         this.notifyOnHarvestWarnings = notifyOnHarvestWarnings;
     }
-
 
 }

@@ -34,13 +34,14 @@ import java.util.List;
 
 /**
  * The User Role DAO provides access to User, Role and Agency
- * data from the persistent data store. 
+ * data from the persistent data store.
+ * 
  * @author bprice
  */
 @Repository
 @Transactional
 public class UserRoleDAO {
-    
+
     private Log log = LogFactory.getLog(UserRoleDAO.class);
 
     @Autowired
@@ -48,7 +49,7 @@ public class UserRoleDAO {
 
     public List getUserDTOs(Long agencyOid) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY);
-        q.setParameter(1, agencyOid);
+        q.setParameter("agencyOid", agencyOid);
         return q.getResultList();
     }
 
@@ -59,8 +60,8 @@ public class UserRoleDAO {
 
     public UserDTO getUserDTOByOid(final Long userOid) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTO_BY_OID);
-        q.setParameter(1, userOid);
-        return (UserDTO)q.uniqueResult();
+        q.setParameter("userOid", userOid);
+        return (UserDTO) q.uniqueResult();
     }
 
     public List getRoles() {
@@ -70,7 +71,7 @@ public class UserRoleDAO {
 
     public List getRoles(Long agencyOid) {
         Query q = currentSession().createNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY);
-        q.setParameter(1, agencyOid);
+        q.setParameter("agencyOid", agencyOid);
         return q.getResultList();
     }
 
@@ -80,48 +81,45 @@ public class UserRoleDAO {
 
     public User getUserByName(String username) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_USER_BY_NAME);
-        q.setParameter(1, username);
+        q.setParameter("username", username);
         List results = q.getResultList();
 
-        if(results.size() == 1) {
+        if (results.size() == 1) {
             return (User) results.get(0);
-        }
-        else {
+        } else {
             return null;
         }
     }
 
     public Agency getAgencyByOid(Long oid) {
-        return (Agency)currentSession().get(Agency.class, oid);
+        return (Agency) currentSession().get(Agency.class, oid);
     }
-    
+
     public List getUserPrivileges(String username) {
         Query q = currentSession().createNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES);
-        q.setParameter(1, username);
+        q.setParameter("username", username);
         return q.getResultList();
     }
 
     public void saveOrUpdate(final Object aObject) {
         currentSession().saveOrUpdate(aObject);
     }
-    
 
     public void delete(final Object aObject) {
         currentSession().delete(aObject);
     }
-    
+
     public List getUsers() {
         Query q = currentSession().createQuery("Select u from " + User.class.getCanonicalName()
-                                                                    + " u order by u.username");
-        return q.getResultList();
-    }
-    
-    public List getUsers(Long agencyOid) {
-        Query q = currentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY);
-        q.setParameter(1, agencyOid);
+                + " u order by u.username");
         return q.getResultList();
     }
 
+    public List getUsers(Long agencyOid) {
+        Query q = currentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY);
+        q.setParameter("agencyOid", agencyOid);
+        return q.getResultList();
+    }
 
     public List getAgencies() {
         Query q = currentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
@@ -130,7 +128,7 @@ public class UserRoleDAO {
 
     public List getAssociatedRolesForUser(Long userOid) {
         Query q = currentSession().createNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER);
-        q.setParameter(1, userOid);
+        q.setParameter("userOid", userOid);
         return q.getResultList();
     }
 
@@ -138,26 +136,25 @@ public class UserRoleDAO {
         return currentSession().get(Role.class, oid);
     }
 
-
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE);
-        q.setParameter(1, privilege);
+        q.setParameter("privilege", privilege);
         return q.getResultList();
     }
 
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY);
-        q.setParameter(1, privilege);
-        q.setParameter(2, agencyOid);
+        q.setParameter("privilege", privilege);
+        q.setParameter("agencyOid", agencyOid);
         return q.getResultList();
     }
-    
+
     @SuppressWarnings("unchecked")
-	public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
+    public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
         Query q = currentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION);
-        q.setParameter(1, permissionOid);
+        q.setParameter("permissionOid", permissionOid);
         return q.getResultList();
     }
 

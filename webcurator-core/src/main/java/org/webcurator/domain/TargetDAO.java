@@ -42,8 +42,10 @@ import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import java.util.*;
 
 /**
- * The TargetDAO provides access to targets, target groups and their related objects
+ * The TargetDAO provides access to targets, target groups and their related
+ * objects
  * from the persistent store.
+ * 
  * @author bbeaumont
  */
 @SuppressWarnings("all")
@@ -61,7 +63,7 @@ public class TargetDAO extends BaseDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Saving of Target");
-                            Session session=currentSession();
+                            Session session = currentSession();
                             session.saveOrUpdate(aTarget);
 
                             if (parents != null) {
@@ -78,7 +80,8 @@ public class TargetDAO extends BaseDAO {
                                             break;
 
                                         case DELETED:
-                                            session.createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                            session.createQuery(
+                                                    "delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
                                                     .setParameter("childOid", aTarget.getOid())
                                                     .setParameter("parentOid", parent.getParentOid())
                                                     .executeUpdate();
@@ -95,10 +98,8 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
-
 
     public void save(final Schedule aSchedule) {
         txTemplate.execute(
@@ -115,8 +116,7 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     public void save(final TargetGroup aTargetGroup, final boolean withChildren, final List<GroupMemberDTO> parents) {
@@ -145,7 +145,8 @@ public class TargetDAO extends BaseDAO {
 
                                 // Delete all the removed children.
                                 for (Long childOid : aTargetGroup.getRemovedChildren()) {
-                                    currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                    currentSession().createQuery(
+                                            "delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
                                             .setParameter("childOid", childOid)
                                             .setParameter("parentOid", aTargetGroup.getOid())
                                             .executeUpdate();
@@ -166,7 +167,8 @@ public class TargetDAO extends BaseDAO {
                                             break;
 
                                         case DELETED:
-                                            currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                            currentSession().createQuery(
+                                                    "delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
                                                     .setParameter("childOid", aTargetGroup.getOid())
                                                     .setParameter("parentOid", parent.getParentOid())
                                                     .executeUpdate();
@@ -183,8 +185,7 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     public Target load(long targetOid) {
@@ -220,7 +221,6 @@ public class TargetDAO extends BaseDAO {
         }
     }
 
-
     public Pagination getMembers(final TargetGroup aTargetGroup, final int pageNum, final int pageSize) {
         if (aTargetGroup.isNew()) {
             return new Pagination(aTargetGroup.getNewChildren(), pageNum, pageSize);
@@ -247,7 +247,6 @@ public class TargetDAO extends BaseDAO {
         }
     }
 
-
     @SuppressWarnings("unchecked")
     public List<GroupMemberDTO> getParents(final AbstractTarget aTarget) {
         if (aTarget.isNew()) {
@@ -265,7 +264,6 @@ public class TargetDAO extends BaseDAO {
         }
     }
 
-
     public Pagination getParents(final AbstractTarget aTarget, final int pageNum, final int pageSize) {
         if (aTarget.isNew()) {
             return new Pagination(aTarget.getNewParents(), pageNum, pageSize);
@@ -274,14 +272,14 @@ public class TargetDAO extends BaseDAO {
             Query cntQuery = currentSession().getNamedQuery(GroupMember.QUERY_CNT_PARENTS);
             query.setParameter("childOid", aTarget.getOid());
             cntQuery.setParameter("childOid", aTarget.getOid());
-            //FIXME Need to get the new parent groups.
+            // FIXME Need to get the new parent groups.
             Pagination pagination = new Pagination(aTarget.getNewParents(), cntQuery, query, pageNum, pageSize);
             return pagination;
         }
     }
 
-
-    public Pagination getTargetsForProfile(final int pageNumber, final int pageSize, final Long profileOid, final String agencyName) {
+    public Pagination getTargetsForProfile(final int pageNumber, final int pageSize, final Long profileOid,
+            final String agencyName) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
         CriteriaQuery<Target> query = cb.createQuery(Target.class);
@@ -315,9 +313,9 @@ public class TargetDAO extends BaseDAO {
         cntQuery.where(cntWhereClause);
         query.orderBy(cb.asc(root.get("name")));
 
-        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber,
+                pageSize);
     }
-
 
     public Pagination getAbstractTargetDTOsForProfile(final int pageNumber, final int pageSize, final Long profileOid) {
 
@@ -329,8 +327,9 @@ public class TargetDAO extends BaseDAO {
         return new Pagination(cq, q, pageNumber, pageSize);
     }
 
-
-    public Pagination search(final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
+    public Pagination search(final int pageNumber, final int pageSize, final Long searchOid, final String targetName,
+            final Set<Integer> states, final String seed, final String username, final String agencyName,
+            final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
         CriteriaQuery<Target> query = cb.createQuery(Target.class);
@@ -441,16 +440,19 @@ public class TargetDAO extends BaseDAO {
                 seedPredicate, userNamePredicate, memberOfPredicate, agencyNamePredicate, searchOidPredicate,
                 nondisplayonlyPredicate);
         Predicate cntWhereClause = cb.and(cntTargetNamePredicate, cntDescriptionPredicate, cntStatesPredicate,
-                cntSeedPredicate, cntUserNamePredicate, cntMemberOfPredicate, cntAgencyNamePredicate, cntSearchOidPredicate,
+                cntSeedPredicate, cntUserNamePredicate, cntMemberOfPredicate, cntAgencyNamePredicate,
+                cntSearchOidPredicate,
                 cntNondisplayonlyPredicate);
         query.where(whereClause);
         cntQuery.where(cntWhereClause);
 
-        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber,
+                pageSize);
     }
 
-
-    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name, final String owner, final String agency, final String memberOf, final String groupType, final boolean nondisplayonly) {
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
+            final String owner, final String agency, final String memberOf, final String groupType,
+            final boolean nondisplayonly) {
 
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
         CriteriaQuery<Target> query = cb.createQuery(Target.class);
@@ -526,14 +528,15 @@ public class TargetDAO extends BaseDAO {
 
         Predicate whereClause = cb.and(namePredicate, ownerPredicate, memberOfPredicate, groupTypePredicate,
                 agencyPredicate, searchOidPredicate, nondisplayonlyPredicate);
-        Predicate cntWhereClause = cb.and(cntNamePredicate, cntOwnerPredicate, cntMemberOfPredicate, cntGroupTypePredicate,
+        Predicate cntWhereClause = cb.and(cntNamePredicate, cntOwnerPredicate, cntMemberOfPredicate,
+                cntGroupTypePredicate,
                 cntAgencyPredicate, cntSearchOidPredicate, cntNondisplayonlyPredicate);
         query.where(whereClause);
         cntQuery.where(cntWhereClause);
 
-        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber, pageSize);
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), pageNumber,
+                pageSize);
     }
-
 
     public long countTargets(final String username) {
 
@@ -553,7 +556,6 @@ public class TargetDAO extends BaseDAO {
         return count;
     }
 
-
     public long countTargetGroups(final String username) {
         CriteriaBuilder cb = currentSession().getCriteriaBuilder();
         CriteriaQuery<Long> query = cb.createQuery(Long.class);
@@ -570,7 +572,6 @@ public class TargetDAO extends BaseDAO {
 
         return count;
     }
-
 
     /**
      * @param txTemplate The txTemplate to set.
@@ -607,13 +608,12 @@ public class TargetDAO extends BaseDAO {
         return count == 0L;
     }
 
-
     public Pagination getAbstractTargetDTOs(final String name, final int pageNumber, final int pageSize) {
 
         Query q = currentSession().getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
         Query cq = currentSession().getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
-        q.setParameter(1, name);
-        cq.setParameter(1, name);
+        q.setParameter("name", name);
+        cq.setParameter("name", name);
 
         return new Pagination(cq, q, pageNumber, pageSize);
     }
@@ -622,13 +622,14 @@ public class TargetDAO extends BaseDAO {
 
         Query q = currentSession().getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
         Query cq = currentSession().getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
-        q.setParameter(1, name);
-        cq.setParameter(1, name);
+        q.setParameter("name", name);
+        cq.setParameter("name", name);
 
         return new Pagination(cq, q, pageNumber, pageSize);
     }
 
-    public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber, final int pageSize) {
+    public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber,
+            final int pageSize) {
 
         Query q = currentSession().getNamedQuery(TargetGroup.QUERY_GROUP_DTOS_BY_NAME_AND_TYPE);
         Query cq = currentSession().getNamedQuery(TargetGroup.QUERY_CNT_GROUP_DTOS_BY_NAME_AND_TYPE);
@@ -640,10 +641,12 @@ public class TargetDAO extends BaseDAO {
         return new Pagination(cq, q, pageNumber, pageSize);
     }
 
-    public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber, final int pageSize) {
+    public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber,
+            final int pageSize) {
 
         Query q = currentSession().getNamedQuery(AbstractTargetGroupTypeView.QUERY_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
-        Query cq = currentSession().getNamedQuery(AbstractTargetGroupTypeView.QUERY_CNT_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
+        Query cq = currentSession()
+                .getNamedQuery(AbstractTargetGroupTypeView.QUERY_CNT_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
         q.setParameter("name", name);
         q.setParameter("subgrouptype", subGroupType);
         cq.setParameter("name", name);
@@ -653,9 +656,9 @@ public class TargetDAO extends BaseDAO {
     }
 
     public AbstractTargetDTO loadAbstractTargetDTO(final Long oid) {
-                        return currentSession().createNamedQuery(AbstractTarget.QUERY_DTO_BY_OID, AbstractTargetDTO.class)
-                                .setParameter("oid", oid)
-                                .uniqueResult();
+        return currentSession().createNamedQuery(AbstractTarget.QUERY_DTO_BY_OID, AbstractTargetDTO.class)
+                .setParameter("oid", oid)
+                .uniqueResult();
     }
 
     public TargetGroup loadGroup(long targetGroupOid) {
@@ -678,14 +681,13 @@ public class TargetDAO extends BaseDAO {
             Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
             Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
             Hibernate.initialize(t.getOverrides().getCredentials());
-            //Hibernate.initialize(t.getChildren());
+            // Hibernate.initialize(t.getChildren());
 
             t.setDirty(false);
 
             return t;
         }
     }
-
 
     public AbstractTarget loadAbstractTarget(Long oid) {
         return (AbstractTarget) currentSession().getReference(AbstractTarget.class, oid);
@@ -718,7 +720,6 @@ public class TargetDAO extends BaseDAO {
         return dt;
     }
 
-
     @SuppressWarnings(value = "unchecked")
     public Set<Seed> getSeeds(final Target aTarget) {
         Set<Seed> seeds = new HashSet<Seed>();
@@ -745,7 +746,8 @@ public class TargetDAO extends BaseDAO {
                         childGroup = (TargetGroup) currentSession().getReference(TargetGroup.class, child.getOid());
                     }
 
-                    //If the childGroup is a sub-group, we don't want to include the seeds from the sub-group members
+                    // If the childGroup is a sub-group, we don't want to include the seeds from the
+                    // sub-group members
                     if (!subGroupTypeName.equals(childGroup.getType())) {
                         seeds.addAll(getSeeds(childGroup, agencyOid, subGroupTypeName));
                     }
@@ -757,7 +759,8 @@ public class TargetDAO extends BaseDAO {
                         childTarget = (Target) currentSession().getReference(Target.class, child.getOid());
                     }
 
-                    if (isApprovedForHarvest(childTarget) && childTarget.getOwner().getAgency().getOid().equals(agencyOid)) {
+                    if (isApprovedForHarvest(childTarget)
+                            && childTarget.getOwner().getAgency().getOid().equals(agencyOid)) {
                         seeds.addAll(childTarget.getSeeds());
                     }
                 }
@@ -804,35 +807,36 @@ public class TargetDAO extends BaseDAO {
 
     public boolean causesLoop(TargetGroup parentOid, AbstractTarget childOid) {
 
-
         return false;
     }
 
     @SuppressWarnings("unchecked")
     public Set<Long> getAncestorOids(final Long childOid) {
-        Map<Long, Long> duplicateValidator=new HashMap<>();
-        Set<Long> parents=getAncestorOidsInternal(childOid,duplicateValidator);
+        Map<Long, Long> duplicateValidator = new HashMap<>();
+        Set<Long> parents = getAncestorOidsInternal(childOid, duplicateValidator);
         duplicateValidator.clear();
         return parents;
     }
-    private Set<Long> getAncestorOidsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+
+    private Set<Long> getAncestorOidsInternal(final Long childOid, final Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
         }
 
-        if(!duplicateValidator.containsKey(childOid.longValue())){
+        if (!duplicateValidator.containsKey(childOid.longValue())) {
             duplicateValidator.put(childOid.longValue(), childOid);
         }
 
         Set<Long> parentOids = new HashSet<Long>();
 
         List<Long> immediateParents = currentSession()
-                .createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
+                .createQuery(
+                        "SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
                 .setParameter("childOid", childOid)
                 .list();
 
         for (Long parentOid : immediateParents) {
-            if(!duplicateValidator.containsKey(parentOid.longValue())) {
+            if (!duplicateValidator.containsKey(parentOid.longValue())) {
                 parentOids.add(parentOid);
                 parentOids.addAll(getAncestorOidsInternal(parentOid, duplicateValidator));
             }
@@ -844,30 +848,32 @@ public class TargetDAO extends BaseDAO {
 
     @SuppressWarnings("unchecked")
     public Set<AbstractTargetDTO> getAncestorDTOs(final Long childOid) {
-        Map<Long, Long> duplicateValidator=new HashMap<>();
-        Set<AbstractTargetDTO> parents=getAncestorDTOsInternal(childOid,duplicateValidator);
+        Map<Long, Long> duplicateValidator = new HashMap<>();
+        Set<AbstractTargetDTO> parents = getAncestorDTOsInternal(childOid, duplicateValidator);
         duplicateValidator.clear();
         return parents;
     }
 
-    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid,
+            final Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
         }
 
-        if(!duplicateValidator.containsKey(childOid.longValue())) {
-            duplicateValidator.put(childOid.longValue(),childOid);
+        if (!duplicateValidator.containsKey(childOid.longValue())) {
+            duplicateValidator.put(childOid.longValue(), childOid);
         }
 
         Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
 
         List<AbstractTargetDTO> immediateParents = currentSession()
-                .createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
+                .createQuery(
+                        "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
                 .setParameter("childOid", childOid)
                 .list();
 
         for (AbstractTargetDTO parent : immediateParents) {
-            if(!duplicateValidator.containsKey(parent.getOid().longValue())) {
+            if (!duplicateValidator.containsKey(parent.getOid().longValue())) {
                 parents.add(parent);
                 parents.addAll(getAncestorDTOsInternal(parent.getOid(), duplicateValidator));
             }
@@ -876,14 +882,14 @@ public class TargetDAO extends BaseDAO {
         return parents;
     }
 
-
     @SuppressWarnings("unchecked")
     public Set<Long> getImmediateChildrenOids(final Long parentOid) {
         if (parentOid == null) {
             return Collections.EMPTY_SET;
         } else {
             List<Long> immediateChildren = currentSession()
-                    .createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
+                    .createQuery(
+                            "SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
                     .setParameter("parentOid", parentOid)
                     .list();
 
@@ -915,7 +921,6 @@ public class TargetDAO extends BaseDAO {
         return results;
     }
 
-
     /**
      * Load the persisted target group SIP type from the database.
      *
@@ -928,18 +933,16 @@ public class TargetDAO extends BaseDAO {
                 .uniqueResult();
     }
 
-
     @SuppressWarnings("unchecked")
     public List<Seed> getLinkedSeeds(final Permission aPermission) {
-//        return getHibernateTemplate().execute(session ->
-//                session.createNamedQuery(Seed.QUERY_SEED_BY_PERMISSION_OID, Seed.class)
-//                        .setParameter(1, aPermission.getOid())
-//                        .list());
+        // return getHibernateTemplate().execute(session ->
+        // session.createNamedQuery(Seed.QUERY_SEED_BY_PERMISSION_OID, Seed.class)
+        // .setParameter(1, aPermission.getOid())
+        // .list());
         List<Seed> list = new ArrayList<Seed>();
         list.addAll(aPermission.getSeeds());
         return list;
     }
-
 
     /**
      * Transfer all seeds from one permission to another.
@@ -954,7 +957,8 @@ public class TargetDAO extends BaseDAO {
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
-                            return currentSession().createQuery("UPDATE SEED_PERMISSION SET SP_PERMISSION_ID = :toPermissionOid WHERE SP_PERMISSION_ID = :fromPermissionOid")
+                            return currentSession().createQuery(
+                                    "UPDATE SEED_PERMISSION SET SP_PERMISSION_ID = :toPermissionOid WHERE SP_PERMISSION_ID = :fromPermissionOid")
                                     .setParameter("toPermissionOid", toPermissionOid)
                                     .setParameter("fromPermissionOid", fromPermissionOid)
                                     .executeUpdate();
@@ -965,8 +969,7 @@ public class TargetDAO extends BaseDAO {
                             throw new WCTRuntimeException("Exception transferring seeds", ex);
                         }
                     }
-                }
-        );
+                });
     }
 
     /**
@@ -993,14 +996,12 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     private boolean nullOrEmpty(String aString) {
         return aString == null || "".equals(aString.trim());
     }
-
 
     /**
      * Search the Permissions.
@@ -1054,7 +1055,6 @@ public class TargetDAO extends BaseDAO {
                 aPermissionCriteria.getPageNumber(), Constants.GBL_PAGE_SIZE);
     }
 
-
     /**
      * Delete a pending target.
      *
@@ -1074,15 +1074,15 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     /**
      * Delete a schedule
+     * 
      * @param schedule
      */
-    public void delete(final Schedule schedule){
+    public void delete(final Schedule schedule) {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
@@ -1096,8 +1096,7 @@ public class TargetDAO extends BaseDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     /**
@@ -1136,7 +1135,8 @@ public class TargetDAO extends BaseDAO {
                             else {
                                 // Delete all links to parents and children.
                                 currentSession()
-                                        .createQuery("delete from GroupMember g where g.child.oid = :groupOid or g.parent.oid = :groupOid")
+                                        .createQuery(
+                                                "delete from GroupMember g where g.child.oid = :groupOid or g.parent.oid = :groupOid")
                                         .setParameter("groupOid", aTargetGroup.getOid())
                                         .executeUpdate();
 
@@ -1154,10 +1154,8 @@ public class TargetDAO extends BaseDAO {
                         }
 
                     }
-                }
-        );
+                });
     }
-
 
     /**
      * Get schedules to re-run
@@ -1205,7 +1203,8 @@ public class TargetDAO extends BaseDAO {
                 Hibernate.initialize(group);
                 Hibernate.initialize(group.getChildren());
                 for (GroupMember gm : group.getChildren()) {
-                    AbstractTarget childTarget = (AbstractTarget) session.load(AbstractTarget.class, gm.getChild().getOid());
+                    AbstractTarget childTarget = (AbstractTarget) session.load(AbstractTarget.class,
+                            gm.getChild().getOid());
                     initTargetAndChildrenInSession(childTarget, session);
                 }
             }

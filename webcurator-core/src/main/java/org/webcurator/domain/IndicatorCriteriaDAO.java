@@ -32,13 +32,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 
 /**
- * The object for accessing <code>IndicatorCriteria</code>s from the persistent store.
+ * The object for accessing <code>IndicatorCriteria</code>s from the persistent
+ * store.
  */
 @Transactional
 public class IndicatorCriteriaDAO {
-    
+
     private Log log = LogFactory.getLog(IndicatorCriteriaDAO.class);
-    
+
     private TransactionTemplate txTemplate = null;
 
     @Autowired
@@ -48,21 +49,19 @@ public class IndicatorCriteriaDAO {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
                             log.debug("Before Saving of Object");
                             currentSession().persist(aObject);
                             log.debug("After Saving Object");
-                        }
-                        catch(Exception ex) {
-                            log.warn("Setting Rollback Only",ex);
+                        } catch (Exception ex) {
+                            log.warn("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
-    
+
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -71,22 +70,20 @@ public class IndicatorCriteriaDAO {
                             log.debug("Before Delete of Object");
                             currentSession().remove(aObject);
                             log.debug("After Deletes Object");
-                        }
-                        catch (DataAccessException e) {
-                            log.warn("Setting Rollback Only",e);
+                        } catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only", e);
                             ts.setRollbackOnly();
                             throw e;
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
 
     public IndicatorCriteria getIndicatorCriteriaByOid(final Long indicatorCriteriaOid) {
         Query<IndicatorCriteria> query = currentSession().createNamedQuery(
                 IndicatorCriteria.QRY_GET_INDICATOR_CRITERIA_BY_OID, IndicatorCriteria.class);
-        query.setParameter(1, indicatorCriteriaOid, Long.class);
+        query.setParameter("indicatorCriteriaOid", indicatorCriteriaOid, Long.class);
         return query.uniqueResult();
 
     }
@@ -100,7 +97,7 @@ public class IndicatorCriteriaDAO {
     public List<IndicatorCriteria> getIndicatorCriteriasByAgencyOid(Long agencyOid) {
         return currentSession()
                 .createNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS_BY_AGENCY, IndicatorCriteria.class)
-                .setParameter(1, agencyOid)
+                .setParameter("agencyOid", agencyOid)
                 .list();
     }
 

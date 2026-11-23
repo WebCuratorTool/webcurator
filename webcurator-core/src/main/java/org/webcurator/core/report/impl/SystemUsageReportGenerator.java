@@ -45,83 +45,83 @@ import org.webcurator.domain.model.report.LogonDuration;
  */
 @Transactional
 public class SystemUsageReportGenerator implements ReportGenerator {
-	
+
 	private Log log = LogFactory.getLog(SystemUsageReportGenerator.class);
 
 	@Autowired
 	private EntityManager entityManager;
 
-
 	/**
 	 * Generate report's data
+	 * 
 	 * @param operationalReport An OperationReport
 	 * @return Report's data as a <code>List</code> of <code>ResultSet</code>
 	 */
 	public List<ResultSet> generateData(OperationalReport operationalReport) {
-				
+
 		// Parameters
 		List<Parameter> parameters = operationalReport.getParameters();
-		DateParameter startDate =	(DateParameter)	parameters.get(0);
-		DateParameter endDate =		(DateParameter) parameters.get(1);
-		StringParameter agency = 	(StringParameter) parameters.get(2);
-		
+		DateParameter startDate = (DateParameter) parameters.get(0);
+		DateParameter endDate = (DateParameter) parameters.get(1);
+		StringParameter agency = (StringParameter) parameters.get(2);
+
 		SimpleDateFormat sdf = startDate.getDateFormat();
 		log.debug(" startDate=" + sdf.format(startDate.getValue()));
 		log.debug(" endDate=" + sdf.format(endDate.getValue()));
-		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()) );
-		
+		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()));
+
 		List<ResultSet> res = getSystemUsageReport(startDate.getValue(), endDate.getValue(), agency.getValue());
-		
+
 		return res;
 	}
-	
-	
+
 	/**
 	 * Generate the System Usage Report's data
 	 * 
-	 * @param startDate Start date<br>Is inclusive and value is mandatory
-	 * @param endDate End date.<br>Is exclusive and value is mandatory
-	 * @param agencyName Name of Agency<br><code>null</code> value is accepted
+	 * @param startDate  Start date<br>
+	 *                   Is inclusive and value is mandatory
+	 * @param endDate    End date.<br>
+	 *                   Is exclusive and value is mandatory
+	 * @param agencyName Name of Agency<br>
+	 *                   <code>null</code> value is accepted
 	 * @return A <code>List</code> of <code>SystemUsageReportResultSet</code>
 	 */
-	protected List<ResultSet> getSystemUsageReport(Date startDate, Date endDate, String agencyName){
-		
+	protected List<ResultSet> getSystemUsageReport(Date startDate, Date endDate, String agencyName) {
+
 		Calendar now = Calendar.getInstance();
 
 		// Get all logged users
 		List results = currentSession().getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
-						.setParameter(1, startDate)
-						.setParameter(2, endDate)
-						.setParameter(3, now.getTime())
-						.setParameter(4, endDate)
-						.setParameter(5, endDate)
-						.setParameter(6, agencyName)
-						.setParameter(7, agencyName)
-						.setParameter(8, agencyName)
-						.list();
+				.setParameter("startDate", startDate)
+				.setParameter("endDate", endDate)
+				.setParameter("now", now.getTime())
+				.setParameter("allAgencies", agencyName)
+				.setParameter("agencyName", agencyName)
+				.list();
 
 		log.debug("results=" + results.size());
-		
+
 		ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();
-		for(Iterator it = results.iterator(); it.hasNext(); ){
-			
+		for (Iterator it = results.iterator(); it.hasNext();) {
+
 			LogonUserDTO lud = (LogonUserDTO) it.next();
-			
+
 			// late user who is still logged in
-			if(lud.getDuration() == null){
-				Long duration = LogonDuration.computeDuration(lud.getLogonTime(), now.getTime());//(long)(now.getTime()/1000 - lud.getLogonTime().getTime()/1000);
+			if (lud.getDuration() == null) {
+				Long duration = LogonDuration.computeDuration(lud.getLogonTime(), now.getTime());// (long)(now.getTime()/1000
+																									// -
+																									// lud.getLogonTime().getTime()/1000);
 				lud.setDuration(duration);
-				log.debug("    still logged in, duration to now=" + duration.toString() );
+				log.debug("    still logged in, duration to now=" + duration.toString());
 			}
-			
+
 			// Wrap into SystemUsageReportResultSet
 			SystemUsageReportResultSet rs = new SystemUsageReportResultSet(lud);
 			resultSets.add(rs);
 		}
-		
+
 		return resultSets;
 	}
-
 
 	private Session currentSession() {
 		return entityManager.unwrap(Session.class);

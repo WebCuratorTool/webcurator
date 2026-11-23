@@ -32,13 +32,14 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.IndicatorReportLine;
 
 /**
- * The object for accessing <code>IndicatorReportLine</code>s from the persistent store.
+ * The object for accessing <code>IndicatorReportLine</code>s from the
+ * persistent store.
  */
 @Transactional
 public class IndicatorReportLineDAO {
-    
+
     private Log log = LogFactory.getLog(IndicatorReportLineDAO.class);
-    
+
     private TransactionTemplate txTemplate = null;
 
     @Autowired
@@ -48,21 +49,19 @@ public class IndicatorReportLineDAO {
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
                             log.debug("Before Saving of Object");
                             currentSession().persist(aObject);
                             log.debug("After Saving Object");
-                        }
-                        catch(Exception ex) {
-                            log.warn("Setting Rollback Only",ex);
+                        } catch (Exception ex) {
+                            log.warn("Setting Rollback Only", ex);
                             ts.setRollbackOnly();
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
-    
+
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -71,30 +70,29 @@ public class IndicatorReportLineDAO {
                             log.debug("Before Delete of Object");
                             currentSession().remove(aObject);
                             log.debug("After Deletes Object");
-                        }
-                        catch (DataAccessException e) {
-                            log.warn("Setting Rollback Only",e);
+                        } catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only", e);
                             ts.setRollbackOnly();
                             throw e;
                         }
                         return null;
                     }
-                }
-        );    
+                });
     }
 
     public IndicatorReportLine getIndicatorReportLineByOid(final Long indicatorReportLineOid) {
         Query<IndicatorReportLine> query = currentSession()
                 .createNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINE_BY_OID, IndicatorReportLine.class);
-        query.setParameter(0, indicatorReportLineOid, Long.class);
+        query.setParameter("indicatorReportLineOid", indicatorReportLineOid, Long.class);
         return query.uniqueResult();
 
     }
 
     public List<IndicatorReportLine> getIndicatorReportLinesByIndicatorOid(Long indicatorOid) {
         return currentSession()
-                .createNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID, IndicatorReportLine.class)
-                .setParameter(1, indicatorOid)
+                .createNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID,
+                        IndicatorReportLine.class)
+                .setParameter("indicatorOid", indicatorOid)
                 .list();
     }
 
@@ -106,4 +104,3 @@ public class IndicatorReportLineDAO {
         return entityManager.unwrap(Session.class);
     }
 }
-

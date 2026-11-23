@@ -48,19 +48,16 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "TARGET_INSTANCE")
 @NamedQueries({
-        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.GET_LATEST_FOR_TARGET",
-                query = "select max(scheduledTime) from TargetInstance where target.oid=:targetOid and schedule.oid=:scheduleOid"),
-        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeable",
-                query = "from TargetInstance ti where ti.purged = false and ti.archivedTime < :purgeTime and (ti.state = :archivedState or ti.state = :rejectedState)"),
-        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted",
-                query = "from TargetInstance ti where ti.purged = false and ti.actualStartTime < :purgeTime and ti.state = :abortedState"),
-        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.get_harvest_history",
-                query = "select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=?1 order by ti.actualStartTime desc")
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.GET_LATEST_FOR_TARGET", query = "select max(scheduledTime) from TargetInstance where target.oid=:targetOid and schedule.oid=:scheduleOid"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeable", query = "from TargetInstance ti where ti.purged = false and ti.archivedTime < :purgeTime and (ti.state = :archivedState or ti.state = :rejectedState)"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted", query = "from TargetInstance ti where ti.purged = false and ti.actualStartTime < :purgeTime and ti.state = :abortedState"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.get_harvest_history", query = "select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=:targetOid order by ti.actualStartTime desc")
 })
 public class TargetInstance implements Annotatable, Overrideable, UserInTrayResource {
 
     /**
-     * The name of the query to retrieve the latest date for a TargetInstance related to a given Target and Schedule.
+     * The name of the query to retrieve the latest date for a TargetInstance
+     * related to a given Target and Schedule.
      */
     public static final String QUERY_GET_LATEST_FOR_TARGET = "org.webcurator.domain.model.core.TargetInstance.GET_LATEST_FOR_TARGET";
 
@@ -73,7 +70,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * the name of the query to return a list of purgeable aborted target instances.
      */
     public static final String QRY_GET_PURGEABLE_ABORTED_TIS = "org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted";
-
 
     /**
      * query parameter for the archived state.
@@ -102,7 +98,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static final String STATE_SCHEDULED = "Scheduled";
     /**
-     * Queued – The Target Instances scheduled time has past but there is no capacity process the Harvest.
+     * Queued – The Target Instances scheduled time has past but there is no
+     * capacity process the Harvest.
      */
     public static final String STATE_QUEUED = "Queued";
     /**
@@ -114,27 +111,33 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static final String STATE_STOPPING = "Stopping";
     /**
-     * Paused – The harvest for the Target Instance has been paused on the Harvest Agent and may be restarted after changes to the Target Instance.
+     * Paused – The harvest for the Target Instance has been paused on the Harvest
+     * Agent and may be restarted after changes to the Target Instance.
      */
     public static final String STATE_PAUSED = "Paused";
     /**
-     * Aborted – The harvest for the Target Instance has been aborted and will not be restarted.  Any harvest data has been deleted.
+     * Aborted – The harvest for the Target Instance has been aborted and will not
+     * be restarted. Any harvest data has been deleted.
      */
     public static final String STATE_ABORTED = "Aborted";
     /**
-     * Harvested – The Harvest Agent has completed the harvest for the Target Instance or the harvest has been manually stopped.
+     * Harvested – The Harvest Agent has completed the harvest for the Target
+     * Instance or the harvest has been manually stopped.
      */
     public static final String STATE_HARVESTED = "Harvested";
     /**
-     * Rejected – The Harvest Result for the Target Instance has been Quality Reviewed and determined unsuitable for archiving.
+     * Rejected – The Harvest Result for the Target Instance has been Quality
+     * Reviewed and determined unsuitable for archiving.
      */
     public static final String STATE_REJECTED = "Rejected";
     /**
-     * Endorsed – The Harvest Result for the Target Instance has been Quality Reviewed and determined suitable for archiving.
+     * Endorsed – The Harvest Result for the Target Instance has been Quality
+     * Reviewed and determined suitable for archiving.
      */
     public static final String STATE_ENDORSED = "Endorsed";
     /**
-     * Archived – The Harvest Result for the Target Instance has been submitted to the Digital Archive System.
+     * Archived – The Harvest Result for the Target Instance has been submitted to
+     * the Digital Archive System.
      */
     public static final String STATE_ARCHIVED = "Archived";
     /**
@@ -142,14 +145,15 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static final String STATE_ARCHIVING = "Archiving";
     /**
-     * Scheduled – The Target Instance is patching: scheduled, harvesting, modifying.
+     * Scheduled – The Target Instance is patching: scheduled, harvesting,
+     * modifying.
      */
     public static final String STATE_PATCHING = "Patching";
-//    /** Queued – The Target Instances scheduled time has past but there is no capacity process the Modification. */
-//    public static final String STATE_MOD_QUEUED = "ModQueued";
-//    /** Modifying - We have started the modifying, but not completed */
-//    public static final String STATE_MOD_RUNNING = "ModRunning";
-
+    // /** Queued – The Target Instances scheduled time has past but there is no
+    // capacity process the Modification. */
+    // public static final String STATE_MOD_QUEUED = "ModQueued";
+    // /** Modifying - We have started the modifying, but not completed */
+    // public static final String STATE_MOD_RUNNING = "ModRunning";
 
     /**
      * value for a low priority target instance.
@@ -173,7 +177,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static final int MAX_DISPLAY_CHANGE_REASON_LENGTH = 1000;
 
-
     /**
      * unique identifier.
      */
@@ -183,12 +186,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
-    @TableGenerator(name = "SharedTableIdGenerator",
-            table = "ID_GENERATOR",
-            pkColumnName = "IG_TYPE",
-            valueColumnName = "IG_VALUE",
-            pkColumnValue = "General",
-            allocationSize = 1) // 50 is the default
+    @TableGenerator(name = "SharedTableIdGenerator", table = "ID_GENERATOR", pkColumnName = "IG_TYPE", valueColumnName = "IG_VALUE", pkColumnValue = "General", allocationSize = 1) // 50
+                                                                                                                                                                                    // is
+                                                                                                                                                                                    // the
+                                                                                                                                                                                    // default
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid = -1L;
     /**
@@ -207,7 +208,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * the schedule that this target instance belongs to.
      */
-    @ManyToOne(cascade = {CascadeType.REFRESH})
+    @ManyToOne(cascade = { CascadeType.REFRESH })
     @JoinColumn(name = "TI_SCHEDULE_ID")
     private Schedule schedule;
     /**
@@ -255,7 +256,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * the status of the current or complete harvest.
      */
-    @OneToOne(mappedBy = "targetInstance", cascade = {CascadeType.ALL})
+    @OneToOne(mappedBy = "targetInstance", cascade = { CascadeType.ALL })
     private HarvesterStatus status;
     /**
      * the owner of this target instance.
@@ -281,7 +282,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * the list of indicators for this target instance.
      */
-    @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
+    @OneToMany(cascade = { CascadeType.ALL }) // default fetch type is LAZY
     @JoinColumn(name = "I_TI_OID")
     @OrderColumn(name = "I_INDEX")
     private List<Indicator> indicators = new LinkedList<Indicator>();
@@ -296,7 +297,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Transient
     private boolean annotationsSorted = false;
     /**
-     * Flag to state if the annotations contain any flagged as alertable, making the whole target instance alertable
+     * Flag to state if the annotations contain any flagged as alertable, making the
+     * whole target instance alertable
      */
     @Transient
     private boolean alertable = false;
@@ -325,7 +327,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @CollectionTable(name = "SIP_PART_ELEMENT", joinColumns = @JoinColumn(name = "SPE_TARGET_INSTANCE_OID"))
     @MapKeyColumn(name = "SPE_KEY")
     @Column(name = "SPE_VALUE")
-    //@Lob // column="SPE_VALUE" type="materialized_clob"
+    // @Lob // column="SPE_VALUE" type="materialized_clob"
     private Map<String, String> sipParts = new HashMap<String, String>();
     /**
      * The original seeds
@@ -378,12 +380,13 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * The seed history
      **/
-    @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
+    @OneToMany(cascade = { CascadeType.ALL }) // default fetch type is LAZY
     @JoinColumn(name = "SH_TI_OID")
     private Set<SeedHistory> seedHistory = new HashSet<SeedHistory>();
 
     /**
-     * flag to indicate that the list of annotations has been loaded for this instance.
+     * flag to indicate that the list of annotations has been loaded for this
+     * instance.
      * This is a transient flag used in the view.
      */
     @Transient
@@ -391,7 +394,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * The profile overrides for this target instance.
      */
-    @OneToOne(cascade = {CascadeType.ALL}) // WAS cascade="save-update"
+    @OneToOne(cascade = { CascadeType.ALL }) // WAS cascade="save-update"
     @JoinColumn(name = "TI_PROF_OVERRIDE_OID")
     private ProfileOverrides overrides;
 
@@ -400,14 +403,16 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_ARCHIVE_ID")
     private String archiveIdentifier;
     /**
-     * Flag to indicate that this instances digital assets have been purged from the store.
+     * Flag to indicate that this instances digital assets have been purged from the
+     * store.
      */
     @NotNull
     @Column(name = "TI_PURGED")
     private boolean purged = false;
 
     /**
-     * Flag to indicate that this target instance is the first to be scheduled from its owning Target.
+     * Flag to indicate that this target instance is the first to be scheduled from
+     * its owning Target.
      */
     @Column(name = "TI_FIRST_FROM_TARGET")
     private boolean firstFromTarget = false;
@@ -427,7 +432,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * The job name used by the harvester for this target instance:
      * 1. For a normal harvest, using Oid of target instance as the job name.
-     * 2. For a patching harvest, append "mod" prefix and HarvestResult number as the job name
+     * 2. For a patching harvest, append "mod" prefix and HarvestResult number as
+     * the job name
      *
      * @return the job name
      */
@@ -496,7 +502,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Fetch the <code>Indicator</code>s for this <code>TargetInstance</code>
      *
-     * @return A <code>List</code> of <code>Indicator</code>s for the specified <code>TargetInstance</code>
+     * @return A <code>List</code> of <code>Indicator</code>s for the specified
+     *         <code>TargetInstance</code>
      */
     public List<Indicator> getIndicators() {
         return indicators;
@@ -511,7 +518,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.indicators = indicators;
     }
 
-
     /**
      * Fetch the ArcHarvestResult whose harvestNumber is specified.
      *
@@ -519,8 +525,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * @return the ArcHarvestResult, or null if not found
      */
     public HarvestResult getHarvestResult(int harvestNumber) {
-        List<HarvestResult> results = getHarvestResults(); //Trigger hibernate fetch if necessary
-        if (results == null) return null;
+        List<HarvestResult> results = getHarvestResults(); // Trigger hibernate fetch if necessary
+        if (results == null)
+            return null;
         for (HarvestResult result : results) {
             if (result != null && harvestNumber == result.getHarvestNumber()) {
                 return result;
@@ -744,8 +751,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         stateOrder.put(STATE_STOPPING, 10);
         stateOrder.put(STATE_SCHEDULED, 40);
         stateOrder.put(STATE_PATCHING, 100);
-//        stateOrder.put(STATE_MOD_QUEUED,101);
-//        stateOrder.put(STATE_MOD_RUNNING,102);
+        // stateOrder.put(STATE_MOD_QUEUED,101);
+        // stateOrder.put(STATE_MOD_RUNNING,102);
 
         return stateOrder;
     }
@@ -958,7 +965,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         return annotationsSet;
     }
 
-    /*(non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.webcurator.domain.model.core.Annotatable#getSortedAnnotations()
      */
     public List<Annotation> getSortedAnnotations() {
@@ -968,7 +977,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         return getAnnotations();
     }
 
-    /*(non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.webcurator.domain.model.core.Annotatable#sortAnnotations()
      */
     public void sortAnnotations() {
@@ -987,10 +998,14 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     }
 
     /**
-     * Get the overrides for Hibernate ONLY. Application code should use the getProfileOverrides()
+     * Get the overrides for Hibernate ONLY. Application code should use the
+     * getProfileOverrides()
      * method.
-     * KU 10-01-2008: because the TargetInstance does not "own" the profile overrides (they are notionally owned by the Target) there are problems when the
-     * target instance is deleted (the override may still be referenced). I have therefore changed the cascade
+     * KU 10-01-2008: because the TargetInstance does not "own" the profile
+     * overrides (they are notionally owned by the Target) there are problems when
+     * the
+     * target instance is deleted (the override may still be referenced). I have
+     * therefore changed the cascade
      * option for hibernate from "all" to "save-update"
      */
     public ProfileOverrides getOverrides() {
@@ -1049,14 +1064,18 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.purged = purged;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.webcurator.core.notification.InTrayResource#getResourceName()
      */
     public String getResourceName() {
         return this.oid.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see org.webcurator.core.notification.InTrayResource#getResourceType()
      */
     public String getResourceType() {
@@ -1083,7 +1102,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.referenceNumber = this.archiveIdentifier;
     }
 
-
     /**
      * Hibernate version tracking for optimistic locking.
      *
@@ -1106,7 +1124,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * Get the date by which items should be sorted.
      *
      * @return If the Target Instance has started (or later), then the start
-     * time; otherwise the scheduled time.
+     *         time; otherwise the scheduled time.
      */
     @Transient
     public Date getSortOrderDate() {
@@ -1147,7 +1165,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.harvestServer = harvestServer;
     }
 
-
     /**
      * @return the parts
      */
@@ -1181,7 +1198,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
                 ((TargetInstance) other).oid.equals(oid);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -1270,7 +1289,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         return useAQA;
     }
 
-
     /**
      * @param useAQA The useAQA to set.
      */
@@ -1318,7 +1336,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     }
 
     /**
-     * @return Returns the QA recommendation derived from the target instance's indicators
+     * @return Returns the QA recommendation derived from the target instance's
+     *         indicators
      */
     public String getRecommendation() {
         return recommendation;
@@ -1329,7 +1348,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     }
 
     /**
-     * @return Flag to indicate if harvest optimization is permitted for this target instance
+     * @return Flag to indicate if harvest optimization is permitted for this target
+     *         instance
      */
     public boolean isAllowOptimize() {
         return allowOptimize;

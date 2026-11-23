@@ -29,8 +29,9 @@ public class HeatmapDAO {
 
 	public Map<String, HeatmapConfig> getHeatmapConfigurations() {
 		Map<String, HeatmapConfig> result = new HashMap<>();
-		List<HeatmapConfig> configurations = currentSession().createNamedQuery(HeatmapConfig.QUERY_ALL, HeatmapConfig.class)
-					.list();
+		List<HeatmapConfig> configurations = currentSession()
+				.createNamedQuery(HeatmapConfig.QUERY_ALL, HeatmapConfig.class)
+				.list();
 		for (HeatmapConfig config : configurations) {
 			result.put(config.getName(), config);
 		}
@@ -56,7 +57,7 @@ public class HeatmapDAO {
 
 	/**
 	 * @param txTemplate
-	 *            The txTemplate to set.
+	 *                   The txTemplate to set.
 	 */
 	public void setTxTemplate(TransactionTemplate txTemplate) {
 		this.txTemplate = txTemplate;
@@ -67,8 +68,9 @@ public class HeatmapDAO {
 	}
 
 	public HeatmapConfig getConfigByOid(final Long oid) {
-		Query<HeatmapConfig> query = currentSession().createNamedQuery(HeatmapConfig.QRY_GET_CONFIG_BY_OID, HeatmapConfig.class);
-		query.setParameter(1, oid, Long.class);
+		Query<HeatmapConfig> query = currentSession().createNamedQuery(HeatmapConfig.QRY_GET_CONFIG_BY_OID,
+				HeatmapConfig.class);
+		query.setParameter("oid", oid, Long.class);
 		return query.uniqueResult();
 	}
 
