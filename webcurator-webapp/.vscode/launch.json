@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Debug WebappApplication",
+      "request": "launch",
+      "mainClass": "org.webcurator.webapp.WebappApplication",
+      "projectName": "webcurator-webapp",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
