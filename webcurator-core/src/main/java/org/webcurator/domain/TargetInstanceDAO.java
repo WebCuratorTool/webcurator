@@ -52,6 +52,7 @@ import java.util.*;
 
 /**
  * The object for accessing TargetInstances from the persistent store.
+ * 
  * @author nwaight
  */
 public class TargetInstanceDAO {
@@ -96,8 +97,7 @@ public class TargetInstanceDAO {
                             }
                             return null;
                         }
-                    }
-            );
+                    });
         } catch (Exception e) {
             if (originalTI != null) {
                 log.error("Failed to save Target Instance: " + originalTI.getOid(), e);
@@ -109,15 +109,24 @@ public class TargetInstanceDAO {
         if (aObj instanceof TargetInstance) {
             TargetInstance targetInstance = (TargetInstance) aObj;
             if (originalTI == null) {
-                auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(), Auditor.ACTION_NEW_TARGET_INSTANCE, "The TargetInstance '" + targetInstance.getOid() + "' has been created");
+                auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(),
+                        Auditor.ACTION_NEW_TARGET_INSTANCE,
+                        "The TargetInstance '" + targetInstance.getOid() + "' has been created");
             } else {
-                auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(), Auditor.ACTION_UPDATE_TARGET_INSTANCE, "The TargetInstance '" + targetInstance.getOid() + "' has been updated");
+                auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(),
+                        Auditor.ACTION_UPDATE_TARGET_INSTANCE,
+                        "The TargetInstance '" + targetInstance.getOid() + "' has been updated");
                 if (!originalTI.getState().equals(targetInstance.getState())) {
-                    auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(), Auditor.ACTION_STATE_CHANGE_TARGET_INSTANCE, "The TargetInstance '" + targetInstance.getOid() + "' state has changed from " + originalTI.getState() + " to " + targetInstance.getState());
+                    auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(),
+                            Auditor.ACTION_STATE_CHANGE_TARGET_INSTANCE,
+                            "The TargetInstance '" + targetInstance.getOid() + "' state has changed from "
+                                    + originalTI.getState() + " to " + targetInstance.getState());
                 }
 
                 if (!originalTI.getOwnerOid().equals(targetInstance.getOwner().getOid())) {
-                    auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(), Auditor.ACTION_OWNER_CHANGE_TARGET_INSTANCE, "The TargetInstance '" + targetInstance.getOid() + "' owner has changed.");
+                    auditor.audit(TargetInstance.class.getName(), targetInstance.getOid(),
+                            Auditor.ACTION_OWNER_CHANGE_TARGET_INSTANCE,
+                            "The TargetInstance '" + targetInstance.getOid() + "' owner has changed.");
                 }
             }
         }
@@ -138,8 +147,7 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @Transactional
@@ -167,7 +175,9 @@ public class TargetInstanceDAO {
                         try {
                             // Note: this DELETE cascades to ARC_HARVEST_RESOURCE as per the db schema
                             log.debug("Before deleting harvest result resources");
-                            currentSession().createNativeQuery("DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=?1")
+                            currentSession()
+                                    .createNativeQuery(
+                                            "DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=?1")
                                     .setParameter(1, harvestResultId).executeUpdate();
                             log.debug("After deleting harvest result resources");
                         } catch (Exception ex) {
@@ -177,8 +187,7 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @Transactional
@@ -189,8 +198,8 @@ public class TargetInstanceDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before deleting harvest result files");
-                            currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid").
-                                    setParameter("hrOid", harvestResultId, Long.class).executeUpdate();
+                            currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid")
+                                    .setParameter("hrOid", harvestResultId, Long.class).executeUpdate();
                             log.debug("After deleting harvest result files");
                         } catch (Exception ex) {
                             log.warn("Problem occured deleting ArcHarvestFile records", ex);
@@ -199,8 +208,7 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @Transactional
@@ -220,16 +228,13 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
-
 
     @Transactional
     public TargetInstance load(final long targetInstanceOid) {
         return (TargetInstance) currentSession().getReference(TargetInstance.class, targetInstanceOid);
     }
-
 
     public HarvestResult getHarvestResult(final Long harvestResultOid) {
         return getHarvestResult(harvestResultOid, true);
@@ -250,7 +255,9 @@ public class TargetInstanceDAO {
     @SuppressWarnings("unchecked")
     @Transactional
     public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-        Query q = currentSession().createQuery("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", HarvestResult.class);
+        Query q = currentSession().createQuery(
+                "select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber",
+                HarvestResult.class);
         q.setParameter(0, targetInstanceId);
         return q.list();
     }
@@ -262,11 +269,11 @@ public class TargetInstanceDAO {
         CriteriaQuery<TargetInstance> query = cb.createQuery(TargetInstance.class);
         CriteriaQuery<Long> cntQuery = cb.createQuery(Long.class);
         Root<TargetInstance> root = query.from(TargetInstance.class);
-        Root<TargetInstance> cntRoot = query.from(TargetInstance.class);
+        Root<TargetInstance> cntRoot = cntQuery.from(TargetInstance.class);
         query.select(root);
         cntQuery.select(cb.count(cntRoot));
 
-        //To ignore duplicated data
+        // To ignore duplicated data
         query.distinct(true);
         cntQuery.distinct(true);
 
@@ -403,7 +410,8 @@ public class TargetInstanceDAO {
                 ownerPredicate, agencyPredicate, namePredicate, seachOidPredicate, targetSearchOidPredicate,
                 flaggedPredicate, flagPredicate, nondisplayonlyPredicate);
         Predicate cntWhereClause = cb.and(cntScheduledTimePredicate, cntStatePredicate, cntRecommendationPredicate,
-                cntOwnerPredicate, cntAgencyPredicate, cntNamePredicate, cntSeachOidPredicate, cntTargetSearchOidPredicate,
+                cntOwnerPredicate, cntAgencyPredicate, cntNamePredicate, cntSeachOidPredicate,
+                cntTargetSearchOidPredicate,
                 cntFlaggedPredicate, cntFlagPredicate, cntNondisplayonlyPredicate);
         query.where(whereClause);
         cntQuery.where((cntWhereClause));
@@ -452,10 +460,12 @@ public class TargetInstanceDAO {
         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_DESC)) {
             Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
             orderBy.add(cb.desc(harvesterStatusJoin.get("urlsSucceeded")));
-        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_ASC)) {
+        } else if (aCriteria.getSortorder()
+                .equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_ASC)) {
             Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
             orderBy.add(cb.asc(harvesterStatusJoin.get("percentageUrlsFailed")));
-        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_DESC)) {
+        } else if (aCriteria.getSortorder()
+                .equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_DESC)) {
             Join<TargetInstance, HarvesterStatus> harvesterStatusJoin = root.join("status");
             orderBy.add(cb.desc(harvesterStatusJoin.get("percentageUrlsFailed")));
         } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_ASC)) {
@@ -468,13 +478,15 @@ public class TargetInstanceDAO {
                 targetJoin = root.join("target");
             }
             orderBy.add(cb.desc(targetJoin.get("crawls")));
-        } else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID)) {
+        } else if (aCriteria.getSortorder()
+                .equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID)) {
             orderBy.add(cb.desc(root.get("sortOrderDate")));
         }
 
         query.orderBy(orderBy);
 
-        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), aPage, aPageSize);
+        return new Pagination(currentSession().createQuery(cntQuery), currentSession().createQuery(query), aPage,
+                aPageSize);
     }
 
     @SuppressWarnings("unchecked")
@@ -578,7 +590,8 @@ public class TargetInstanceDAO {
         criteria.setTo(new Date());
 
         StringBuffer q = new StringBuffer();
-        q.append("select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
+        q.append(
+                "select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
         q.append("from TargetInstance ti where ti.scheduledTime <= :ed ");
         q.append("and ti.state in ('Scheduled', 'Queued', 'ModScheduled', 'ModQueued') ");
         q.append("order by ti.priority asc, ti.scheduledTime asc, ti.oid asc ");
@@ -595,7 +608,8 @@ public class TargetInstanceDAO {
     public List<QueuedTargetInstanceDTO> getUpcomingJobs(final long futureMs) {
 
         StringBuffer q = new StringBuffer();
-        q.append("select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
+        q.append(
+                "select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
         q.append("from TargetInstance ti where ti.scheduledTime <= :ed ");
         q.append("and ti.state in ('Scheduled', 'Queued') ");
         q.append("order by ti.priority asc, ti.scheduledTime asc, ti.oid asc ");
@@ -618,7 +632,8 @@ public class TargetInstanceDAO {
         criteria.setTo(new Date());
 
         StringBuffer q = new StringBuffer();
-        q.append("select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
+        q.append(
+                "select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
         q.append("from TargetInstance ti where ti.scheduledTime > :ed ");
         q.append("and ti.state in ('Scheduled', 'Queued') and ti.target.oid = :toid ");
         q.append("order by ti.priority asc, ti.scheduledTime asc, ti.oid asc ");
@@ -652,7 +667,6 @@ public class TargetInstanceDAO {
 
         return query.list().get(0);
     }
-
 
     @Transactional
     public TargetInstance populate(final TargetInstance aTargetInstance) {
@@ -712,7 +726,9 @@ public class TargetInstanceDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before deleting scheduled instances");
-                            currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid")
+                            currentSession()
+                                    .createQuery(
+                                            "DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid")
                                     .setParameter("state", TargetInstance.STATE_SCHEDULED)
                                     .setParameter("scheduleOid", aSchedule.getOid())
                                     .executeUpdate();
@@ -723,8 +739,7 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @Transactional
@@ -759,13 +774,13 @@ public class TargetInstanceDAO {
             group.changeState(TargetGroup.STATE_INACTIVE);
         }
 
-        log.info("Completed Job to check end dates on group: took " + (new Date().getTime() - startTime.getTime()) + "ms");
+        log.info("Completed Job to check end dates on group: took " + (new Date().getTime() - startTime.getTime())
+                + "ms");
     }
 
     private Session currentSession() {
         return entityManager.unwrap(Session.class);
     }
-
 
     private class UnscheduleTargetTransaction implements TransactionCallback {
         private AbstractTarget target;
@@ -798,14 +813,14 @@ public class TargetInstanceDAO {
 
         }
 
-
         private void removeSchedules(final AbstractTarget aTarget) {
             Map<Object, Object> duplicateValidator = new HashMap<>();
             removeSchedulesInternal(aTarget, duplicateValidator);
             duplicateValidator.clear();
         }
 
-        private void removeSchedulesInternal(final AbstractTarget aTarget, final Map<Object, Object> duplicateValidator) {
+        private void removeSchedulesInternal(final AbstractTarget aTarget,
+                final Map<Object, Object> duplicateValidator) {
             if (duplicateValidator.containsKey(aTarget)) {
                 return;
             } else {
@@ -813,14 +828,14 @@ public class TargetInstanceDAO {
             }
 
             // Delete the scheduled instances from this target.
-                    for (Schedule aSchedule : schedules) {
-                        currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
-                                .setParameter("state", TargetInstance.STATE_SCHEDULED)
-                                .setParameter("scheduleOid", aSchedule.getOid())
-                                .setParameter("targetOid", aTarget.getOid())
-                                .executeUpdate();
-                    }
-
+            for (Schedule aSchedule : schedules) {
+                currentSession().createQuery(
+                        "DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
+                        .setParameter("state", TargetInstance.STATE_SCHEDULED)
+                        .setParameter("scheduleOid", aSchedule.getOid())
+                        .setParameter("targetOid", aTarget.getOid())
+                        .executeUpdate();
+            }
 
             // Delete all the scheduled instances from child targets.
             if (aTarget.getObjectType() == AbstractTarget.TYPE_GROUP) {
@@ -852,7 +867,6 @@ public class TargetInstanceDAO {
 
     }
 
-
     /**
      * Delete TargetInstances for the specified Target and Schedule
      *
@@ -866,7 +880,8 @@ public class TargetInstanceDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before deleting scheduled instance for " + targetOid + " " + scheduleOid);
-                            currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
+                            currentSession().createQuery(
+                                    "DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
                                     .setParameter("state", TargetInstance.STATE_SCHEDULED)
                                     .setParameter("scheduleOid", scheduleOid)
                                     .setParameter("targetOid", targetOid)
@@ -878,8 +893,7 @@ public class TargetInstanceDAO {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     @Transactional
@@ -963,7 +977,8 @@ public class TargetInstanceDAO {
         }
 
         StringBuffer q = new StringBuffer();
-        q.append("select new org.webcurator.domain.model.dto.TargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.owner.oid) ");
+        q.append(
+                "select new org.webcurator.domain.model.dto.TargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.owner.oid) ");
         q.append("from TargetInstance ti where ti.oid = :oid ");
 
         Query<TargetInstanceDTO> query = currentSession().createQuery(q.toString(), TargetInstanceDTO.class);
